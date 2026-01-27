@@ -47,7 +47,6 @@ const signUppost = async (req, res) => {
   if (req.session.admin) {
     return res.redirect("/admin/adminHome");
   }
-
   const signupSchema = z.object({
     username: z
       .string()
@@ -96,7 +95,6 @@ const signUppost = async (req, res) => {
     phoneNumber,
     password,
   });
-
   // console.log("HI");
   return res.redirect("/home");
 };
@@ -133,7 +131,6 @@ const loginPost = async (req, res) => {
     req.session.loginErr1 = "Invalid Credentials";
     return res.redirect("/login");
   }
-
   req.session.user = user.username;
   return res.redirect("/home");
 };

@@ -21,10 +21,30 @@
             align-items: center;
         }
 
+        .header-left {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
             color: white;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .logo-circle {
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
         }
 
         .nav-right {
@@ -49,6 +69,12 @@
         .nav-icon {
             width: 20px;
             height: 20px;
+        }
+
+        .dropdown-arrow {
+            width: 12px;
+            height: 12px;
+            margin-left: 0.25rem;
         }
 
         /* Main Content Area */
@@ -77,10 +103,11 @@
         .breadcrumb {
             font-size: 0.9rem;
             color: #666;
+            margin-bottom: 0.5rem;
         }
 
-        /* Signup Form Container */
-        .signup-form-container {
+        /* Login Form Container */
+        .login-form-container {
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -93,10 +120,18 @@
         .error-message {
             background-color: #fee;
             color: #c33;
-            padding: 1rem;
+            padding: 0.75rem 1rem;
             border-radius: 4px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             border: 1px solid #fcc;
+            font-size: 0.9rem;
+        }
+
+        .field-error {
+            color: #c33;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            margin-bottom: 0.5rem;
         }
 
         /* Google Sign-in Button */
@@ -174,25 +209,24 @@
             border-color: #0066cc;
         }
 
-        .optional-label {
-            color: #999;
-            font-weight: normal;
+        .form-group input.error {
+            border-color: #c33;
         }
 
-        /* Terms and Privacy */
-        .terms-text {
-            font-size: 0.85rem;
-            color: #666;
+        /* Forgot Password Link */
+        .forgot-password {
+            text-align: right;
+            margin-top: -0.75rem;
             margin-bottom: 1.5rem;
-            line-height: 1.5;
         }
 
-        .terms-text a {
-            color: #0066cc;
+        .forgot-password a {
+            color: #666;
             text-decoration: none;
+            font-size: 0.9rem;
         }
 
-        .terms-text a:hover {
+        .forgot-password a:hover {
             text-decoration: underline;
         }
 
@@ -215,19 +249,19 @@
             background-color: #333;
         }
 
-        /* Login Link */
-        .login-link {
+        /* Signup Link */
+        .signup-link {
             text-align: center;
             font-size: 0.9rem;
             color: #666;
         }
 
-        .login-link a {
+        .signup-link a {
             color: #0066cc;
             text-decoration: none;
         }
 
-        .login-link a:hover {
+        .signup-link a:hover {
             text-decoration: underline;
         }
 
