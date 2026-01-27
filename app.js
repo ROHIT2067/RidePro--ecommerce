@@ -29,7 +29,7 @@ app.use(session({
 }))
 
 app.set('view engine','ejs')
-app.set('views',path.join(__dirname,'Views'))
+app.set('views',[path.join(__dirname,'Views/user'),path.join(__dirname,'Views/admin')])
 app.use(express.static(path.join(process.cwd(), "public")));
 
 
@@ -45,7 +45,7 @@ app.use((req, res, next) => {
 
 app.use('/', (req, res) => {
   // console.log(req.method)
-  res.send("NO PAGE")
+   res.render('pagenotfound')
 })
 
 app.listen(PORT,()=>console.log(`Server is running in http://localhost:${PORT}`))
