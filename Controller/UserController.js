@@ -1,5 +1,8 @@
 import { z } from "zod";
 import userCollection from "../Models/UserModel.js";
+import nodemailer from "nodemailer"
+import dotenv from "dotenv";
+dotenv.config();
 
 const loginGet = (req, res) => {
   if (!req.session.admin) {
@@ -99,14 +102,57 @@ const homeGet = (req, res) => {
 //   return res.redirect("/home");
 // };
 
+function generateOtp(){
+  return Math.floor(100000+Math.random()*900000).toString()
+}
+
+async function sendVerificationEmail(email,otp){
+  try {
+    const transporter=nodemailer.createTransport({
+      service:'gmail',
+      port:587,
+      secure:false,
+      requireTLS:true,
+      auth:{
+        user:process.env.NODEMAILER_EMAIL,
+        pass:process.env.NODEMAILER_PASSWORD
+      }
+    })
+
+    const info= await transporter.sendMail({
+      from:process.env.NODEMAILER_EMAIL,
+      to:email,
+      subject:"Verify your account",
+      text:`Your OTP is ${otp}`,
+      html:`<b>Your OTP:${otp}</b>`
+    })
+
+    return info.accepted.length>0
+  } catch (error) {
+    console.error("Error sending email",error)
+  }
+}
+
 const signUppost= async (req,res)=>{
-  const {username,email,phoneNumber,password}=req.body
+  const {email,password}=req.body
 
-  const newUser= new userCollection({username,email,phoneNumber,password})
+  const findUser=await userCollection.findOne({email})
 
-  await newUser.save()
+  if(findUser){
+    return res.render('signup',{message:"User already exists"})
+  }
 
-  return res.redirect('/home')
+  const otp=generateOtp()
+
+  const emailSent=await sendVerificationEmail(email,otp)
+  if(!emailSent){
+    return res.json("email-error")
+  }
+
+  req.session.userOtp=otp
+  req.session.userData={email,password}
+  // res.render("verify-otp")
+  console.log("OTP SEND ",otp)
 }
 
 const loginPost = async (req, res) => {

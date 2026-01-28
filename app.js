@@ -23,7 +23,7 @@ app.use(express.json())
 app.use(methodOverride('_method'))
 
 app.use(session({
-    secret:"mouse",
+    secret:process.env.SESSION_SECRET,
     resave:false,
     saveUninitialized:false,
 }))
