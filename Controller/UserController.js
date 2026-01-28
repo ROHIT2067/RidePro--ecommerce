@@ -41,63 +41,73 @@ const homeGet = (req, res) => {
   return res.redirect("/admin/adminHome");
 };
 
-const signUppost = async (req, res) => {
-  // console.log("BODY:", req.body);
+// const signUppost = async (req, res) => {
+//   // console.log("BODY:", req.body);
 
-  if (req.session.admin) {
-    return res.redirect("/admin/adminHome");
-  }
-  const signupSchema = z.object({
-    username: z
-      .string()
-      .min(3, "Username must be at least 3 characters")
-      .max(20, "Username must be at most 20 characters")
-      .regex(
-        /^[a-zA-Z][a-zA-Z0-9_]*$/,
-        "Username must start with a letter and contain only letters, numbers, underscores",
-      ),
-    email: z.string().email("Invalid email format"),
-    phoneNumber: z
-      .string()
-      .regex(/^\d{10}$/, "Phone number must be exactly 10 digits"),
-    password: z
-      .string()
-      .min(6, "Password must be at least 6 characters")
-      .max(15, "Password must be at most 20 characters")
-      .regex(
-        /^[a-zA-Z0-9_]+$/,
-        "Password can contain only letters, numbers, underscores",
-      ),
-  });
-  // console.log(req.body)
+//   if (req.session.admin) {
+//     return res.redirect("/admin/adminHome");
+//   }
+//   const signupSchema = z.object({
+//     username: z
+//       .string()
+//       .min(3, "Username must be at least 3 characters")
+//       .max(20, "Username must be at most 20 characters")
+//       .regex(
+//         /^[a-zA-Z][a-zA-Z0-9_]*$/,
+//         "Username must start with a letter and contain only letters, numbers, underscores",
+//       ),
+//     email: z.string().email("Invalid email format"),
+//     phoneNumber: z
+//       .string()
+//       .regex(/^\d{10}$/, "Phone number must be exactly 10 digits"),
+//     password: z
+//       .string()
+//       .min(6, "Password must be at least 6 characters")
+//       .max(15, "Password must be at most 20 characters")
+//       .regex(
+//         /^[a-zA-Z0-9_]+$/,
+//         "Password can contain only letters, numbers, underscores",
+//       ),
+//   });
+//   // console.log(req.body)
 
-  const result = signupSchema.safeParse(req.body);
+//   const result = signupSchema.safeParse(req.body);
 
-  if (!result.success) {
-    console.log(result.error.format());
-    return res.redirect("/signup");
-  }
+//   if (!result.success) {
+//     console.log(result.error.format());
+//     return res.redirect("/signup");
+//   }
 
-  const { username, email, phoneNumber, password } = result.data;
+//   const { username, email, phoneNumber, password } = result.data;
 
-  const existEmail = await userCollection.findOne({ email });
+//   const existEmail = await userCollection.findOne({ email });
 
-  if (existEmail) {
-    req.session.err2 = "User already exists";
-    return res.redirect("/signup");
-  }
+//   if (existEmail) {
+//     req.session.err2 = "User already exists";
+//     return res.redirect("/signup");
+//   }
 
-  req.session.user = username;
+//   req.session.user = username;
 
-  await userCollection.create({
-    username,
-    email,
-    phoneNumber,
-    password,
-  });
-  // console.log("HI");
-  return res.redirect("/home");
-};
+//   await userCollection.create({
+//     username,
+//     email,
+//     phoneNumber,
+//     password,
+//   });
+//   // console.log("HI");
+//   return res.redirect("/home");
+// };
+
+const signUppost= async (req,res)=>{
+  const {username,email,phoneNumber,password}=req.body
+
+  const newUser= new userCollection({username,email,phoneNumber,password})
+
+  await newUser.save()
+
+  return res.redirect('/home')
+}
 
 const loginPost = async (req, res) => {
   // console.log("BODY", req.body);

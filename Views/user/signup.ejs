@@ -61,7 +61,7 @@
             </div>
 
             <!-- Signup Form -->
-            <form action="/signup" method="POST" id="signupForm">
+            <form novalidate action="/signup" method="POST" id="signupForm">
                 <div class="form-group">
                     <label for="username">Name</label>
                     <input 
@@ -69,11 +69,9 @@
                         id="username" 
                         name="username" 
                         required
-                        minlength="3"
-                        maxlength="20"
-                        pattern="^[a-zA-Z][a-zA-Z0-9_]*$"
-                        title="Username must start with a letter and contain only letters, numbers, underscores"
+                        
                     />
+                    <div id="err1" class="error-message"></div>
                 </div>
 
                 <div class="form-group">
@@ -84,6 +82,7 @@
                         name="email" 
                         required
                     />
+                    <div id="err2" class="error-message"></div>
                 </div>
 
                 <div class="form-group">
@@ -93,11 +92,9 @@
                         id="password" 
                         name="password" 
                         required
-                        minlength="6"
-                        maxlength="15"
-                        pattern="^[a-zA-Z0-9_]+$"
-                        title="Password can contain only letters, numbers, underscores"
+                        
                     />
+                    <div id="err3" class="error-message"></div>
                 </div>
 
                 <div class="form-group">
@@ -107,10 +104,10 @@
                         id="phoneNumber" 
                         name="phoneNumber" 
                         required
-                        pattern="^\d{10}$"
-                        title="Phone number must be exactly 10 digits"
-                        maxlength="10"
+                        
+                        
                     />
+                    <div id="err4" class="error-message"></div>
                 </div>
 
                 <div class="form-group">
@@ -124,7 +121,7 @@
                         name="referralCode"
                     />
                 </div>
-
+UserActivation
                 <div class="terms-text">
                     By Creating An Account You Agree With Our 
                     <a href="/terms">Terms Of Service</a>, 
@@ -209,47 +206,105 @@
         </div>
     </footer>
 
+
+
     <script>
-        // Form validation
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
-            const phoneNumber = document.getElementById('phoneNumber').value;
-            const password = document.getElementById('password').value;
-            const email = document.getElementById('email').value
-            const username = document.getElementById('username').value;
+        const nameid=document.getElementById('username')
+        const emailid=document.getElementById('email')
+        const passid=document.getElementById('password')
+        const phoneid=document.getElementById('phoneNumber')
+        const err1=document.getElementById('err1')
+        const err2=document.getElementById('err2')
+        const err3=document.getElementById('err3')
+        const err4=document.getElementById('err4')
+        const signform=document.getElementById('signupForm')
 
-            // Validate phone number (10 digits)
-            if (!/^\d{10}$/.test(phoneNumber)) {
-                e.preventDefault();
-                alert('Phone number must be exactly 10 digits');
-                return false;
-            }
+        function nameValidation(e){
+            const nameval=nameid.value;
+            const namepattern=/^[a-zA-Z][a-zA-Z0-9_]*$/
 
-            // validate email 
-            if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-                e.preventDefault()
-                alert('email format not valid. Example : abc@gmail.com')
-                return false;
+            if(nameval.trim()==""){
+                err1.style.display="block"
+                err1.innerHTML="Please enter a Valid Username"
+            }else if(!namepattern.test(nameval)){
+                err1.style.display="block"
+                err1.innerHTML="Username must only contain alphabets,numbers,underscores"
+            }else if (nameval.length < 3 || nameval.length > 15) {
+                err1.style.display = "block";
+                err1.innerHTML = "Username must be between 3 and 15 characters";
+            }else{
+                err1.style.display='none'
+                err1.innerHTML=''
             }
+        }
 
-            // Validate password pattern
-            if (!/^[a-zA-Z0-9_]+$/.test(password)) {
-                e.preventDefault();
-                alert('Password can contain only letters, numbers, and underscores');
-                return false;
+        function emailValidation(e){
+            const emailval=emailid.value
+            const emailpattern=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+            if(emailval.trim()==""){
+                err2.style.display='block'
+                err2.innerHTML="Please enter a Valid Email"
+            }else if(!emailpattern.test(emailval)){
+                err2.style.display='block'
+                err2.innerHTML="Invalid Email Format"
+            }else{
+                err2.style.display="none"
+                err2.innerHTML=''
             }
+        }
+
+        function phoneValidation(e){
+            const phoneval=phoneid.value
+            const phonepattern=/^\d{10}$/
+
+            if(phoneval.trim()==''){
+                err4.style.display='block'
+                err4.innerHTML='Enter phone number'
+            }else if(!phonepattern.test(phoneval)){
+                err4.style.display='block'
+                err4.innerHTML='Phone number must be exactly 10 digits or can only contain numbers'
+            }else{
+                err4.style.display='none'
+                err4.innerHTML=''
+            }
+        }
+
+        function passValidation(e){
+            const passval=passid.value
+            const passpattern=/^[a-zA-Z0-9_]+$/
+
+            if(passval.length<8){
+                err3.style.display='block'
+                err3.innerHTML="Should contain atleast 8 characters"
+            }else if(!passpattern.test(passval)){
+                err3.style.display='block'
+                err3.innerHTML='Should only contain numbers or alphabets'
+            }else{
+                err3.style.display='none'
+                err3.innerHTML=''
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded',function(){
             
-            // Validate username pattern
-            if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(username)) {
-                e.preventDefault();
-                alert('Username must start with a letter and contain only letters, numbers, underscores');
-                return false;
-            }
-        });
+            signform.addEventListener("submit",function(e){
+                // e.preventDefault()
+                nameValidation()
+                emailValidation()
+                phoneValidation()
+                passValidation()
 
-        // Restrict phone number input to digits only
-        document.getElementById('phoneNumber').addEventListener('input', function(e) {
-            this.value = this.value.replace(/\D/g, '');
-        });
+                if(!nameid || !emailid || !phoneid || !passid || !err1 || !err2 || !err3 || !err4 || !signform){
+                    console.error("1 or more not found")
+                }
+
+
+                if(err1.innerHTML || err2.innerHTML || err3.innerHTML || err4.innerHTML){
+                    e.preventDefault()
+                }
+            })
+        })
     </script>
 </body>
 </html>

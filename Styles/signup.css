@@ -322,3 +322,9 @@
         .social-icon:hover {
             opacity: 1;
         }
+
+        .error-message{
+            color: red;
+            font-size: 0.75rem;
+            display: none;
+        }

@@ -36,7 +36,7 @@ const userSchema=new mongoose.Schema({
     },
     google_ID:{
         type:String,
-        unique:true,
+        
     },
     cart:[{
         type: Schema.Types.ObjectId,
