@@ -48,7 +48,7 @@
 
             <!-- Timer Display -->
             <div class="timer-container">
-                <div class="timer-display" id="timer">01:5</div>
+                <div class="timer-display" id="timer">01:30</div>
             </div>
 
             <!-- OTP Verification Form -->
@@ -75,6 +75,7 @@
                         <div class="field-error"><%= otpError %></div>
                     <% } %>
                 </div>
+                 <div id="otpMssg" class="error-message hidden"></div>
 
                 <!-- Verify Button -->
                 <button type="submit" class="submit-btn" id="verifyBtn">VERIFY</button>
@@ -167,9 +168,14 @@
         </div>
     </footer>
 
-    <!-- <script>
-        // Timer functionality
-        let timeLeft = 120; // 2 minutes in seconds
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+
+    <script>
+
+        
+         // Timer functionality
+        let timeLeft = 90; // 1.5 minutes in seconds
         const timerDisplay = document.getElementById('timer');
         const resendOtp = document.getElementById('resendOtp');
         const verifyBtn = document.getElementById('verifyBtn');
@@ -199,77 +205,133 @@
         // Start the timer
         const timerInterval = setInterval(updateTimer, 1000);
 
-        // OTP input formatting - only allow numbers
+        // OTP input formatting 
         otpInput.addEventListener('input', function(e) {
             // Remove any non-numeric characters
             this.value = this.value.replace(/[^0-9]/g, '');
         });
 
-        // Resend OTP link handler
-        const resendLink = document.getElementById('resendLink');
-        resendLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            // Reset timer
-            timeLeft = 120;
-            timerDisplay.textContent = formatTime(timeLeft);
-            resendOtp.classList.add('hidden');
+        // // Resend OTP link handler
+        // const resendLink = document.getElementById('resendLink');
+        // resendLink.addEventListener('click', function(e) {
+        //     e.preventDefault();
+        //     // Reset timer
+        //     timeLeft = 90;
+        //     timerDisplay.textContent = formatTime(timeLeft);
+        //     resendOtp.classList.add('hidden');
             
-            // Restart timer
+        //     // Restart timer
+        //     clearInterval(timerInterval);
+        //     const newTimerInterval = setInterval(updateTimer, 1000);
+            
+        //     // You can add an AJAX call here to resend OTP
+        //     // Example: fetch('/resend-otp', { method: 'POST' })
+        //     // validateOTP()
+            
+        //     alert('OTP has been resent to your email');
+        // });
+
+        // function startTimer(){
+        //     timerinterval=setInterval(()=>{
+
+        //     },1000)
+        // }
+
+        // startTimer()
+
+function validateOTP() {
+    const otp = document.getElementById("otp").value;
+
+    $.ajax({
+        type: "POST",
+        url: "/verify-otp",
+        data: { otp },
+
+        success: function (response) {
+            showToast("OTP Verified Successfully", "success");
+
+            setTimeout(() => {
+                window.location.href = response.redirectUrl;
+            }, 1500);
+        },
+
+        error: function (xhr) {
+            const msg =
+                xhr.responseJSON?.message ||
+                "Something went wrong. Please try again.";
+
+            showToast(msg, "error");
+        }
+    });
+}
+
+resendLink.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    $.ajax({
+        type: "POST",
+        url: "/resend-otp",
+
+        success: function (response) {
+            showToast("OTP resent successfully", "success");
+
+            // reset timer
             clearInterval(timerInterval);
-            const newTimerInterval = setInterval(updateTimer, 1000);
-            
-            // You can add an AJAX call here to resend OTP
-            // Example: fetch('/resend-otp', { method: 'POST' })
-            
-            alert('OTP has been resent to your email');
-        });
-    </script> -->
+            timeLeft = 90;
+            timerDisplay.textContent = formatTime(timeLeft);
+            resendOtp.classList.add("hidden");
 
-    <script>
+            // restart timer
+            setInterval(updateTimer, 1000);
+        },
 
-        function startTimer(){
-            timerinterval=setInterval(()=>{
+        error: function (xhr) {
+            const msg =
+                xhr.responseJSON?.message ||
+                "Failed to resend OTP";
 
-            },1000)
+            showToast(msg, "error");
         }
+    });
+});
 
-        startTimer()
 
-        function validateOTP(){
-            const otpInput=document.getElementById('otp').value
+function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    const toastMessage = document.getElementById("toastMessage");
 
-            $.ajax({
-                type:"POST",
-                url:"verify-otp",
-                data:{otp:otpInput},
-                success: function(response){
-                    if(response.success){
-                        Swal.fire({
-                            icon:"success",
-                            title:"OTP Verified Successfully",
-                            showConfirmButton:false,
-                            timer:1500
-                        }).then(()=>{
-                            window.location.herf=response.redirectUrl
-                        })
-                    }else{
-                        Swal.fire({
-                            icon:"error",
-                            title:Error,
-                            text:response.message
-                        })
-                    }
-                },
-                error:function(){
-                    Swal.fire({
-                        icon:"error",
-                        title:"Invalid OTP",
-                        text:"Please try again"
-                    })
-                }
-            })
-            return false
-        }
+    toast.className = "toast"; // reset
+    toastMessage.textContent = message;
+
+    if (type === "error") {
+        toast.classList.add("toast-error");
+    } else {
+        toast.classList.add("toast-success");
+    }
+
+    toast.classList.remove("hidden");
+
+    // trigger animation
+    setTimeout(() => toast.classList.add("show"), 10);
+
+    // auto hide
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.classList.add("hidden"), 300);
+    }, 3000);
+}
+$(document).ready(function () {
+    $("#otpForm").on("submit", function (e) {
+        e.preventDefault();
+        validateOTP();
+    });
+});
+
+
     </script>
+    <div id="toast" class="toast hidden">
+    <span id="toastMessage"></span>
+</div>
+
 </body>
 </html>
