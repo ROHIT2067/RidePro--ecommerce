@@ -8,5 +8,6 @@ router.get('/login',userController.loginGet)
 router.get('/signup',userController.signupGet)
 router.post('/signup',userController.signUppost)
 router.post('/login',userController.loginPost)
+router.post('/verify-otp',userController.verifyOtpPost)
 
 export default router

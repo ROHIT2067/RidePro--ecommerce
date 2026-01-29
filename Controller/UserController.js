@@ -3,6 +3,8 @@ import userCollection from "../Models/UserModel.js";
 import nodemailer from "nodemailer"
 import dotenv from "dotenv";
 dotenv.config();
+import bcrypt from "bcrypt";
+
 
 const loginGet = (req, res) => {
   if (!req.session.admin) {
@@ -134,7 +136,7 @@ async function sendVerificationEmail(email,otp){
 }
 
 const signUppost= async (req,res)=>{
-  const {email,password}=req.body
+  const {username,email,phoneNumber,password}=req.body
 
   const findUser=await userCollection.findOne({email})
 
@@ -150,8 +152,8 @@ const signUppost= async (req,res)=>{
   }
 
   req.session.userOtp=otp
-  req.session.userData={email,password}
-  // res.render("verify-otp")
+  req.session.userData={username,email,phoneNumber,password}
+  res.render("verify-otp")
   console.log("OTP SEND ",otp)
 }
 
@@ -191,4 +193,33 @@ const loginPost = async (req, res) => {
   return res.redirect("/home");
 };
 
-export default { loginGet, loginPost, homeGet, signUppost, signupGet };
+const securePassword=async (password)=>{
+  try {
+    const passwordHash= await bcrypt.hash(password,10)
+    return passwordHash
+  } catch (error) {
+    console.error("Error hashing password:", error)
+  }
+}
+const verifyOtpPost= async (req,res)=>{
+  const {otp}=req.body
+
+  if(otp==req.session.userOtp){
+    const { username, email, phoneNumber, password } = req.session.userData
+    const passwordHash= await securePassword(password)
+
+    const saveUserData= new userCollection({
+      username,
+      email,
+      phoneNumber,
+      password:passwordHash
+    })
+    await saveUserData.save()
+    req.session.user=saveUserData._id
+    return res.redirect('/home')
+  }else{
+    res.status(400).json({success:false,message:"Invalid OTP, Please try again"})
+  }
+}
+
+export default { loginGet, loginPost, homeGet, signUppost, signupGet, verifyOtpPost };
