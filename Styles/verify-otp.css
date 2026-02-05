@@ -354,34 +354,34 @@ footer {
     color: green;
 }
 
+.hidden {
+  display: none;
+}
+
 .toast {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    min-width: 260px;
-    padding: 14px 18px;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 14px;
-    z-index: 9999;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 260px;
+  padding: 14px 18px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .toast.show {
-    opacity: 1;
-    transform: translateY(0);
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .toast-success {
-    background-color: #16a34a;
+  background-color: #16a34a;
 }
 
 .toast-error {
-    background-color: #dc2626;
-}
-
-.hidden {
-    display: none;
+  background-color: #dc2626;
 }

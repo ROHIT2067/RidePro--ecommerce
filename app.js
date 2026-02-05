@@ -8,10 +8,14 @@ import methodOverride from "method-override"
 import userRouter from "./Routes/UserRoutes.js"
 import path, { dirname } from "path";
 dotenv.config();
+import passport from "./Config/passport.js";
+import { attachUserToLocals } from "./middlewares/attachUser.js";
+import connectDB from "./Config/databaseConnect.js"
 
 const PORT = process.env.PORT;
 
-import connectDB from "./Config/databaseConnect.js"
+
+
 connectDB()
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,6 +24,8 @@ const __dirname = dirname(__filename);
 app.use(express.urlencoded({extended:true}))
 app.use(express.json())
 
+
+
 app.use(methodOverride('_method'))
 
 app.use(session({
@@ -27,6 +33,13 @@ app.use(session({
     resave:false,
     saveUninitialized:false,
 }))
+
+
+app.use(attachUserToLocals)
+
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.set('view engine','ejs')
 app.set('views',[path.join(__dirname,'Views/user'),path.join(__dirname,'Views/admin')])

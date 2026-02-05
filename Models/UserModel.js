@@ -18,8 +18,9 @@ const userSchema=new mongoose.Schema({
     phoneNumber:{
         type:String,
         required:false,
-        unique:true,
         trim:true,
+        sparse:true,
+        default:null,
     },
     password:{
         type:String,
@@ -36,6 +37,8 @@ const userSchema=new mongoose.Schema({
     },
     google_ID:{
         type:String,
+        unique:true,
+        sparse:true
         
     },
     cart:[{

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Details - RidePro</title>
+    <link rel="stylesheet" href="/Styles/profile.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-left">Account Details</div>
+        <a href="/" class="logo">
+            <div class="logo-circle">i</div>
+        </a>
+        <div class="nav-right">
+            <a href="#" class="nav-item">
+                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                </svg>
+                <span>Search</span>
+            </a>
+            <a href="/login" class="nav-item">
+                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                </svg>
+                <span><%= currentUser ? currentUser.username : "Guest" %></span>
+            </a>
+            <a href="#" class="nav-item">
+                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                </svg>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-header">
+            <div class="breadcrumb">
+                <a href="/">RidePro</a> &gt; My Account
+            </div>
+            <h1>My Account</h1>
+        </div>
+
+        <div class="account-layout">
+            <!-- Sidebar -->
+            <aside class="account-sidebar">
+                <nav>
+                    <ul class="sidebar-nav">
+                        <li>
+                            <a href="/account/orders">
+                                <svg class="sidebar-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/>
+                                </svg>
+                                Orders
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/account/wishlist">
+                                <svg class="sidebar-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                                </svg>
+                                Wishlist
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/account/address">
+                                <svg class="sidebar-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                                Address
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/account/password">
+                                <svg class="sidebar-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Password
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/account/wallet">
+                                <svg class="sidebar-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                                    <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                                </svg>
+                                Wallet
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/account/details" class="active">
+                                <svg class="sidebar-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                </svg>
+                                Account Detail
+                            </a>
+                        </li>
+                        <form action="/logout" method="POST" class="menu-item logout-form">
+  <button type="submit" class="menu-btn">
+    <svg class="sidebar-icon" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4.414l-4.293 4.293 1.414 1.414 5-5a.999.999 0 000-1.414l-5-5-1.414 1.414L14 5.586V10H9a1 1 0 100 2h5v2.414z" clip-rule="evenodd"/>
+    </svg>
+    <span>Logout</span>
+  </button>
+</form>
+
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Account Details form -->
+            <div class="account-main">
+                <h2>Account Details</h2>
+
+                <form class="account-details-form" action="/account/details" method="POST">
+                    <div class="avatar-block">
+                        <div class="avatar">
+                            <%= typeof user !== 'undefined' && user.initials ? user.initials : 'AN' %>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fullname">Full name</label>
+                        <input type="text" id="fullname" name="fullName" value="<%= typeof user !== 'undefined' && user.fullName ? user.fullName : '' %>" placeholder="Enter your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" value="<%= typeof user !== 'undefined' && user.email ? user.email : '' %>" placeholder="Enter your email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mobile">Mobile</label>
+                        <input type="tel" id="mobile" name="mobile" value="<%= typeof user !== 'undefined' && user.mobile ? user.mobile : '' %>" placeholder="Enter your mobile number">
+                    </div>
+
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </form>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button type="button" class="pagination-btn" aria-label="Previous">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                    <button type="button" class="pagination-btn active">01</button>
+                    <button type="button" class="pagination-btn">02</button>
+                    <button type="button" class="pagination-btn">03</button>
+                    <button type="button" class="pagination-btn">04</button>
+                    <button type="button" class="pagination-btn">05</button>
+                    <button type="button" class="pagination-btn" aria-label="Next">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-graphic"></div>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>STORE</h3>
+                <ul>
+                    <li><a href="#">Protective Gear</a></li>
+                    <li><a href="#">Performance Layers</a></li>
+                    <li><a href="#">Luggage</a></li>
+                    <li><a href="#">Accessories</a></li>
+                    <li><a href="#">Lifestyle Merch</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>SUPPORT</h3>
+                <ul>
+                    <li><a href="#">Shipping Policy</a></li>
+                    <li><a href="#">Warranty</a></li>
+                    <li><a href="#">Refund / Exchange Policy</a></li>
+                    <li><a href="#">Care Instructions</a></li>
+                    <li><a href="#">Wingman Insurance</a></li>
+                    <li><a href="/terms">Terms Of Service</a></li>
+                    <li><a href="/privacy">Privacy Policy</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>CONTACT US</h3>
+                <p>Contact Number: 07795688316</p>
+                <p>Mon-Fri 11:00 AM to 4:30 PM</p>
+                <p>For any Queries please contact <a href="#">Customer Support</a></p>
+            </div>
+
+            <div class="footer-section">
+                <h3>CAREERS</h3>
+                <p><a href="#">Join #TeamRYNCX</a></p>
+            </div>
+
+            <div class="footer-section">
+                <h3>LOCATION</h3>
+                <p>Rync Gear HQ,<br>1107, Kohinoor Square,<br>NC Kelkar Marg,<br>Opposite Shiv Sena Bhavan,<br>Dadar (West),<br>Mumbai, Maharashtra 400020</p>
+                <p>+91 7795688314</p>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div></div>
+            <div class="social-icons">
+                <a href="#" aria-label="Twitter">
+                    <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="#" aria-label="Facebook">
+                    <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                </a>
+                <a href="#" aria-label="Instagram">
+                    <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                </a>
+                <a href="#" aria-label="YouTube">
+                    <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

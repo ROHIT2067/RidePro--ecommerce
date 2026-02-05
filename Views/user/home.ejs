@@ -4,887 +4,247 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RidePro - Motorcycle Gear</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #333;
-        }
-
-        /* Header Styles */
-        header {
-            background-color: #2a2a2a;
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: white;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .nav-icons {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            margin-left: auto;
-        }
-
-        .nav-icon {
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            opacity: 0.9;
-            transition: opacity 0.2s;
-        }
-
-        .nav-icon:hover {
-            opacity: 1;
-        }
-
-        /* Hero Section */
-        .hero-section {
-            position: relative;
-            width: 100%;
-            height: 80vh;
-            min-height: 600px;
-            overflow: hidden;
-        }
-
-        .hero-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-        }
-
-        .hero-content {
-            position: absolute;
-            bottom: 15%;
-            left: 5%;
-            color: white;
-            z-index: 2;
-        }
-
-        .hero-title {
-            font-size: 4rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-
-        .hero-subtitle {
-            font-size: 1.5rem;
-            margin-bottom: 2rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .shop-now-btn {
-            padding: 1rem 2.5rem;
-            background-color: transparent;
-            border: 2px solid white;
-            color: white;
-            font-size: 1rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s;
-            backdrop-filter: blur(10px);
-            background-color: rgba(0, 0, 0, 0.3);
-        }
-
-        .shop-now-btn:hover {
-            background-color: white;
-            color: #000;
-        }
-
-        /* Product Category Grid */
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0;
-            width: 100%;
-        }
-
-        .category-item {
-            position: relative;
-            width: 100%;
-            height: 400px;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .category-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s;
-        }
-
-        .category-item:hover .category-image {
-            transform: scale(1.05);
-        }
-
-        .category-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 2rem;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-        }
-
-        .category-label {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border: 2px solid white;
-            padding: 0.75rem 1.5rem;
-            display: inline-block;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        /* Product Carousel Section */
-        .carousel-section {
-            background-color: #f5f5f5;
-            padding: 4rem 2rem;
-        }
-
-        .carousel-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-            align-items: center;
-        }
-
-        .carousel-left {
-            position: relative;
-        }
-
-        .carousel-main-image {
-            width: 100%;
-            height: 600px;
-            object-fit: cover;
-            position: relative;
-        }
-
-        .carousel-overlay-text {
-            position: absolute;
-            top: 10%;
-            left: 5%;
-            color: white;
-            z-index: 2;
-        }
-
-        .carousel-overlay-text h2 {
-            font-size: 5rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            line-height: 1;
-            margin-bottom: 0.5rem;
-        }
-
-        .carousel-overlay-text p {
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .carousel-nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 3;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s;
-        }
-
-        .carousel-nav:hover {
-            background: #f0f0f0;
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .carousel-nav.prev {
-            left: 20px;
-        }
-
-        .carousel-nav.next {
-            right: 20px;
-        }
-
-        .carousel-nav svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .carousel-right {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .product-image-main {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            margin-bottom: 2rem;
-        }
-
-        .product-name {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .product-thumbnails {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .thumbnail {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: border-color 0.3s;
-        }
-
-        .thumbnail:hover,
-        .thumbnail.active {
-            border-color: #333;
-        }
-
-        .carousel-dots {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-            margin-top: 1rem;
-        }
-
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #ccc;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .dot.active {
-            background-color: #333;
-        }
-
-        /* Promotional Banner */
-        .promo-banner {
-            width: 100%;
-            height: 500px;
-            overflow: hidden;
-        }
-
-        .promo-banner img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Product Detail Section */
-        .product-detail-section {
-            padding: 4rem 2rem;
-            background-color: white;
-        }
-
-        .product-detail-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: start;
-        }
-
-        .product-detail-left {
-            position: relative;
-        }
-
-        .product-detail-image {
-            width: 100%;
-            height: 700px;
-            object-fit: cover;
-        }
-
-        .product-detail-right {
-            padding-top: 2rem;
-        }
-
-        .product-detail-name {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .product-rating {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .stars {
-            font-size: 1.2rem;
-            color: #000;
-        }
-
-        .reviews {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .product-description {
-            font-size: 1rem;
-            line-height: 1.8;
-            color: #555;
-            margin-bottom: 2rem;
-        }
-
-        .product-price {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 2rem;
-        }
-
-        .product-options {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .option-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .option-group label {
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .option-input {
-            padding: 0.875rem;
-            border: 1px solid #ddd;
-            font-size: 1rem;
-            background-color: white;
-            cursor: pointer;
-        }
-
-        .add-to-cart-btn {
-            width: 100%;
-            padding: 1.25rem;
-            background-color: #90EE90;
-            color: #000;
-            border: none;
-            font-size: 1rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-bottom: 1rem;
-        }
-
-        .add-to-cart-btn:hover {
-            background-color: #7FCD7F;
-        }
-
-        .product-info-text {
-            font-size: 0.85rem;
-            color: #666;
-        }
-
-        /* Footer Styles */
-        footer {
-            background-color: #1a1a1a;
-            color: white;
-        }
-
-        .footer-mountain {
-            width: 100%;
-            height: 150px;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 200"><path d="M0,150 Q200,100 400,120 T800,110 T1200,130 L1200,200 L0,200 Z" fill="%231a1a1a"/><path d="M0,160 Q150,120 300,140 T600,130 T900,140 T1200,150 L1200,200 L0,200 Z" fill="%23000"/></svg>') no-repeat bottom;
-            background-size: cover;
-            background-color: #2a2a2a;
-        }
-
-        .footer-content {
-            background-color: #000;
-            padding: 3rem 2rem 2rem;
-        }
-
-        .footer-grid {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 3rem;
-            margin-bottom: 2rem;
-        }
-
-        .footer-column h3 {
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .footer-column ul {
-            list-style: none;
-        }
-
-        .footer-column ul li {
-            margin-bottom: 0.75rem;
-        }
-
-        .footer-column ul li a {
-            color: #ccc;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.2s;
-        }
-
-        .footer-column ul li a:hover {
-            color: white;
-        }
-
-        .footer-column p {
-            color: #ccc;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            margin-bottom: 0.5rem;
-        }
-
-        .social-icons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .social-icon {
-            width: 32px;
-            height: 32px;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-            cursor: pointer;
-        }
-
-        .social-icon:hover {
-            opacity: 1;
-        }
-
-        .footer-bottom {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding-top: 2rem;
-            border-top: 1px solid #333;
-            text-align: center;
-            color: #999;
-            font-size: 0.85rem;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .category-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .carousel-container,
-            .product-detail-container {
-                grid-template-columns: 1fr;
-            }
-
-            .hero-title {
-                font-size: 3rem;
-            }
-
-            .carousel-overlay-text h2 {
-                font-size: 3.5rem;
-            }
-
-            .footer-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            header {
-                padding: 1rem;
-            }
-
-            .logo {
-                font-size: 1.2rem;
-            }
-
-            .nav-icons {
-                gap: 1rem;
-            }
-
-            .nav-icon {
-                width: 20px;
-                height: 20px;
-            }
-
-            .hero-section {
-                height: 60vh;
-                min-height: 400px;
-            }
-
-            .hero-title {
-                font-size: 2rem;
-            }
-
-            .hero-subtitle {
-                font-size: 1rem;
-            }
-
-            .shop-now-btn {
-                padding: 0.75rem 1.5rem;
-                font-size: 0.9rem;
-            }
-
-            .category-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .category-item {
-                height: 300px;
-            }
-
-            .carousel-section,
-            .product-detail-section {
-                padding: 2rem 1rem;
-            }
-
-            .carousel-overlay-text h2 {
-                font-size: 2.5rem;
-            }
-
-            .carousel-main-image,
-            .product-detail-image {
-                height: 400px;
-            }
-
-            .product-image-main {
-                height: 300px;
-            }
-
-            .product-thumbnails {
-                flex-wrap: wrap;
-            }
-
-            .thumbnail {
-                width: 80px;
-                height: 80px;
-            }
-
-            .product-detail-name {
-                font-size: 1.8rem;
-            }
-
-            .footer-grid {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
-            .promo-banner {
-                height: 300px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hero-title {
-                font-size: 1.5rem;
-            }
-
-            .hero-subtitle {
-                font-size: 0.9rem;
-            }
-
-            .category-label {
-                font-size: 1rem;
-                padding: 0.5rem 1rem;
-            }
-
-            .carousel-overlay-text h2 {
-                font-size: 2rem;
-            }
-
-            .product-detail-name {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
+     <link rel="stylesheet" href="/Styles/home.css">
 </head>
 <body>
     <!-- Header -->
     <header>
-        <div class="logo">RidePro</div>
-        <div class="nav-icons">
-            <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-            </svg>
-            <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
-            </svg>
-            <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-            </svg>
+        <a href="/home" class="logo">RidePro</a>
+        <div class="nav-right">
+            <a href="#" class="nav-item">
+                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                </svg>
+                <span>Search</span>
+            </a>
+            <a href="#" class="nav-item">
+                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042H6.14l.94-2.846 1.952.012L7.043 16H17a1 1 0 000-2H8.245l-.166-.67 6.76-.001.946-2.855L17.5 3H3z"/>
+                </svg>
+                <span>Cart</span>
+            </a>
+            <a href="/profile" class="nav-item">
+                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                </svg>
+                <span>Profile</span>
+            </a>
         </div>
     </header>
 
     <!-- Hero Section -->
     <section class="hero-section">
-        <img src="https://images.unsplash.com/photo-1558980664-1db506751c6c?w=1920&h=1080&fit=crop" alt="Motorcycle Rider" class="hero-image">
-        <div class="hero-content">
+        <img class="hero-image" src="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=1600&q=80" alt="AIR GT PANTS - Motorcycle gear"/>
+        <div class="hero-overlay">
             <h1 class="hero-title">AIR GT PANTS</h1>
-            <p class="hero-subtitle">THE ULTIMATE RIDING PANTS</p>
-            <button class="shop-now-btn">SHOP NOW</button>
+            <p class="hero-subtitle">The Full Collection.</p>
+            <button type="button" class="explore-btn">Explore now</button>
+        </div>
+        <button type="button" class="hero-arrow prev" aria-label="Previous">
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        </button>
+        <button type="button" class="hero-arrow next" aria-label="Next">
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+        </button>
+        <div class="hero-dots">
+            <span class="hero-dot active"></span>
+            <span class="hero-dot"></span>
+            <span class="hero-dot"></span>
         </div>
     </section>
 
-    <!-- Product Category Grid -->
+    <!-- Category Grid -->
     <section class="category-grid">
         <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=800&h=600&fit=crop" alt="Offroad" class="category-image">
-            <div class="category-overlay">
-                <div class="category-label">OFFROAD</div>
-            </div>
+            <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&q=80" alt="Offroad"/>
+            <span class="category-label">OFFROAD</span>
         </div>
         <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1558980664-1db506751c6c?w=800&h=600&fit=crop" alt="Gloves" class="category-image">
-            <div class="category-overlay">
-                <div class="category-label">GLOVES</div>
-            </div>
+            <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=600&q=80" alt="Gloves"/>
+            <span class="category-label">GLOVES</span>
         </div>
         <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=800&h=600&fit=crop" alt="Jackets" class="category-image">
-            <div class="category-overlay">
-                <div class="category-label">JACKETS</div>
-            </div>
+            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Jackets"/>
+            <span class="category-label">JACKETS</span>
         </div>
         <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1558980664-1db506751c6c?w=800&h=600&fit=crop" alt="Base Layer" class="category-image">
-            <div class="category-overlay">
-                <div class="category-label">BASE LAYER</div>
-            </div>
+            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80" alt="Base Layers"/>
+            <span class="category-label">BASE LAYERS</span>
         </div>
         <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=800&h=600&fit=crop" alt="Rain Gear" class="category-image">
-            <div class="category-overlay">
-                <div class="category-label">RAIN GEAR</div>
-            </div>
+            <img src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=600&q=80" alt="Pants"/>
+            <span class="category-label">PANTS</span>
         </div>
         <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1558980664-1db506751c6c?w=800&h=600&fit=crop" alt="Luggage" class="category-image">
-            <div class="category-overlay">
-                <div class="category-label">LUGGAGE</div>
+            <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80" alt="Luggage"/>
+            <span class="category-label">LUGGAGE</span>
+        </div>
+    </section>
+
+    <!-- Get Monsoon Ready Banner -->
+    <section class="monsoon-banner" style="position: relative;">
+        <button type="button" class="banner-arrows prev" aria-label="Previous" style="z-index: 2;">&#10094;</button>
+        <button type="button" class="banner-arrows next" aria-label="Next" style="z-index: 2;">&#10095;</button>
+        <div class="monsoon-left">
+            <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=800&q=80" alt="Get Monsoon Ready"/>
+            <div class="monsoon-overlay">
+                <h2>GET MONSOON READY</h2>
+                <button type="button" class="explore-btn">Explore now</button>
+            </div>
+        </div>
+        <div class="monsoon-right">
+            <h3 class="monsoon-product-title">H2GO PRO RAIN JACKET</h3>
+            <p class="monsoon-price">₹ 1,399</p>
+            <div class="monsoon-thumbnails">
+                <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=150&q=80" alt="Jacket"/>
+                <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=150&q=80" alt="Pants"/>
+                <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=150&q=80" alt="Gloves"/>
+                <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150&q=80" alt="Boots"/>
             </div>
         </div>
     </section>
 
-    <!-- Product Carousel Section -->
-    <section class="carousel-section">
-        <div class="carousel-container">
-            <div class="carousel-left">
-                <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=800&h=600&fit=crop" alt="Outdoor Rain Gear" class="carousel-main-image">
-                <div class="carousel-overlay-text">
-                    <h2>OUTDOOR</h2>
-                    <p>RAIN GEAR</p>
-                </div>
-                <button class="carousel-nav prev">
-                    <svg fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                    </svg>
-                </button>
-                <button class="carousel-nav next">
-                    <svg fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="carousel-right">
-                <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=600&h=400&fit=crop" alt="H2GO Pro Rain Jacket" class="product-image-main">
-                <h3 class="product-name">H2GO PRO RAIN JACKET</h3>
-                <div class="product-thumbnails">
-                    <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=200&h=200&fit=crop" alt="Jacket" class="thumbnail active">
-                    <img src="https://images.unsplash.com/photo-1558980664-1db506751c6c?w=200&h=200&fit=crop" alt="Pants" class="thumbnail">
-                    <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=200&h=200&fit=crop" alt="Boots" class="thumbnail">
-                    <img src="https://images.unsplash.com/photo-1558980664-1db506751c6c?w=200&h=200&fit=crop" alt="Gloves" class="thumbnail">
-                </div>
-                <div class="carousel-dots">
-                    <span class="dot active"></span>
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                </div>
-            </div>
-        </div>
+    <!-- Main Showcase Banner -->
+    <section class="showcase-banner" style="position: relative;">
+        <button type="button" class="hero-arrow prev" aria-label="Previous" style="left: 1.5rem;">&#10094;</button>
+        <button type="button" class="hero-arrow next" aria-label="Next" style="right: 1.5rem;">&#10095;</button>
+        <img src="https://images.unsplash.com/photo-1547549082-6bc5f2f6c2fa?w=1600&q=80" alt="RidePro Adventure"/>
+        <span class="showcase-logo">RidePro</span>
+        <button type="button" class="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+        </button>
     </section>
 
-    <!-- Promotional Banner -->
-    <section class="promo-banner">
-        <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=1920&h=600&fit=crop" alt="Adventure Motorcycle">
-    </section>
-
-    <!-- Product Detail Section -->
+    <!-- Product Detail: H2GO PRO RAIN PANTS -->
     <section class="product-detail-section">
-        <div class="product-detail-container">
-            <div class="product-detail-left">
-                <img src="https://images.unsplash.com/photo-1558980664-1db506751c6c?w=800&h=1000&fit=crop" alt="H2GO Pro Rain Pants" class="product-detail-image">
-                <button class="carousel-nav prev">
-                    <svg fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                    </svg>
-                </button>
-                <button class="carousel-nav next">
-                    <svg fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                    </svg>
-                </button>
-                <div class="carousel-dots" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);">
-                    <span class="dot active"></span>
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                </div>
-            </div>
-            <div class="product-detail-right">
-                <h2 class="product-detail-name">H2GO PRO RAIN PANTS</h2>
-                <div class="product-rating">
-                    <span class="stars">★★★★★</span>
-                    <span class="reviews">5 Reviews</span>
-                </div>
-                <p class="product-description">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                </p>
-                <div class="product-price">$XXXX</div>
-                <div class="product-options">
-                    <div class="option-group">
-                        <label for="size">Size</label>
-                        <select id="size" class="option-input">
-                            <option>Select Size</option>
-                            <option>Small</option>
-                            <option>Medium</option>
-                            <option>Large</option>
-                            <option>X-Large</option>
-                        </select>
-                    </div>
-                    <div class="option-group">
-                        <label for="color">Color</label>
-                        <select id="color" class="option-input">
-                            <option>Select Color</option>
-                            <option>Black</option>
-                            <option>Grey</option>
-                            <option>Navy</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="add-to-cart-btn">ADD TO CART</button>
-                <p class="product-info-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-            </div>
+        <div>
+            <img class="product-detail-image" src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=600&q=80" alt="H2GO PRO RAIN PANTS"/>
         </div>
+        <div class="product-detail-info">
+            <h2>H2GO PRO RAIN PANTS</h2>
+            <div class="product-rating">
+                <span class="stars">★★★★★</span>
+                <a href="#" class="reviews-link">9 Reviews</a>
+            </div>
+            <p>Water-resistant riding pants built for monsoon. Lightweight and packable.</p>
+            <p class="price">₹ 1,399</p>
+            <div class="product-options">
+                <select name="size" id="size" aria-label="Size">
+                    <option value="">Select Size</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+                <select name="quantity" id="quantity" aria-label="Quantity">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+            </div>
+            <button type="button" class="add-to-cart-btn">Add To Cart</button>
+        </div>
+        <button type="button" class="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+        </button>
     </section>
 
     <!-- Footer -->
     <footer>
-        <div class="footer-mountain"></div>
+        <div class="footer-graphic"></div>
         <div class="footer-content">
-            <div class="footer-grid">
-                <div class="footer-column">
-                    <h3>RIDEPRO</h3>
-                    <ul>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Contact Us</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#">News & Events</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>SUPPORT</h3>
-                    <ul>
-                        <li><a href="#">FAQs</a></li>
-                        <li><a href="#">Warranty & Returns</a></li>
-                        <li><a href="#">Shipping Information</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>ADDRESS</h3>
-                    <p>123 Main Street</p>
-                    <p>Anytown, USA 12345</p>
-                </div>
-                <div class="footer-column">
-                    <h3>CONNECT</h3>
-                    <div class="social-icons">
-                        <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                        </svg>
-                        <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                        </svg>
-                        <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                        </svg>
-                        <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                        </svg>
-                    </div>
-                    <p style="margin-top: 1rem;">+1 (555) 123-4567</p>
-                    <p>info@ridepro.com</p>
-                </div>
+            <div class="footer-section">
+                <h3>SHOP BY</h3>
+                <ul>
+                    <li><a href="#">Riding Pants</a></li>
+                    <li><a href="#">Riding Jacket</a></li>
+                    <li><a href="#">Base Layers</a></li>
+                    <li><a href="#">Gloves</a></li>
+                    <li><a href="#">Helmets</a></li>
+                    <li><a href="#">Boots</a></li>
+                    <li><a href="#">Luggage</a></li>
+                </ul>
             </div>
-            <div class="footer-bottom">
-                <p>© 2026 RidePro. All rights reserved.</p>
+            <div class="footer-section">
+                <h3>SUPPORT</h3>
+                <ul>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="#">Size Guide</a></li>
+                    <li><a href="#">Returns and Exchange</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Shipping Policy</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>LEGAL</h3>
+                <ul>
+                    <li><a href="#">Terms &amp; Conditions</a></li>
+                    <li><a href="#">Copyright Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>COMPANY</h3>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Blog</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-newsletter">
+            <input type="email" placeholder="Enter your email" aria-label="Email for newsletter"/>
+            <button type="button" aria-label="Subscribe">&#9993;</button>
+        </div>
+        <div class="footer-bottom">
+            <p class="copyright">© 2024 RidePro. All rights reserved.</p>
+            <div class="social-icons">
+                <a href="#" aria-label="Facebook">
+                    <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                </a>
+                <a href="#" aria-label="Instagram">
+                    <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                </a>
+                <a href="#" aria-label="YouTube">
+                    <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                </a>
+                <a href="#" aria-label="X Twitter">
+                    <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+                <a href="#" aria-label="Pinterest">
+                    <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.395 2.138.889 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.214 0-2.354-.629-2.758-1.379l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12 0-6.628-5.373-12-12-12z"/></svg>
+                </a>
             </div>
         </div>
     </footer>
+    <!-- <script>
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+      window.location.reload(); // forces reload from server, not cache
+    }
+  });
+</script> -->
+<div id="toast" class="toast hidden"></div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const toastType = params.get("toast");
+
+  if (toastType === "already_logged_in") {
+    showToast("You are already logged in. Logout to switch accounts.");
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+      toast.classList.add("hidden");
+    }, 3000);
+  }
+</script>
+
 </body>
 </html>
