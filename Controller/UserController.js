@@ -98,9 +98,6 @@ const verifyOtpGet=(req,res)=>{
     return res.redirect('/home')
   }
   if(!req.session.admin){
-    if(!req.session.userData){
-      return res.render("signup",{serverError:"Please Sign Up First"})
-    }
     return res.render('verify-otp')
   }
   return res.redirect('/admin/home')
@@ -170,11 +167,13 @@ const loginPost= async (req,res)=>{
   const findUser= await userCollection.findOne({email})
 
   if(!findUser){
-    return res.render("login",{loginErr:"User doesnt Exist"})
+    req.session.loginErr = "User doesn't exist"
+    return res.redirect('/login')
   }
 
   if(!findUser.password){
-    return res.render('login',{loginErr:"This account uses Google login "})
+    req.session.loginErr = "This account uses Google login"
+    return res.redirect('/login')
   }
 
   const passwordMatch= await bcrypt.compare(password,findUser.password)
@@ -183,11 +182,13 @@ const loginPost= async (req,res)=>{
     req.session.user=findUser._id
     return res.redirect('/home')
   }else{
-    return res.render('login',{loginErr:"Invalid credentials"})
+    req.session.loginErr = "Invalid Credentials"
+    return res.redirect('/login')
   }
   } catch (error) {
     console.error("login error ",error)
-    return res.render('login',{loginErr:"Server Error"})
+    req.session.loginErr = "Server Error"
+    return res.redirect('/login')
   }
 
 }
@@ -210,6 +211,138 @@ const logOut= async (req,res)=>{
   }
 }
 
+const forgotPasswordGet= (req,res)=>{
+  if(req.session.admin){
+    return res.redirect('/admin/home')
+  }
+
+  if(req.session.user){
+    return res.redirect('/home')
+  }
+  return res.render('SentEmail')
+}
+
+const forgotPasswordPost= async(req,res)=>{
+  try {
+    const {email}=req.body
+
+  const findUser= await userCollection.findOne({email})
+  // console.log(findUser)
+
+  if(!findUser){
+    return res.redirect('/login')
+  }
+
+  const otp=generateOtp()
+  const emailSent = await sendVerificationEmail(email,otp)
+
+    if(!emailSent){
+      return res.redirect("/forgot-password");
+    }
+
+    req.session.userOtp=otp
+    req.session.email=email
+    console.log("Otp is ",otp)
+    return res.redirect('/verify-password')
+  } catch (error) {
+    console.log("Error : ",error)
+    return res.render('forgotPassOtp')
+  }
+}
+
+const passwordVerifyGet=(req,res)=>{
+  if(req.session.user){
+    return res.redirect('/home')
+  }
+  if(!req.session.admin){
+    return res.render('forgotPassOtp')
+  }
+  return res.redirect('/admin/home')
+}
+
+const passwordVerifyPost=async (req,res)=>{
+  try {
+    const {otp}=req.body
+
+  if(otp===req.session.userOtp){
+    req.session.isverified=true
+    delete req.session.userOtp;
+
+    return res.json({ success: true, redirectUrl: "/reset-password" });
+  }else{
+    return res.status(400).json({ success: false, message: "Invalid OTP, Please try again" });
+  }
+  } catch (error) {
+    console.error("error verifying Otp ",error)
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
+const resendOtpPassPost= async (req,res)=>{
+  try {
+    const email=req.session.email
+
+    if(!email){
+      return res.status(400).json({success:false,message:"Email Not Found!"})
+    }
+
+    const otp=generateOtp()
+    req.session.userOtp=otp
+
+    const emailSent=await sendVerificationEmail(email,otp)
+
+    if(!emailSent){
+      return res.status(500).json({success:false,message:"Failed to resend OTP"})
+    }else{
+      console.log("New Otp : ",otp)
+      res.status(200).json({success:true,message:"OTP Send Successfully"})
+    }
+  } catch (error) {
+    console.log("Error in sending otp ",error)
+    return res.status(500).json({success:false,message:"Server Error"})
+  }
+}
+
+const resetPassGet= (req,res)=>{
+  if(req.session.user){
+    return res.redirect('/home')
+  }
+
+  if(req.session.admin){
+    return res.redirect('/admin/home')
+  }
+
+  if(req.session.isverified){
+    return res.render('reset-password')
+  }
+}
+
+const resetPassPost= async (req,res)=>{
+  try {
+     if (!req.session.isverified || !req.session.email) {
+      return res.redirect("/forgot-password");
+    } 
+
+    const {newPassword}=req.body
+
+    const hashedPassword= await securePassword(newPassword)
+
+    await userCollection.updateOne(
+      {email:req.session.email},
+      {$set:{password:hashedPassword}}
+    )
+
+    return res.redirect('/login')
+  } catch (error) {
+
+    console.error("Reset password error:", error);
+    res.render("reset-password", {
+      error: "Something went wrong. Try again."
+    });
+  }
+  }
+
+
 export default {
   loginGet,
   loginPost,
@@ -220,5 +353,12 @@ export default {
   verifyOtpGet,
   resendOtpPost,
   profileGet,
-  logOut
+  logOut,
+  forgotPasswordGet,
+  forgotPasswordPost,
+  passwordVerifyGet,
+  passwordVerifyPost,
+  resendOtpPassPost,
+  resetPassGet,
+  resetPassPost
 };

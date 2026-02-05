@@ -20,6 +20,13 @@ router.get("/auth/google/callback",passport.authenticate("google",{failureRedire
   })
 router.get('/profile',userController.profileGet)
 router.post('/logout',userController.logOut)
+router.get('/forgot-password',userController.forgotPasswordGet)
+router.post('/forgot-password',userController.forgotPasswordPost)
+router.get('/verify-password',userController.passwordVerifyGet)
+router.post('/verify-password',userController.passwordVerifyPost)
+router.post('/resend-otpPass',userController.resendOtpPassPost)
+router.get('/reset-password',userController.resetPassGet)
+router.post('/reset-password',userController.resetPassPost)
 
 
 export default router
