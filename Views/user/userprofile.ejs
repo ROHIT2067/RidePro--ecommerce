@@ -3,76 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account Details - RidePro</title>
+    <title>My Profile - RidePro</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/Styles/profile.css">
 </head>
 <body>
     <!-- Header -->
-    <header>
-        <div class="header-left">Account Details</div>
-        <a href="/" class="logo">
-            <div class="logo-circle">R</div>
-        </a>
-        <div class="nav-right">
-  <a class="nav-item">
-    <i class="fa-solid fa-magnifying-glass nav-icon"></i> Search
-  </a>
-
-  <a href="/login" class="nav-item">
-    <i class="fa-solid fa-user nav-icon"></i>
-    <span><%= currentUser ? currentUser.username : "Guest" %></span>
-  </a>
-
-  <a class="nav-item">
-    <i class="fa-solid fa-cart-shopping nav-icon"></i>
-  </a>
-</div>
-
-    </header>
-
+    <%- include('partials/header') %>
+    
     <!-- Main Content -->
     <main class="main-content">
         <div class="content-header">
             <div class="breadcrumb">
-                <a href="/">RidePro</a> &gt; My Account
+                <a href="/">RidePro</a> &gt; My Account &gt; Profile
             </div>
             <h1>My Account</h1>
         </div>
 
         <div class="account-layout">
             <!-- Sidebar -->
-             <%- include('partials/sidebar') %>
+            <%- include('partials/sidebar') %>
 
-
-            <!-- Account Details form -->
+            <!-- Profile Display -->
             <div class="account-main">
-                <h2>Account Details</h2>
+                <div class="profile-header">
+                    <h2>Profile Information</h2>
+                    <a href="/account/edit" class="btn-edit">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+                    </a>
+                </div>
 
-                <form class="account-details-form" action="/account/details" method="POST">
-                    <div class="avatar-block">
-                        <div class="avatar">
-                            <%= typeof user !== 'undefined' && user.initials ? user.initials : 'AN' %>
+                <div class="profile-content">
+                    <!-- Profile Photo Section -->
+                    <div class="profile-photo-section">
+                        <div class="avatar-large">
+                            <%= typeof user !== 'undefined' && user.initials ? user.initials : ':)' %>
+                        </div>
+                        <h3 class="profile-name"><%= typeof user !== 'undefined' && user.username ? user.username : 'Anonymous User' %></h3>
+                    </div>
+
+                    <!-- Profile Details -->
+                    <div class="profile-details">
+                        <div class="detail-item">
+                            <div class="detail-label">
+                                <i class="fa-solid fa-user"></i>
+                                User Name
+                            </div>
+                            <div class="detail-value">
+                                <%= typeof user !== 'undefined' && user.username ? user.username : 'Not provided' %>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label">
+                                <i class="fa-solid fa-envelope"></i>
+                                Email Address
+                            </div>
+                            <div class="detail-value">
+                                <%= typeof user !== 'undefined' && user.email ? user.email : 'Not provided' %>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label">
+                                <i class="fa-solid fa-phone"></i>
+                                Mobile Number
+                            </div>
+                            <div class="detail-value">
+                                <%= typeof user !== 'undefined' && user.mobile ? user.mobile : 'Not provided' %>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="fullname">Full name</label>
-                        <input type="text" id="fullname" name="fullName" value="<%= typeof user !== 'undefined' && user.fullName ? user.fullName : '' %>" placeholder="Enter your full name">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" value="<%= typeof user !== 'undefined' && user.email ? user.email : '' %>" placeholder="Enter your email">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="mobile">Mobile</label>
-                        <input type="tel" id="mobile" name="mobile" value="<%= typeof user !== 'undefined' && user.mobile ? user.mobile : '' %>" placeholder="Enter your mobile number">
-                    </div>
-
-                    <button type="submit" class="btn-save">Save Changes</button>
-                </form>
+                </div>
 
                 <!-- Pagination -->
                 <div class="pagination">

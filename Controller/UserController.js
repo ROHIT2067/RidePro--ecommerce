@@ -361,7 +361,7 @@ const changePassGet = (req, res) => {
   if (!req.session.user) {
     return res.redirect("/login");
   }
-  console.log(req.session.flash);
+  // console.log(req.session.flash);
 
   const oldPassErr = req.session.flash?.oldPassErr || null;
   const newPassErr = req.session.flash?.newPassErr || null;
@@ -371,7 +371,7 @@ const changePassGet = (req, res) => {
   return res.render("change-password",{oldPassErr,newPassErr});
 };
 
-const accoutGet = (req, res) => {
+const accoutGet = async (req, res) => {
   if (req.session.admin) {
     return res.redirect("/admin/home");
   }
@@ -379,8 +379,25 @@ const accoutGet = (req, res) => {
   if (!req.session.user) {
     return res.redirect("/login");
   }
+  
+  const findUser= await userCollection.findById(req.session.user)
 
-  return res.render("userprofile");
+  if(!findUser){
+    return res.redirect('/login')
+  }
+
+  const initials = findUser.username 
+      ? findUser.username.substring(0, 2).toUpperCase() 
+      : ':)';
+
+      const userData = {
+    username: findUser.username || '',
+    email: findUser.email || '',
+    mobile: findUser.phoneNumber || '',
+    initials: initials
+  };
+
+  return res.render("userprofile",{user:userData});
 };
 
 const changePassPost = async (req, res) => {
