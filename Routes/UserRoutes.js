@@ -18,8 +18,7 @@ router.get("/auth/google/callback",passport.authenticate("google",{failureRedire
     // console.log(req.session.user)
     res.redirect("/home");
   })
-router.get('/profile',userController.profileGet)
-router.post('/logout',userController.logOut)
+router.get('/logout',userController.logOut)
 router.get('/forgot-password',userController.forgotPasswordGet)
 router.post('/forgot-password',userController.forgotPasswordPost)
 router.get('/verify-password',userController.passwordVerifyGet)
@@ -27,6 +26,9 @@ router.post('/verify-password',userController.passwordVerifyPost)
 router.post('/resend-otpPass',userController.resendOtpPassPost)
 router.get('/reset-password',userController.resetPassGet)
 router.post('/reset-password',userController.resetPassPost)
+router.get('/account/password',userController.changePassGet)
+router.post('/account/password',userController.changePassPost)
+router.get('/account',userController.accoutGet)
 
 
 export default router

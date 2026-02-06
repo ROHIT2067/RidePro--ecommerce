@@ -1,0 +1,51 @@
+<aside class="account-sidebar">
+  <ul class="sidebar-nav">
+    <li>
+      <a href="/account/orders">
+        <i class="fa fa-box sidebar-icon"></i> Orders
+      </a>
+    </li>
+    <li>
+      <a href="/account/wishlist">
+        <i class="fa fa-heart sidebar-icon"></i> Wishlist
+      </a>
+    </li>
+    <li>
+      <a href="/account/address">
+        <i class="fa fa-location-dot sidebar-icon"></i> Address
+      </a>
+    </li>
+    <li>
+      <a href="/account/password">
+        <i class="fa fa-lock sidebar-icon"></i> Password
+      </a>
+    </li>
+    <li>
+      <a href="/account/wallet">
+        <i class="fa fa-wallet sidebar-icon"></i> Wallet
+      </a>
+    </li>
+    <li>
+      <a href="/account">
+        <i class="fa fa-user sidebar-icon"></i> Account Detail
+      </a>
+    </li>
+    <li>
+      <a href="/logout">
+        <i class="fa fa-right-from-bracket sidebar-icon"></i> Logout
+      </a>
+    </li>
+  </ul>
+</aside>
+
+<script>
+  const currentPath = window.location.pathname;
+  
+  document.querySelectorAll('.sidebar-nav a').forEach(link => {
+    link.classList.remove('active');
+    
+    if (link.getAttribute('href') === currentPath) {
+      link.classList.add('active');
+    }
+  });
+</script>

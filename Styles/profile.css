@@ -380,6 +380,24 @@ footer {
   width: 100%;
 }
 
+.btn-cancel {
+  display: inline-block;
+  margin-left: 12px;
+  padding: 0.75rem 1.5rem;
+  background: #d32f2f;
+  color: white;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #b71c1c;
+}
+
 .menu-btn {
   all: unset; /* remove button defaults */
   cursor: pointer;
@@ -404,4 +422,36 @@ footer {
 .sidebar-icon {
   width: 18px;
   height: 18px;
+}
+
+.forgot-password {
+  text-align: right;
+  margin: 6px 0 16px;
+}
+
+.forgot-password a {
+  text-decoration: none;   /* remove underline */
+  font-size: 0.9rem;
+  color: #6b7280;          /* subtle grey */
+}
+
+.forgot-password a:hover {
+  color: #1565c0;          /* same blue as your buttons */
+  text-decoration: none;  /* still no underline */
+}
+
+.sidebar-nav a.active {
+  background-color: #1565c0;  /* Blue background instead of grey */
+  color: white;               /* White text */
+  font-weight: 500;
+}
+
+.sidebar-nav a.active .sidebar-icon {
+  color: white;  /* Make icon white too */
+}
+
+.field-error {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #d32f2f;
 }

@@ -1,0 +1,63 @@
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+}
+
+.page {
+  flex: 1;
+  padding-bottom: 80px;
+}
+
+/* Keep everything centered */
+.breadcrumb,
+.page-heading,
+.account-layout,
+.footer-grid {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Main layout alignment */
+.account-layout {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+/* Sidebar and card aligned at top */
+.sidebar,
+.content-card {
+  align-self: flex-start;
+}
+
+/* Card spacing and pagination */
+.content-card {
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Footer pinned to bottom */
+.footer {
+  margin-top: auto;
+  padding: 80px 60px 40px;
+}
+
+/* Footer grid centered */
+.footer-grid {
+  margin: 0 auto;
+}
