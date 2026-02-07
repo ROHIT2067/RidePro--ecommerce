@@ -33,7 +33,7 @@
             <h2>Edit Profile</h2>
           </div>
 
-          <form action="/account/edit" method="GET" class="edit-profile-form">
+          <form action="/account/edit" method="POST" class="edit-profile-form">
             <!-- Profile Picture Section -->
             <div class="profile-picture-section">
               <h3>Profile Picture</h3>
@@ -242,5 +242,77 @@
           window.location.href = "/emailVerify";
         });
     </script>
+
+    <script>
+  const nameInput = document.getElementById("fullName");
+  const phoneInput = document.getElementById("phone");
+  const form = document.querySelector(".edit-profile-form");
+
+  function showError(input, message) {
+    let err = input.parentElement.querySelector(".form-error");
+    if (!err) {
+      err = document.createElement("div");
+      err.className = "form-error";
+      err.style.color = "red";
+      err.style.fontSize = "12px";
+      err.style.marginTop = "5px";
+      input.parentElement.appendChild(err);
+    }
+    err.innerText = message;
+  }
+
+  function clearError(input) {
+    const err = input.parentElement.querySelector(".form-error");
+    if (err) err.remove();
+  }
+
+  function nameValidation() {
+    const nameVal = nameInput.value.trim();
+    const namePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+
+    if (nameVal === "") {
+      showError(nameInput, "Please enter a valid username");
+      return false;
+    } else if (!namePattern.test(nameVal)) {
+      showError(nameInput, "Username must contain only letters, numbers, underscores");
+      return false;
+    } else if (nameVal.length < 3 || nameVal.length > 15) {
+      showError(nameInput, "Username must be between 3 and 15 characters");
+      return false;
+    } else {
+      clearError(nameInput);
+      return true;
+    }
+  }
+
+  function phoneValidation() {
+    const phoneVal = phoneInput.value.trim();
+    const phonePattern = /^\d{10}$/;
+
+    if (phoneVal === "") {
+      showError(phoneInput, "Enter phone number");
+      return false;
+    } else if (!phonePattern.test(phoneVal)) {
+      showError(phoneInput, "Phone number must be exactly 10 digits");
+      return false;
+    } else {
+      clearError(phoneInput);
+      return true;
+    }
+  }
+
+  form.addEventListener("submit", function (e) {
+    const isNameValid = nameValidation();
+    const isPhoneValid = phoneValidation();
+
+    if (!isNameValid || !isPhoneValid) {
+      e.preventDefault();
+    }
+  });
+
+  nameInput.addEventListener("input", nameValidation);
+  phoneInput.addEventListener("input", phoneValidation);
+</script>
+
   </body>
 </html>

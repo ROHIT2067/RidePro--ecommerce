@@ -37,5 +37,6 @@ router.post('/emailOtp',userController.emailOtpPost)
 router.get('/reset-email',userController.resetEmailGet)
 router.post('/resendOtp',userController.resendEmailPost)
 router.post('/reset-email',userController.resetEmailPost)
+router.post('/account/edit',userController.accountEditPost)
 
 export default router

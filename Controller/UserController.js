@@ -636,6 +636,23 @@ const resetEmailPost= async (req,res)=>{
   }
 }
 
+const accountEditPost= async (req,res)=>{
+  const {username, email ,phone}= req.body
+
+  try {
+    await userCollection.findByIdAndUpdate(req.session.user,{
+      username,
+      email,
+      phoneNumber:phone
+    })
+
+    return res.redirect('/account')
+  } catch (error) {
+    console.log("Account Edit Error : ",error)
+    return res.redirect('/account')
+  }
+}
+
 
 export default {
   loginGet,
@@ -664,5 +681,6 @@ export default {
   emailOtpGet,
   resetEmailGet,
   resendEmailPost,
-  resetEmailPost
+  resetEmailPost,
+  accountEditPost
 };
