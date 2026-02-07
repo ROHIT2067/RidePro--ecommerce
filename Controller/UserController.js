@@ -397,7 +397,7 @@ const accoutGet = async (req, res) => {
     initials: initials
   };
 
-  return res.render("userprofile",{user:userData});
+  return res.render("userprofile",{user:userData });
 };
 
 const changePassPost = async (req, res) => {
@@ -449,6 +449,194 @@ const changePassPost = async (req, res) => {
   }
 };
 
+const profileEditGet= async (req,res)=>{
+  if(req.session.admin){
+    return res.redirect('/admin/home')
+  }
+
+  if(!req.session.user){
+    return res.redirect('/login')
+  }
+
+  const findUser= await userCollection.findById(req.session.user)
+
+  if(!findUser){
+    return res.redirect('/login')
+  }
+  const userData = {
+    username: findUser.username || '',
+    email : findUser.email || '',
+    mobile :findUser.phoneNumber || 'Not Provided'
+  }
+  
+  return res.render('edit-profile',{user:userData})
+}
+
+const emailVerifyGet= async (req,res)=>{
+  if(req.session.admin){
+    return res.redirect('/admin/home')
+  }
+
+  if(!req.session.user){
+    return res.redirect('/login')
+  }
+  const emailErr=null || req.session.emailErr
+  return res.render('emailChange',{emailErr:emailErr})
+
+}
+
+const emailVerifyPost= async (req,res)=>{
+  try {
+    const { email } = req.body;
+
+    const findUser = await userCollection.findById(req.session.user);
+    // console.log(findUser)
+    
+    const noUser= await userCollection.findOne({email})
+
+    if(!noUser){
+      req.session.emailErr="Incorrect Email"
+      return res.redirect('/emailVerify')
+    }
+    if(email !== findUser.email){
+      req.session.emailErr="Enter your current Email"
+      return res.redirect('/emailVerify')
+    }
+
+    if (findUser.google_ID) {
+      req.session.emailErr = "This account uses Google login";
+      return res.redirect("/emailVerify");
+    }
+
+    const otp = generateOtp();
+    const emailSent = await sendVerificationEmail(email, otp);
+
+    if (!emailSent) {
+      return res.redirect("/account");
+    }
+
+    req.session.userOtp = otp;
+    req.session.email = email;
+    console.log("Otp is ", otp);
+    return res.redirect("/emailOtp");
+  } catch (error) {
+    console.log("Error : ", error);
+    return res.render("edit-profile");
+  }
+}
+
+const emailOtpGet = (req,res)=>{
+  if(req.session.admin){
+    return res.redirect('/admin/home')
+  }
+
+  if(!req.session.user){
+    return res.redirect('/login')
+  }
+  return res.render('emailOtp')
+}
+
+const emailOtpPost= async (req,res)=>{
+  try {
+    const { otp } = req.body;
+
+    if (otp === req.session.userOtp) {
+      req.session.isverified = true;
+      delete req.session.userOtp;
+
+      // console.log("YES")
+      return res.json({ success: true, redirectUrl: "/reset-email" });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid OTP, Please try again" });
+    }
+  } catch (error) {
+    console.error("error verifying Otp ", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
+const resetEmailGet= async (req,res)=>{
+  if(req.session.admin){
+    return res.redirect('/admin/home')
+  }
+
+  if(!req.session.user){
+    return res.redirect('/login')
+  }
+  const findUser= await userCollection.findById(req.session.user)
+
+  if(!findUser){
+    return res.redirect('/login')
+  }
+
+      const userData = {
+    username: findUser.username || ''
+  };
+  
+  const resetErr= null || req.session.resetErr
+  return res.render('resetEmail',{resetErr:resetErr, user:userData})
+}
+
+const resendEmailPost= async (req,res)=>{
+  try {
+    const email = req.session.email;
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email Not Found!" });
+    }
+
+    const otp = generateOtp();
+    req.session.userOtp = otp;
+
+    const emailSent = await sendVerificationEmail(email, otp);
+
+    if (!emailSent) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to resend OTP" });
+    } else {
+      console.log("New Otp : ", otp);
+      res.status(200).json({ success: true, message: "OTP Send Successfully" });
+    }
+  } catch (error) {
+    console.log("Error in sending otp ", error);
+    return res.status(500).json({ success: false, message: "Server Error" });
+  }
+}
+
+const resetEmailPost= async (req,res)=>{
+  try {
+    const { newEmail, confirmEmail } = req.body;
+
+    if (newEmail !== confirmEmail) {
+      req.session.flash = { newPassErr: "Email do not match" };
+      // console.log("password dont match");
+      return res.redirect("/reset-email");
+    }
+
+    const findUser = await userCollection.findById(req.session.user);
+
+    if (!findUser) {
+      return res.redirect("/login");
+    }
+
+    await userCollection.findByIdAndUpdate(req.session.user, {
+      $set: { email: newEmail },
+    });
+
+    return res.redirect("/account");
+  } catch (error) {
+    console.error("Change password error:", error);
+    req.session.error="Error in changing Email"
+    return res.redirect("/reset-email");
+  }
+}
+
+
 export default {
   loginGet,
   loginPost,
@@ -469,4 +657,12 @@ export default {
   changePassGet,
   accoutGet,
   changePassPost,
+  profileEditGet,
+  emailVerifyGet,
+  emailVerifyPost,
+  emailOtpPost,
+  emailOtpGet,
+  resetEmailGet,
+  resendEmailPost,
+  resetEmailPost
 };

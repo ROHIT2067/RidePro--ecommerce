@@ -29,6 +29,13 @@ router.post('/reset-password',userController.resetPassPost)
 router.get('/account/password',userController.changePassGet)
 router.post('/account/password',userController.changePassPost)
 router.get('/account',userController.accoutGet)
-
+router.get('/account/edit',userController.profileEditGet)
+router.get('/emailVerify',userController.emailVerifyGet)
+router.post('/emailVerify',userController.emailVerifyPost)
+router.get('/emailOtp',userController.emailOtpGet)
+router.post('/emailOtp',userController.emailOtpPost)
+router.get('/reset-email',userController.resetEmailGet)
+router.post('/resendOtp',userController.resendEmailPost)
+router.post('/reset-email',userController.resetEmailPost)
 
 export default router
