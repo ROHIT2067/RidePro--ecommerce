@@ -39,9 +39,13 @@ router.get('/reset-email',userController.resetEmailGet)
 router.post('/resendOtp',userController.resendEmailPost)
 router.post('/reset-email',userController.resetEmailPost)
 router.post('/account/edit',userController.accountEditPost)
-router.get('/account/address',userController.addressGet)
 router.post('/account/upload-avatar', upload.single('avatar'), userController.uploadAvatar);
 router.delete('/account/delete-avatar', userController.deleteAvatar);
+router.get('/account/address',userController.addressGet)
 router.get('/account/address/add',userController.addressAddGet)
+router.post('/account/address/add',userController.addressAddPost)
+router.get('/account/address/edit/:id',userController.addressEditGet)
+router.post('/account/address/edit/:id', userController.addressEditPost)
+router.post('/account/address/delete/:id', userController.addressDeletePost)
 
 export default router

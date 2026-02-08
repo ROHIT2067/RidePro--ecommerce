@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Add Shipping Address | RidePro</title>
+  <title>Edit Shipping Address | RidePro</title>
   <link rel="stylesheet" href="/Styles/profile.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -41,7 +41,7 @@
 <main class="main-content">
   <div class="content-header">
     <div class="breadcrumb">
-      <a href="/">RidePro</a> &gt; My Account &gt; Shipping Address &gt; Add
+      <a href="/">RidePro</a> &gt; My Account &gt; Shipping Address &gt; Edit
     </div>
     <h1>My Account</h1>
   </div>
@@ -50,31 +50,31 @@
     <%- include('partials/sidebar') %>
 
     <div class="account-main">
-      <h2>Add Shipping Address</h2>
+      <h2>Edit Shipping Address</h2>
 
-      <form method="POST" action="/account/address/add" class="address-form" id="addressForm">
+      <form method="POST" action="/account/address/edit/<%= address._id %>" class="address-form" id="addressForm">
 
         <div class="form-row">
           <label for="name">Name *</label>
-          <input type="text" id="name" name="name" required minlength="2" maxlength="50" />
+          <input type="text" id="name" name="name" value="<%= address.name %>" required minlength="2" maxlength="50" />
           <span class="form-error" id="nameError">Please enter a valid name (2-50 characters)</span>
         </div>
 
         <div class="form-row">
           <label for="area">Area/Street *</label>
-          <input type="text" id="area" name="area" required minlength="3" maxlength="100" />
+          <input type="text" id="area" name="area" value="<%= address.area %>" required minlength="3" maxlength="100" />
           <span class="form-error" id="areaError">Please enter a valid area (3-100 characters)</span>
         </div>
 
         <div class="form-row two">
           <div>
             <label for="district">District *</label>
-            <input type="text" id="district" name="district" required minlength="2" maxlength="50" />
+            <input type="text" id="district" name="district" value="<%= address.district %>" required minlength="2" maxlength="50" />
             <span class="form-error" id="districtError">Please enter a valid district</span>
           </div>
           <div>
             <label for="state">State *</label>
-            <input type="text" id="state" name="state" required minlength="2" maxlength="50" />
+            <input type="text" id="state" name="state" value="<%= address.state %>" required minlength="2" maxlength="50" />
             <span class="form-error" id="stateError">Please enter a valid state</span>
           </div>
         </div>
@@ -82,24 +82,24 @@
         <div class="form-row two">
           <div>
             <label for="pincode">Pincode *</label>
-            <input type="text" id="pincode" name="pincode" required pattern="\d{6}" maxlength="6" placeholder="123456" />
+            <input type="text" id="pincode" name="pincode" value="<%= address.pincode %>" required pattern="\d{6}" maxlength="6" placeholder="123456" />
             <span class="form-error" id="pincodeError">Pincode must be exactly 6 digits</span>
           </div>
           <div>
             <label for="country">Country *</label>
-            <input type="text" id="country" name="country" required minlength="2" maxlength="50" value="India" />
+            <input type="text" id="country" name="country" value="<%= address.country %>" required minlength="2" maxlength="50" />
             <span class="form-error" id="countryError">Please enter a valid country</span>
           </div>
         </div>
 
         <div class="form-row">
           <label for="mobile">Mobile Number *</label>
-          <input type="text" id="mobile" name="mobile" required pattern="\d{10}" maxlength="10" placeholder="9876543210" />
+          <input type="text" id="mobile" name="mobile" value="<%= address.mobile %>" required pattern="\d{10}" maxlength="10" placeholder="9876543210" />
           <span class="form-error" id="mobileError">Mobile number must be exactly 10 digits</span>
         </div>
 
         <div class="actions">
-          <button type="submit" class="btn-primary">Save Address</button>
+          <button type="submit" class="btn-primary">Update Address</button>
           <a href="/account/address" class="btn-outline">Cancel</a>
         </div>
 

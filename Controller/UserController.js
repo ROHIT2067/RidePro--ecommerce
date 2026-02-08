@@ -1,10 +1,10 @@
 import userCollection from "../Models/UserModel.js";
+import address from "../Models/AddressModel.js";
 import bcrypt from "bcrypt";
 import { generateOtp } from "../utils/otp.js";
 import { sendVerificationEmail } from "../service/mailService.js";
 import { securePassword } from "../utils/passwordHash.js";
-import cloudinary from '../Config/cloudinary.js';
-
+import cloudinary from "../Config/cloudinary.js";
 
 const loginGet = (req, res) => {
   if (req.session.user) {
@@ -370,7 +370,7 @@ const changePassGet = (req, res) => {
 
   delete req.session.flash;
 
-  return res.render("change-password",{oldPassErr,newPassErr});
+  return res.render("change-password", { oldPassErr, newPassErr });
 };
 
 const accoutGet = async (req, res) => {
@@ -381,26 +381,26 @@ const accoutGet = async (req, res) => {
   if (!req.session.user) {
     return res.redirect("/login");
   }
-  
-  const findUser= await userCollection.findById(req.session.user).lean()
 
-  if(!findUser){
-    return res.redirect('/login')
+  const findUser = await userCollection.findById(req.session.user).lean();
+
+  if (!findUser) {
+    return res.redirect("/login");
   }
 
-  const initials = findUser.username 
-      ? findUser.username.substring(0, 2).toUpperCase() 
-      : ':)';
+  const initials = findUser.username
+    ? findUser.username.substring(0, 2).toUpperCase()
+    : ":)";
 
-      const userData = {
-    username: findUser.username || '',
-    email: findUser.email || '',
-    mobile: findUser.phoneNumber || '',
+  const userData = {
+    username: findUser.username || "",
+    email: findUser.email || "",
+    mobile: findUser.phoneNumber || "",
     initials: initials,
-    avatar: findUser.avatar || { url: null, publicId: null } 
+    avatar: findUser.avatar || { url: null, publicId: null },
   };
 
-  return res.render("userprofile",{user:userData });
+  return res.render("userprofile", { user: userData });
 };
 
 const changePassPost = async (req, res) => {
@@ -452,61 +452,59 @@ const changePassPost = async (req, res) => {
   }
 };
 
-const profileEditGet= async (req,res)=>{
-  if(req.session.admin){
-    return res.redirect('/admin/home')
+const profileEditGet = async (req, res) => {
+  if (req.session.admin) {
+    return res.redirect("/admin/home");
   }
 
-  if(!req.session.user){
-    return res.redirect('/login')
+  if (!req.session.user) {
+    return res.redirect("/login");
   }
 
-  const findUser= await userCollection.findById(req.session.user).lean()
+  const findUser = await userCollection.findById(req.session.user).lean();
 
-  if(!findUser){
-    return res.redirect('/login')
+  if (!findUser) {
+    return res.redirect("/login");
   }
   const userData = {
-    username: findUser.username || '',
-    email: findUser.email || '',
-    mobile: findUser.phoneNumber || 'Not Provided',
-    name: findUser.username || '', 
-    avatar: findUser.avatar || { url: null, publicId: null }
+    username: findUser.username || "",
+    email: findUser.email || "",
+    mobile: findUser.phoneNumber || "Not Provided",
+    name: findUser.username || "",
+    avatar: findUser.avatar || { url: null, publicId: null },
   };
 
-  
-  return res.render('edit-profile',{user:userData})
-}
+  return res.render("edit-profile", { user: userData });
+};
 
-const emailVerifyGet= async (req,res)=>{
-  if(req.session.admin){
-    return res.redirect('/admin/home')
+const emailVerifyGet = async (req, res) => {
+  if (req.session.admin) {
+    return res.redirect("/admin/home");
   }
 
-  if(!req.session.user){
-    return res.redirect('/login')
+  if (!req.session.user) {
+    return res.redirect("/login");
   }
-  const emailErr=null || req.session.emailErr
-  return res.render('emailChange',{emailErr:emailErr})
+  const emailErr = null || req.session.emailErr;
+  return res.render("emailChange", { emailErr: emailErr });
+};
 
-}
-
-const emailVerifyPost= async (req,res)=>{
+const emailVerifyPost = async (req, res) => {
   try {
     const { email } = req.body;
 
     const findUser = await userCollection.findById(req.session.user);
     // console.log(findUser)
-    
-    const noUser= await userCollection.findOne({email})
 
-    if(!noUser){
-      req.session.emailErr="Incorrect Email"
-      return res.redirect('/emailVerify')
+    const noUser = await userCollection.findOne({ email });
+
+    if (!noUser) {
+      req.session.emailErr = "Incorrect Email";
+      return res.redirect("/emailVerify");
     }
-    if(email !== findUser.email){
-      req.session.emailErr="Enter your current Email"
-      return res.redirect('/emailVerify')
+    if (email !== findUser.email) {
+      req.session.emailErr = "Enter your current Email";
+      return res.redirect("/emailVerify");
     }
 
     if (findUser.google_ID) {
@@ -529,20 +527,20 @@ const emailVerifyPost= async (req,res)=>{
     console.log("Error : ", error);
     return res.render("edit-profile");
   }
-}
+};
 
-const emailOtpGet = (req,res)=>{
-  if(req.session.admin){
-    return res.redirect('/admin/home')
+const emailOtpGet = (req, res) => {
+  if (req.session.admin) {
+    return res.redirect("/admin/home");
   }
 
-  if(!req.session.user){
-    return res.redirect('/login')
+  if (!req.session.user) {
+    return res.redirect("/login");
   }
-  return res.render('emailOtp')
-}
+  return res.render("emailOtp");
+};
 
-const emailOtpPost= async (req,res)=>{
+const emailOtpPost = async (req, res) => {
   try {
     const { otp } = req.body;
 
@@ -561,31 +559,31 @@ const emailOtpPost= async (req,res)=>{
     console.error("error verifying Otp ", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
-}
+};
 
-const resetEmailGet= async (req,res)=>{
-  if(req.session.admin){
-    return res.redirect('/admin/home')
+const resetEmailGet = async (req, res) => {
+  if (req.session.admin) {
+    return res.redirect("/admin/home");
   }
 
-  if(!req.session.user){
-    return res.redirect('/login')
+  if (!req.session.user) {
+    return res.redirect("/login");
   }
-  const findUser= await userCollection.findById(req.session.user).lean()
+  const findUser = await userCollection.findById(req.session.user).lean();
 
-  if(!findUser){
-    return res.redirect('/login')
+  if (!findUser) {
+    return res.redirect("/login");
   }
 
-      const userData = {
-    username: findUser.username || ''
+  const userData = {
+    username: findUser.username || "",
   };
-  
-  const resetErr= null || req.session.resetErr
-  return res.render('resetEmail',{resetErr:resetErr, user:userData})
-}
 
-const resendEmailPost= async (req,res)=>{
+  const resetErr = null || req.session.resetErr;
+  return res.render("resetEmail", { resetErr: resetErr, user: userData });
+};
+
+const resendEmailPost = async (req, res) => {
   try {
     const email = req.session.email;
 
@@ -612,9 +610,9 @@ const resendEmailPost= async (req,res)=>{
     console.log("Error in sending otp ", error);
     return res.status(500).json({ success: false, message: "Server Error" });
   }
-}
+};
 
-const resetEmailPost= async (req,res)=>{
+const resetEmailPost = async (req, res) => {
   try {
     const { newEmail, confirmEmail } = req.body;
 
@@ -637,81 +635,52 @@ const resetEmailPost= async (req,res)=>{
     return res.redirect("/account");
   } catch (error) {
     console.error("Change password error:", error);
-    req.session.error="Error in changing Email"
+    req.session.error = "Error in changing Email";
     return res.redirect("/reset-email");
   }
-}
+};
 
-const accountEditPost= async (req,res)=>{
-  const {username, email ,phone}= req.body
+const accountEditPost = async (req, res) => {
+  const { username, email, phone } = req.body;
 
   try {
-    await userCollection.findByIdAndUpdate(req.session.user,{
+    await userCollection.findByIdAndUpdate(req.session.user, {
       username,
       email,
-      phoneNumber:phone
-    })
+      phoneNumber: phone,
+    });
 
-    return res.redirect('/account')
+    return res.redirect("/account");
   } catch (error) {
-    console.log("Account Edit Error : ",error)
-    return res.redirect('/account')
+    console.log("Account Edit Error : ", error);
+    return res.redirect("/account");
   }
-}
+};
 
-const addressGet = async (req,res)=>{
-  try {
-    if(req.session.admin){
-    return res.redirect('/admin/home')
-  }
-
-  if(!req.session.user){
-    return res.redirect('/login')
-  }
-
-  const userId= req.session.user
-
-  const findUser= await userCollection.findById(userId).lean()
-
-  const addresses = findUser.addresses || [];
-
-    let selectedAddress = null;
-
-    if (addresses.length > 0) {
-      const addressId = req.query.addressId;
-      selectedAddress = addressId
-        ? addresses.find(a => a._id.toString() === addressId)
-        : addresses[0];
-    }
-
-  return res.render('addressPage',{addresses,selectedAddress})
-  } catch (error) {
-    console.log("Address Get Error : ",error)
-    return res.redirect('/account')
-  }
-}
-
-const uploadAvatar=async (req, res) => {
+const uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        error: "No file uploaded"
+        error: "No file uploaded",
       });
     }
 
     const uploadToCloudinary = (fileBuffer) => {
       return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream({
-          folder: 'user-avatars',
-          transformation: [
-            { width: 300, height: 300, crop: 'fill' },
-            { quality: 'auto', fetch_format: 'auto' }
-          ]
-        }, (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
-        });
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "user-avatars",
+            transformation: [
+              { width: 300, height: 300, crop: "fill" },
+              { quality: "auto", fetch_format: "auto" },
+            ],
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          },
+        );
         stream.end(fileBuffer);
       });
     };
@@ -725,20 +694,23 @@ const uploadAvatar=async (req, res) => {
 
     user.avatar = {
       url: result.secure_url,
-      publicId: result.public_id
+      publicId: result.public_id,
     };
     await user.save();
 
     res.json({
       success: true,
-      message: 'Profile picture updated successfully',
-      avatar: user.avatar
+      message: "Profile picture updated successfully",
+      avatar: user.avatar,
     });
   } catch (error) {
     console.error("Avatar upload error:", error);
-    res.json({ success: false, message: 'Server error occurred. Please try again.' });
+    res.json({
+      success: false,
+      message: "Server error occurred. Please try again.",
+    });
   }
-}
+};
 
 const deleteAvatar = async (req, res) => {
   try {
@@ -747,7 +719,7 @@ const deleteAvatar = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
@@ -759,34 +731,273 @@ const deleteAvatar = async (req, res) => {
     // Remove avatar from user document
     user.avatar = {
       url: null,
-      publicId: null
+      publicId: null,
     };
     await user.save();
 
     res.json({
       success: true,
-      message: 'Profile picture removed successfully'
+      message: "Profile picture removed successfully",
     });
   } catch (error) {
     console.error("Avatar delete error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to remove profile picture'
+      message: "Failed to remove profile picture",
     });
   }
 };
 
-const addressAddGet = (req,res)=>{
-  if(req.session.admin){
-    return res.redirect('/admin/home')
+const addressGet = async (req, res) => {
+  try {
+    if (req.session.admin) {
+      return res.redirect("/admin/home");
+    }
+
+    if (!req.session.user) {
+      return res.redirect("/login");
+    }
+
+    const userId = req.session.user;
+
+    const userAddresses = await address.findOne({ user_id: userId }).lean();
+
+    const addresses = userAddresses?.address || [];
+
+    let selectedAddress = null;
+
+    if (addresses.length > 0) {
+      const addressId = req.query.addressId;
+      selectedAddress = addressId
+        ? addresses.find((a) => a._id.toString() === addressId)
+        : addresses[0];
+    }
+
+    return res.render("addressPage", { addresses, selectedAddress });
+  } catch (error) {
+    console.log("Address Get Error : ", error);
+    return res.redirect("/account");
+  }
+};
+
+const addressAddGet = (req, res) => {
+  if (req.session.admin) {
+    return res.redirect("/admin/home");
   }
 
-  if(!req.session.user){
-    return res.redirect('/login')
+  if (!req.session.user) {
+    return res.redirect("/login");
   }
 
-  return res.render('addressAdd')
-}
+  const user = req.session.user;
+  return res.render("addressAdd", { user: user });
+};
+
+const addressAddPost = async (req, res) => {
+  try {
+    const userId = req.session.user;
+
+    const { name, area, district, state, pincode, country, mobile } = req.body;
+    // Name validation
+    if (
+      !name ||
+      !area ||
+      !district ||
+      !state ||
+      !pincode ||
+      !country ||
+      !mobile
+    ) {
+      req.session.flash = { error: "All fields are required" };
+      return res.redirect("/account/address/add");
+    }
+
+    // Pincode validation
+    if (!/^\d{6}$/.test(pincode)) {
+      req.session.flash = { error: "Pincode must be 6 digits" };
+      return res.redirect("/account/address/add");
+    }
+
+    // Mobile validation
+    if (!/^\d{10}$/.test(mobile)) {
+      req.session.flash = { error: "Mobile number must be 10 digits" };
+      return res.redirect("/account/address/add");
+    }
+
+    const userAddress = await address.findOne({ user_id: userId });
+
+    if (!userAddress) {
+      const newAddress = new address({
+        user_id: userId,
+        address: [
+          {
+            name: name,
+            mobile: mobile,
+            area: area,
+            district: district,
+            state: state,
+            country: country,
+            pincode: pincode,
+            is_default: true,
+          },
+        ],
+      });
+      await newAddress.save();
+    } else {
+      userAddress.address.push({
+        name,
+        mobile,
+        area,
+        district,
+        state,
+        country,
+        pincode,
+        is_default: false,
+      });
+      await userAddress.save();
+    }
+
+    req.session.flash = { success: "Address added successfully" };
+    return res.redirect("/account/address");
+  } catch (error) {
+    console.log("Error adding Address : ", error);
+    req.session.flash = { error: "Failed to add address" };
+    return res.redirect("/account/address/add");
+  }
+};
+
+const addressEditGet = async (req, res) => {
+  try {
+    if (req.session.admin) {
+    return res.redirect("/admin/home");
+  }
+
+  if (!req.session.user) {
+    return res.redirect("/login");
+  }
+
+  const userId = req.session.user;
+  const addressId = req.params.id;
+
+  const userAddresses = await address.findOne({ user_id: userId }).lean();
+
+  if (!userAddresses) {
+    return res.redirect("/account/address");
+  }
+
+  const addressToEdit = userAddresses.address.find(
+    (addr) => addr._id.toString() === addressId,
+  );
+
+  if (!addressToEdit) {
+    return res.redirect("/account/address");
+  }
+
+  return res.render("addressEdit", { address: addressToEdit });
+  } catch (error) {
+    console.log("Address Edit Get Error : ", error);
+    return res.redirect("/account/address");
+  }
+};
+
+const addressEditPost = async (req, res) => {
+  try {
+    const userId = req.session.user;
+    const addressId = req.params.id;
+    
+    const { name, area, district, state, pincode, country, mobile } = req.body;
+
+    if (!name || !area || !district || !state || !pincode || !country || !mobile) {
+      req.session.flash = { error: "All fields are required" };
+      return res.redirect(`/account/address/edit/${addressId}`);
+    }
+
+    // pin validation
+    if (!/^\d{6}$/.test(pincode)) {
+      req.session.flash = { error: "Pincode must be 6 digits" };
+      return res.redirect(`/account/address/edit/${addressId}`);
+    }
+
+    // mobile validation
+    if (!/^\d{10}$/.test(mobile)) {
+      req.session.flash = { error: "Mobile number must be 10 digits" };
+      return res.redirect(`/account/address/edit/${addressId}`);
+    }
+
+    const userAddress = await address.findOne({ user_id: userId });
+
+    if (!userAddress) {
+      return res.redirect('/account/address');
+    }
+
+    // address index find
+    const addressIndex = userAddress.address.findIndex(
+      (addr) => addr._id.toString() === addressId
+    );
+
+    if (addressIndex === -1) {
+      return res.redirect('/account/address');
+    }
+
+    userAddress.address[addressIndex] = {
+      _id: userAddress.address[addressIndex]._id, // keep the same id
+      name,
+      mobile,
+      area,
+      district,
+      state,
+      country,
+      pincode,
+      is_default: userAddress.address[addressIndex].is_default // keep default status
+    };
+
+    await userAddress.save();
+    
+    req.session.flash = { success: "Address updated successfully" };
+    return res.redirect('/account/address');
+  } catch (error) {
+    console.log("Error updating Address : ", error);
+    req.session.flash = { error: "Failed to update address" };
+    return res.redirect(`/account/address/edit/${req.params.id}`);
+  }
+};
+
+const addressDeletePost = async (req, res) => {
+  try {
+    const userId = req.session.user;
+    const addressId = req.params.id;
+
+    // Find address document
+    const userAddress = await address.findOne({ user_id: userId });
+
+    if (!userAddress) {
+      return res.redirect('/account/address');
+    }
+
+    // Filter out the address to delete
+    const wasDefault = userAddress.address.find(
+      (addr) => addr._id.toString() === addressId
+    )?.is_default;
+
+    userAddress.address = userAddress.address.filter(
+      (addr) => addr._id.toString() !== addressId
+    );
+
+    // to make the next first address as default
+    if (wasDefault && userAddress.address.length > 0) {
+      userAddress.address[0].is_default = true;
+    }
+
+    await userAddress.save();
+    
+    req.session.flash = { success: "Address deleted successfully" };
+    return res.redirect('/account/address');
+  } catch (error) {
+    console.log("Error deleting Address : ", error);
+    req.session.flash = { error: "Failed to delete address" };
+    return res.redirect('/account/address');
+  }
+};
 
 export default {
   loginGet,
@@ -820,5 +1031,9 @@ export default {
   addressGet,
   uploadAvatar,
   deleteAvatar,
-  addressAddGet
+  addressAddGet,
+  addressAddPost,
+  addressEditGet,
+  addressEditPost,
+  addressDeletePost
 };
