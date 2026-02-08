@@ -3,6 +3,7 @@ const router=express.Router()
 import { blockIfLoggedIn } from "../middlewares/authMiddleware.js"
 import userController from "../Controller/UserController.js"
 import passport from "../Config/passport.js"
+import upload from '../middlewares/multer.js';
 
 router.get('/home',userController.homeGet)
 router.get('/login',userController.loginGet)
@@ -38,5 +39,9 @@ router.get('/reset-email',userController.resetEmailGet)
 router.post('/resendOtp',userController.resendEmailPost)
 router.post('/reset-email',userController.resetEmailPost)
 router.post('/account/edit',userController.accountEditPost)
+router.get('/account/address',userController.addressGet)
+router.post('/account/upload-avatar', upload.single('avatar'), userController.uploadAvatar);
+router.delete('/account/delete-avatar', userController.deleteAvatar);
+router.get('/account/address/add',userController.addressAddGet)
 
 export default router

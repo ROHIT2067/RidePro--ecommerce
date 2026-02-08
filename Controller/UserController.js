@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import { generateOtp } from "../utils/otp.js";
 import { sendVerificationEmail } from "../service/mailService.js";
 import { securePassword } from "../utils/passwordHash.js";
+import cloudinary from '../Config/cloudinary.js';
+
 
 const loginGet = (req, res) => {
   if (req.session.user) {
@@ -380,7 +382,7 @@ const accoutGet = async (req, res) => {
     return res.redirect("/login");
   }
   
-  const findUser= await userCollection.findById(req.session.user)
+  const findUser= await userCollection.findById(req.session.user).lean()
 
   if(!findUser){
     return res.redirect('/login')
@@ -394,7 +396,8 @@ const accoutGet = async (req, res) => {
     username: findUser.username || '',
     email: findUser.email || '',
     mobile: findUser.phoneNumber || '',
-    initials: initials
+    initials: initials,
+    avatar: findUser.avatar || { url: null, publicId: null } 
   };
 
   return res.render("userprofile",{user:userData });
@@ -458,16 +461,19 @@ const profileEditGet= async (req,res)=>{
     return res.redirect('/login')
   }
 
-  const findUser= await userCollection.findById(req.session.user)
+  const findUser= await userCollection.findById(req.session.user).lean()
 
   if(!findUser){
     return res.redirect('/login')
   }
   const userData = {
     username: findUser.username || '',
-    email : findUser.email || '',
-    mobile :findUser.phoneNumber || 'Not Provided'
-  }
+    email: findUser.email || '',
+    mobile: findUser.phoneNumber || 'Not Provided',
+    name: findUser.username || '', 
+    avatar: findUser.avatar || { url: null, publicId: null }
+  };
+
   
   return res.render('edit-profile',{user:userData})
 }
@@ -565,7 +571,7 @@ const resetEmailGet= async (req,res)=>{
   if(!req.session.user){
     return res.redirect('/login')
   }
-  const findUser= await userCollection.findById(req.session.user)
+  const findUser= await userCollection.findById(req.session.user).lean()
 
   if(!findUser){
     return res.redirect('/login')
@@ -653,6 +659,134 @@ const accountEditPost= async (req,res)=>{
   }
 }
 
+const addressGet = async (req,res)=>{
+  try {
+    if(req.session.admin){
+    return res.redirect('/admin/home')
+  }
+
+  if(!req.session.user){
+    return res.redirect('/login')
+  }
+
+  const userId= req.session.user
+
+  const findUser= await userCollection.findById(userId).lean()
+
+  const addresses = findUser.addresses || [];
+
+    let selectedAddress = null;
+
+    if (addresses.length > 0) {
+      const addressId = req.query.addressId;
+      selectedAddress = addressId
+        ? addresses.find(a => a._id.toString() === addressId)
+        : addresses[0];
+    }
+
+  return res.render('addressPage',{addresses,selectedAddress})
+  } catch (error) {
+    console.log("Address Get Error : ",error)
+    return res.redirect('/account')
+  }
+}
+
+const uploadAvatar=async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "No file uploaded"
+      });
+    }
+
+    const uploadToCloudinary = (fileBuffer) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream({
+          folder: 'user-avatars',
+          transformation: [
+            { width: 300, height: 300, crop: 'fill' },
+            { quality: 'auto', fetch_format: 'auto' }
+          ]
+        }, (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        });
+        stream.end(fileBuffer);
+      });
+    };
+
+    const result = await uploadToCloudinary(req.file.buffer);
+    const user = await userCollection.findById(req.session.user);
+
+    if (user.avatar && user.avatar.publicId) {
+      await cloudinary.uploader.destroy(user.avatar.publicId);
+    }
+
+    user.avatar = {
+      url: result.secure_url,
+      publicId: result.public_id
+    };
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Profile picture updated successfully',
+      avatar: user.avatar
+    });
+  } catch (error) {
+    console.error("Avatar upload error:", error);
+    res.json({ success: false, message: 'Server error occurred. Please try again.' });
+  }
+}
+
+const deleteAvatar = async (req, res) => {
+  try {
+    const user = await userCollection.findById(req.session.user);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Delete from Cloudinary if exists
+    if (user.avatar && user.avatar.publicId) {
+      await cloudinary.uploader.destroy(user.avatar.publicId);
+    }
+
+    // Remove avatar from user document
+    user.avatar = {
+      url: null,
+      publicId: null
+    };
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Profile picture removed successfully'
+    });
+  } catch (error) {
+    console.error("Avatar delete error:", error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove profile picture'
+    });
+  }
+};
+
+const addressAddGet = (req,res)=>{
+  if(req.session.admin){
+    return res.redirect('/admin/home')
+  }
+
+  if(!req.session.user){
+    return res.redirect('/login')
+  }
+
+  return res.render('addressAdd')
+}
 
 export default {
   loginGet,
@@ -682,5 +816,9 @@ export default {
   resetEmailGet,
   resendEmailPost,
   resetEmailPost,
-  accountEditPost
+  accountEditPost,
+  addressGet,
+  uploadAvatar,
+  deleteAvatar,
+  addressAddGet
 };

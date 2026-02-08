@@ -1,318 +1,563 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Edit Profile - RidePro</title>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
     <link rel="stylesheet" href="/Styles/profile.css" />
-  </head>
-  <body>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css" />
+</head>
+
+<body>
     <!-- Header -->
     <%- include('partials/header') %>
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <div class="content-header">
-        <div class="breadcrumb">
-          <a href="/">RidePro</a> &gt; My Account &gt; Edit Profile
-        </div>
-        <h1>My Account</h1>
-      </div>
-
-      <div class="account-layout">
-        <!-- Sidebar -->
-        <%- include('partials/sidebar') %>
-
-        <!-- Edit Profile Form -->
-        <div class="account-main">
-          <div class="profile-header">
-            <h2>Edit Profile</h2>
-          </div>
-
-          <form action="/account/edit" method="POST" class="edit-profile-form">
-            <!-- Profile Picture Section -->
-            <div class="profile-picture-section">
-              <h3>Profile Picture</h3>
-              <div class="picture-content">
-                <div class="avatar-large-edit">
-                  <%= typeof user !== 'undefined' && user.initials ?
-                  user.initials : ':)' %>
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <div class="breadcrumb">
+                    <a href="/">RidePro</a> &gt; My Account &gt; Edit Profile
                 </div>
-                <button type="button" class="btn-change-picture">
-                  <i class="fa-solid fa-camera"></i> Change Picture
-                </button>
-              </div>
+                <h1>My Account</h1>
             </div>
 
-            <!-- Personal Information Section -->
-            <div class="personal-info-section">
-              <h3>Personal Information</h3>
+            <div class="account-layout">
+                <!-- Sidebar -->
+                <%- include('partials/sidebar') %>
 
-              <div class="form-group">
-                <label for="fullName">User Name</label>
-                <input
-                  type="text"
-                  id="fullName"
-                  name="username"
-                  value="<%= typeof user !== 'undefined' && user.username ? user.username : '' %>"
-                  placeholder="Enter your New User Name"
-                />
-              </div>
+                    <!-- Edit Profile Form -->
+                    <div class="account-main">
+                        <div class="profile-header">
+                            <h2>Edit Profile</h2>
+                        </div>
 
-              <div class="form-group email-group">
-                <label for="email">Email Address</label>
-                <div class="input-with-button">
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value="<%= typeof user !== 'undefined' && user.email ? user.email : '' %>"
-                    placeholder="Enter your New Email"
-                    readonly
-                  />
-                  <button type="button" class="btn-change-email">
-                    <i class="fa-solid fa-pen"></i> Change Email
-                  </button>
-                </div>
-              </div>
+                        <form action="/account/edit" method="POST" class="edit-profile-form">
+                            <!-- Profile Picture Section -->
+                            <% if (typeof success !=='undefined' && success) { %>
+                                <div
+                                    style="background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                                    <%= success %>
+                                </div>
+                                <% } %>
 
-              <div class="form-group">
-                <label for="phone">Phone Number</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value="<%= typeof user !== 'undefined' && user.mobile ? user.mobile : '' %>"
-                  placeholder="Enter your New Phone Number"
-                />
-              </div>
+                                    <% if (typeof error !=='undefined' && error) { %>
+                                        <div
+                                            style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                                            <%= error %>
+                                        </div>
+                                        <% } %>
+
+                                            <!-- Avatar Section -->
+                                            <div class="avatar-section">
+                                                <h3>Profile Picture</h3>
+                                                <div class="avatar-preview" id="currentAvatarPreview">
+                                                    <% if (user && user.avatar && user.avatar.url) { %>
+                                                        <img src="<%= user.avatar.url %>" alt="Current Avatar"
+                                                            id="currentAvatarImg">
+                                                        <% } else { %>
+                                                            <div class="avatar-preview-placeholder"
+                                                                id="currentAvatarInitial">
+                                                                <%= user && user.name ?
+                                                                    user.name.charAt(0).toUpperCase() : 'U' %>
+                                                            </div>
+                                                            <% } %>
+                                                </div>
+                                                <div class="avatar-actions">
+                                                    <button type="button" class="btn-primary"
+                                                        onclick="showAvatarUpload()">
+                                                        <i class="fas fa-camera"></i>
+                                                        Change Picture
+                                                    </button>
+                                                    <% if (user && user.avatar && user.avatar.url) { %>
+                                                        <button type="button" class="btn-secondary"
+                                                            onclick="deleteAvatar()">
+                                                            <i class="fas fa-trash"></i>
+                                                            Remove Picture
+                                                        </button>
+                                                        <% } %>
+                                                </div>
+                                            </div>
+
+                                            <!-- Personal Information Section -->
+                                            <div class="personal-info-section">
+                                                <h3>Personal Information</h3>
+
+                                                <div class="form-group">
+                                                    <label for="fullName">User Name</label>
+                                                    <input type="text" id="fullName" name="username"
+                                                        value="<%= typeof user !== 'undefined' && user.username ? user.username : '' %>"
+                                                        placeholder="Enter your New User Name" />
+                                                </div>
+
+                                                <div class="form-group email-group">
+                                                    <label for="email">Email Address</label>
+                                                    <div class="input-with-button">
+                                                        <input type="email" id="email" name="email"
+                                                            value="<%= typeof user !== 'undefined' && user.email ? user.email : '' %>"
+                                                            placeholder="Enter your New Email" readonly />
+                                                        <button type="button" class="btn-change-email">
+                                                            <i class="fa-solid fa-pen"></i> Change Email
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="phone">Phone Number</label>
+                                                    <input type="tel" id="phone" name="phone"
+                                                        value="<%= typeof user !== 'undefined' && user.mobile ? user.mobile : '' %>"
+                                                        placeholder="Enter your New Phone Number" />
+                                                </div>
+                                            </div>
+
+                                            <!-- Form Actions -->
+                                            <div class="form-actions">
+                                                <button type="button" class="btn-cancel-form">
+                                                    <i class="fa-solid fa-xmark"></i> Cancel
+                                                </button>
+                                                <button type="submit" class="btn-save-changes">
+                                                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                                                </button>
+                                            </div>
+                        </form>
+
+                        <!-- Pagination -->
+                        <div class="pagination">
+                            <button type="button" class="pagination-btn" aria-label="Previous">
+                                <svg fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <button type="button" class="pagination-btn active">01</button>
+                            <button type="button" class="pagination-btn">02</button>
+                            <button type="button" class="pagination-btn">03</button>
+                            <button type="button" class="pagination-btn">04</button>
+                            <button type="button" class="pagination-btn">05</button>
+                            <button type="button" class="pagination-btn" aria-label="Next">
+                                <svg fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
             </div>
+        </main>
 
-            <!-- Form Actions -->
-            <div class="form-actions">
-              <button type="button" class="btn-cancel-form">
-                <i class="fa-solid fa-xmark"></i> Cancel
-              </button>
-              <button type="submit" class="btn-save-changes">
-                <i class="fa-solid fa-floppy-disk"></i> Save Changes
-              </button>
-            </div>
-          </form>
+        <!-- Footer -->
+        <%- include('partials/footer') %>
 
-          <!-- Pagination -->
-          <div class="pagination">
-            <button type="button" class="pagination-btn" aria-label="Previous">
-              <svg fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fill-rule="evenodd"
-                  d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </button>
-            <button type="button" class="pagination-btn active">01</button>
-            <button type="button" class="pagination-btn">02</button>
-            <button type="button" class="pagination-btn">03</button>
-            <button type="button" class="pagination-btn">04</button>
-            <button type="button" class="pagination-btn">05</button>
-            <button type="button" class="pagination-btn" aria-label="Next">
-              <svg fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fill-rule="evenodd"
-                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </main>
+            <script>
+                // Handle Cancel button
+                document
+                    .querySelector(".btn-cancel-form")
+                    .addEventListener("click", function () {
+                        window.location.href = "/account";
+                    });
 
-    <!-- Footer -->
-    <footer>
-      <div class="footer-graphic"></div>
-      <div class="footer-content">
-        <div class="footer-section">
-          <h3>STORE</h3>
-          <ul>
-            <li><a href="#">Protective Gear</a></li>
-            <li><a href="#">Performance Layers</a></li>
-            <li><a href="#">Luggage</a></li>
-            <li><a href="#">Accessories</a></li>
-            <li><a href="#">Lifestyle Merch</a></li>
-          </ul>
-        </div>
+                document
+                    .querySelector(".btn-change-email")
+                    .addEventListener("click", function () {
+                        window.location.href = "/emailVerify";
+                    });
+            </script>
 
-        <div class="footer-section">
-          <h3>SUPPORT</h3>
-          <ul>
-            <li><a href="#">Shipping Policy</a></li>
-            <li><a href="#">Warranty</a></li>
-            <li><a href="#">Refund / Exchange Policy</a></li>
-            <li><a href="#">Care Instructions</a></li>
-            <li><a href="#">Wingman Insurance</a></li>
-            <li><a href="/terms">Terms Of Service</a></li>
-            <li><a href="/privacy">Privacy Policy</a></li>
-          </ul>
-        </div>
+            <script>
+                const nameInput = document.getElementById("fullName");
+                const phoneInput = document.getElementById("phone");
+                const form = document.querySelector(".edit-profile-form");
 
-        <div class="footer-section">
-          <h3>CONTACT US</h3>
-          <p>Contact Number: 07795688316</p>
-          <p>Mon-Fri 11:00 AM to 4:30 PM</p>
-          <p>For any Queries please contact <a href="#">Customer Support</a></p>
-        </div>
+                function showError(input, message) {
+                    let err = input.parentElement.querySelector(".form-error");
+                    if (!err) {
+                        err = document.createElement("div");
+                        err.className = "form-error";
+                        err.style.color = "red";
+                        err.style.fontSize = "12px";
+                        err.style.marginTop = "5px";
+                        input.parentElement.appendChild(err);
+                    }
+                    err.innerText = message;
+                }
 
-        <div class="footer-section">
-          <h3>CAREERS</h3>
-          <p><a href="#">Join #TeamRYNCX</a></p>
-        </div>
+                function clearError(input) {
+                    const err = input.parentElement.querySelector(".form-error");
+                    if (err) err.remove();
+                }
 
-        <div class="footer-section">
-          <h3>LOCATION</h3>
-          <p>
-            Rync Gear HQ,<br />1107, Kohinoor Square,<br />NC Kelkar Marg,<br />Opposite
-            Shiv Sena Bhavan,<br />Dadar (West),<br />Mumbai, Maharashtra 400020
-          </p>
-          <p>+91 7795688314</p>
-        </div>
-      </div>
+                function nameValidation() {
+                    const nameVal = nameInput.value.trim();
+                    const namePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 
-      <div class="footer-bottom">
-        <div></div>
-        <div class="social-icons">
-          <a href="#" aria-label="Twitter">
-            <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
-              />
-            </svg>
-          </a>
-          <a href="#" aria-label="Facebook">
-            <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
-              />
-            </svg>
-          </a>
-          <a href="#" aria-label="Instagram">
-            <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
-              />
-            </svg>
-          </a>
-          <a href="#" aria-label="YouTube">
-            <svg class="social-icon" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
-              />
-            </svg>
-          </a>
-        </div>
-      </div>
-    </footer>
+                    if (nameVal === "") {
+                        showError(nameInput, "Please enter a valid username");
+                        return false;
+                    } else if (!namePattern.test(nameVal)) {
+                        showError(nameInput, "Username must contain only letters, numbers, underscores");
+                        return false;
+                    } else if (nameVal.length < 3 || nameVal.length > 15) {
+                        showError(nameInput, "Username must be between 3 and 15 characters");
+                        return false;
+                    } else {
+                        clearError(nameInput);
+                        return true;
+                    }
+                }
 
-    <script>
-      // Handle Cancel button
-      document
-        .querySelector(".btn-cancel-form")
-        .addEventListener("click", function () {
-          window.location.href = "/account";
-        });
+                function phoneValidation() {
+                    const phoneVal = phoneInput.value.trim();
+                    const phonePattern = /^\d{10}$/;
 
-      // Handle Change Picture button
-      document
-        .querySelector(".btn-change-picture")
-        .addEventListener("click", function () {
-          // Add your file upload logic here
-          alert("Profile picture upload functionality");
-        });
+                    if (phoneVal === "") {
+                        showError(phoneInput, "Enter phone number");
+                        return false;
+                    } else if (!phonePattern.test(phoneVal)) {
+                        showError(phoneInput, "Phone number must be exactly 10 digits");
+                        return false;
+                    } else {
+                        clearError(phoneInput);
+                        return true;
+                    }
+                }
 
-      // Handle Change Email button
-      // Handle Change Email button
-      document
-        .querySelector(".btn-change-email")
-        .addEventListener("click", function () {
-          window.location.href = "/emailVerify";
-        });
-    </script>
+                form.addEventListener("submit", function (e) {
+                    const isNameValid = nameValidation();
+                    const isPhoneValid = phoneValidation();
 
-    <script>
-  const nameInput = document.getElementById("fullName");
-  const phoneInput = document.getElementById("phone");
-  const form = document.querySelector(".edit-profile-form");
+                    if (!isNameValid || !isPhoneValid) {
+                        e.preventDefault();
+                    }
+                });
 
-  function showError(input, message) {
-    let err = input.parentElement.querySelector(".form-error");
-    if (!err) {
-      err = document.createElement("div");
-      err.className = "form-error";
-      err.style.color = "red";
-      err.style.fontSize = "12px";
-      err.style.marginTop = "5px";
-      input.parentElement.appendChild(err);
-    }
-    err.innerText = message;
-  }
+                nameInput.addEventListener("input", nameValidation);
+                phoneInput.addEventListener("input", phoneValidation);
+            </script>
 
-  function clearError(input) {
-    const err = input.parentElement.querySelector(".form-error");
-    if (err) err.remove();
-  }
 
-  function nameValidation() {
-    const nameVal = nameInput.value.trim();
-    const namePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 
-    if (nameVal === "") {
-      showError(nameInput, "Please enter a valid username");
-      return false;
-    } else if (!namePattern.test(nameVal)) {
-      showError(nameInput, "Username must contain only letters, numbers, underscores");
-      return false;
-    } else if (nameVal.length < 3 || nameVal.length > 15) {
-      showError(nameInput, "Username must be between 3 and 15 characters");
-      return false;
-    } else {
-      clearError(nameInput);
-      return true;
-    }
-  }
+            <script>
+                // Show success/error messages from URL parameters as toast notifications
+                const urlParams = new URLSearchParams(window.location.search);
+                const success = urlParams.get('success');
+                const error = urlParams.get('error');
 
-  function phoneValidation() {
-    const phoneVal = phoneInput.value.trim();
-    const phonePattern = /^\d{10}$/;
+                if (success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: success,
+                        icon: 'success',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 4000,
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'custom-toast'
+                        },
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer);
+                            toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    });
 
-    if (phoneVal === "") {
-      showError(phoneInput, "Enter phone number");
-      return false;
-    } else if (!phonePattern.test(phoneVal)) {
-      showError(phoneInput, "Phone number must be exactly 10 digits");
-      return false;
-    } else {
-      clearError(phoneInput);
-      return true;
-    }
-  }
+                    // Clear URL parameters after showing message
+                    const url = new URL(window.location);
+                    url.searchParams.delete('success');
+                    window.history.replaceState({}, document.title, url.pathname);
+                }
 
-  form.addEventListener("submit", function (e) {
-    const isNameValid = nameValidation();
-    const isPhoneValid = phoneValidation();
+                if (error) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: error,
+                        icon: 'error',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 5000,
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'custom-toast'
+                        },
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer);
+                            toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    });
 
-    if (!isNameValid || !isPhoneValid) {
-      e.preventDefault();
-    }
-  });
+                    // Clear URL parameters after showing message
+                    const url = new URL(window.location);
+                    url.searchParams.delete('error');
+                    window.history.replaceState({}, document.title, url.pathname);
+                }
 
-  nameInput.addEventListener("input", nameValidation);
-  phoneInput.addEventListener("input", phoneValidation);
-</script>
+                // Avatar upload functionality with Croppie
+                let croppieInstance = null;
 
-  </body>
+                function showAvatarUpload() {
+                    Swal.fire({
+                        title: 'Upload Profile Picture',
+                        html: `
+                    <div style="text-align: center;">
+                        <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                        <button onclick="document.getElementById('avatarInput').click()" class="swal2-confirm swal2-styled" style="margin-bottom: 20px;">
+                            <i class="fas fa-upload"></i> Select Image
+                        </button>
+                        <div id="croppie-container" style="display: none; margin: 20px 0;">
+                            <div id="croppie-demo"></div>
+                        </div>
+                    </div>
+                `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Upload',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#3b82f6',
+                        cancelButtonColor: '#6b7280',
+                        allowOutsideClick: false,
+                        width: 600,
+                        didOpen: () => {
+                            const input = document.getElementById('avatarInput');
+                            const container = document.getElementById('croppie-container');
+                            const croppieDemo = document.getElementById('croppie-demo');
+
+                            input.addEventListener('change', function (e) {
+                                const file = e.target.files[0];
+                                if (file) {
+                                    // Validate file type
+                                    if (!file.type.startsWith('image/')) {
+                                        Swal.showValidationMessage('Please select a valid image file');
+                                        return;
+                                    }
+
+                                    // Validate file size (max 5MB)
+                                    if (file.size > 5 * 1024 * 1024) {
+                                        Swal.showValidationMessage('Image size should be less than 5MB');
+                                        return;
+                                    }
+
+                                    const reader = new FileReader();
+                                    reader.onload = function (e) {
+                                        container.style.display = 'block';
+
+                                        // Initialize Croppie
+                                        croppieInstance = new Croppie(croppieDemo, {
+                                            viewport: { width: 200, height: 200, type: 'circle' },
+                                            boundary: { width: 300, height: 300 },
+                                            showZoomer: true,
+                                            enableResize: false,
+                                            enableOrientation: true
+                                        });
+
+                                        croppieInstance.bind({
+                                            url: e.target.result
+                                        });
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            });
+                        },
+                        preConfirm: () => {
+                            if (!croppieInstance) {
+                                Swal.showValidationMessage('Please select and crop an image');
+                                return false;
+                            }
+
+                            return croppieInstance.result({
+                                type: 'blob',
+                                size: 'viewport',
+                                format: 'jpeg',
+                                quality: 0.8
+                            });
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            uploadCroppedAvatar(result.value);
+                        }
+                        // Clean up croppie instance
+                        if (croppieInstance) {
+                            croppieInstance.destroy();
+                            croppieInstance = null;
+                        }
+                    });
+                }
+
+                function uploadCroppedAvatar(blob) {
+                    const formData = new FormData();
+                    formData.append('avatar', blob, 'avatar.jpg');
+
+                    Swal.fire({
+                        title: 'Uploading...',
+                        text: 'Please wait while we upload your profile picture',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    fetch('/account/upload-avatar', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => {
+                            // Check if response is ok first
+                            if (!response.ok) {
+                                return response.text().then(text => {
+                                    console.error('Server response:', text);
+                                    throw new Error('Server error: ' + response.status);
+                                });
+                            }
+
+                            // Check content type
+                            const contentType = response.headers.get('content-type');
+                            if (!contentType || !contentType.includes('application/json')) {
+                                return response.text().then(text => {
+                                    console.error('Non-JSON response:', text);
+                                    throw new Error('Server returned HTML instead of JSON. Check your route.');
+                                });
+                            }
+
+                            return response.json();
+                        })
+                        .then(data => {
+                            Swal.close();
+
+                            if (data.success) {
+                                // Update the avatar preview immediately
+                                const avatarPreview = document.getElementById('currentAvatarPreview');
+                                const avatarImg = document.getElementById('currentAvatarImg');
+
+                                if (data.avatar && data.avatar.url) {
+                                    // Update main avatar preview
+                                    if (avatarImg) {
+                                        avatarImg.src = data.avatar.url;
+                                    } else {
+                                        // Replace initial with image
+                                        avatarPreview.innerHTML = `<img src="${data.avatar.url}" alt="Current Avatar" id="currentAvatarImg" style="width: 100%; height: 100%; object-fit: cover;">`;
+                                    }
+
+                                    // Update the action buttons to show delete option
+                                    const actionsDiv = document.querySelector('.avatar-actions');
+                                    if (actionsDiv && !actionsDiv.querySelector('.btn-secondary')) {
+                                        actionsDiv.innerHTML += `
+                        <button type="button" class="btn-secondary" onclick="deleteAvatar()">
+                            <i class="fas fa-trash"></i>
+                            Remove Picture
+                        </button>
+                    `;
+                                    }
+                                }
+
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Profile picture updated successfully!',
+                                    icon: 'success',
+                                    toast: true,
+                                    position: 'top-end',
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                    timerProgressBar: true
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: data.message || 'Failed to upload profile picture',
+                                    icon: 'error',
+                                    confirmButtonColor: '#3b82f6'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.close();
+                            console.error('Upload error:', error);
+                            Swal.fire({
+                                title: 'Error!',
+                                text: error.message || 'Network error occurred. Please try again.',
+                                icon: 'error',
+                                confirmButtonColor: '#3b82f6'
+                            });
+                        });
+                }
+                function deleteAvatar() {
+                    Swal.fire({
+                        title: 'Remove Profile Picture',
+                        text: 'Are you sure you want to remove your profile picture?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: 'Yes, remove it',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: 'Removing...',
+                                text: 'Please wait while we remove your profile picture',
+                                allowOutsideClick: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
+                            fetch('/account/delete-avatar', {
+                                method: 'DELETE'
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    Swal.close();
+                                    if (data.success) {
+                                        Swal.fire({
+                                            title: 'Avatar Removed!',
+                                            text: 'Profile picture has been removed.',
+                                            icon: 'success',
+                                            toast: true,
+                                            position: 'top-end',
+                                            showConfirmButton: false,
+                                            timer: 3000,
+                                            timerProgressBar: true,
+                                            customClass: {
+                                                popup: 'custom-toast'
+                                            },
+                                            didOpen: (toast) => {
+                                                toast.addEventListener('mouseenter', Swal.stopTimer);
+                                                toast.addEventListener('mouseleave', Swal.resumeTimer);
+                                            }
+                                        });
+
+                                        // Reload after a short delay
+                                        setTimeout(() => {
+                                            location.reload();
+                                        }, 1000);
+                                    } else {
+                                        Swal.fire({
+                                            title: 'Error!',
+                                            text: data.message || 'Failed to remove profile picture',
+                                            icon: 'error',
+                                            confirmButtonColor: '#3b82f6'
+                                        });
+                                    }
+                                })
+                                .catch(error => {
+                                    Swal.close();
+                                    Swal.fire({
+                                        title: 'Error!',
+                                        text: 'Network error occurred. Please try again.',
+                                        icon: 'error',
+                                        confirmButtonColor: '#3b82f6'
+                                    });
+                                });
+                        }
+                    });
+                }
+
+
+            </script>
+
+</body>
+
 </html>

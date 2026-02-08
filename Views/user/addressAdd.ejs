@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Shipping Address | RidePro</title>
+  <link rel="stylesheet" href="/Styles/profile.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+<%- include('partials/header') %>
+
+<main class="main-content">
+  <div class="content-header">
+    <div class="breadcrumb">
+      <a href="/">RidePro</a> &gt; My Account &gt; Shipping Address &gt; Add
+    </div>
+    <h1>My Account</h1>
+  </div>
+
+  <div class="account-layout">
+    <%- include('partials/sidebar') %>
+
+    <div class="account-main">
+      <h2>Shipping Address</h2>
+
+      <form method="POST" action="/account/address/add" class="address-form">
+
+        <div class="form-row">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" required />
+        </div>
+
+        <div class="form-row">
+          <label for="area">Area</label>
+          <input type="text" id="area" name="area" required />
+        </div>
+
+        <div class="form-row two">
+          <div>
+            <label for="district">District</label>
+            <input type="text" id="district" name="district" required />
+          </div>
+          <div>
+            <label for="state">State</label>
+            <input type="text" id="state" name="state" required />
+          </div>
+        </div>
+
+        <div class="form-row two">
+          <div>
+            <label for="pincode">Pincode</label>
+            <input type="text" id="pincode" name="pincode" required />
+          </div>
+          <div>
+            <label for="country">Country</label>
+            <input type="text" id="country" name="country" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="mobile">Mobile</label>
+          <input type="text" id="mobile" name="mobile" required />
+        </div>
+
+        <div class="form-row checkbox">
+          <label>
+            <input type="checkbox" name="is_default" value="true" />
+            Set as default address
+          </label>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn-primary">Save</button>
+          <a href="/account/address" class="btn-outline">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+
+</body>
+</html>
