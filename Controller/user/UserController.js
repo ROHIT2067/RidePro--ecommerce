@@ -1,10 +1,10 @@
-import userCollection from "../Models/UserModel.js";
-import address from "../Models/AddressModel.js";
+import userCollection from "../../Models/UserModel.js";
+import address from "../../Models/AddressModel.js";
 import bcrypt from "bcrypt";
-import { generateOtp } from "../utils/otp.js";
-import { sendVerificationEmail } from "../service/mailService.js";
-import { securePassword } from "../utils/passwordHash.js";
-import cloudinary from "../Config/cloudinary.js";
+import { generateOtp } from "../../utils/otp.js";
+import { sendVerificationEmail } from "../../service/mailService.js";
+import { securePassword } from "../../utils/passwordHash.js";
+import cloudinary from "../../Config/cloudinary.js";
 
 const loginGet = (req, res) => {
   if (req.session.user) {
@@ -26,7 +26,7 @@ const loginGet = (req, res) => {
       res.redirect("/home");
     }
   } else {
-    res.redirect("/admin/adminHome");
+    res.redirect("/admin/dashboard");
   }
 };
 
@@ -36,7 +36,7 @@ const signupGet = (req, res) => {
     return res.redirect("/home");
   }
   if (req.session.admin) {
-    return res.redirect("/admin/home");
+    return res.redirect("/admin/dashboard");
   }
 
   const serverError = req.session.flash?.serverError || null;
@@ -94,7 +94,7 @@ const verifyOtpGet = (req, res) => {
   if (!req.session.admin) {
     return res.render("verify-otp");
   }
-  return res.redirect("/admin/home");
+  return res.redirect("/admin/dashboard");
 };
 
 const verifyOtpPost = async (req, res) => {
@@ -178,8 +178,14 @@ const loginPost = async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, findUser.password);
 
     if (passwordMatch) {
-      req.session.user = findUser._id;
-      return res.redirect("/home");
+      req.session.role = findUser.role;
+      if (req.session.role === "admin") {
+        req.session.admin = findUser._id;
+        return res.redirect("/admin/dashboard");
+      } else {
+        req.session.user = findUser._id;
+        return res.redirect("/home");
+      }
     } else {
       req.session.loginErr = "Invalid Credentials";
       return res.redirect("/login");
@@ -261,7 +267,7 @@ const passwordVerifyGet = (req, res) => {
   if (!req.session.admin) {
     return res.render("forgotPassOtp");
   }
-  return res.redirect("/admin/home");
+  return res.redirect("/admin/dashboard");
 };
 
 const passwordVerifyPost = async (req, res) => {
@@ -319,7 +325,7 @@ const resetPassGet = (req, res) => {
   }
 
   if (req.session.admin) {
-    return res.redirect("/admin/home");
+    return res.redirect("/admin/dashboard");
   }
 
   if (req.session.isverified) {
@@ -357,7 +363,7 @@ const resetPassPost = async (req, res) => {
 
 const changePassGet = (req, res) => {
   if (req.session.admin) {
-    return res.redirect("/admin/home");
+    return res.redirect("/admin/dashboard");
   }
 
   if (!req.session.user) {
@@ -375,7 +381,7 @@ const changePassGet = (req, res) => {
 
 const accoutGet = async (req, res) => {
   if (req.session.admin) {
-    return res.redirect("/admin/home");
+    return res.redirect("/admin/dashboard");
   }
 
   if (!req.session.user) {
@@ -452,9 +458,9 @@ const changePassPost = async (req, res) => {
   }
 };
 
-const profileEditGet = async (req, res) => {
+const accountEditGet = async (req, res) => {
   if (req.session.admin) {
-    return res.redirect("/admin/home");
+    return res.redirect("/admin/dashboard");
   }
 
   if (!req.session.user) {
@@ -479,7 +485,7 @@ const profileEditGet = async (req, res) => {
 
 const emailVerifyGet = async (req, res) => {
   if (req.session.admin) {
-    return res.redirect("/admin/home");
+    return res.redirect("/admin/dashboard");
   }
 
   if (!req.session.user) {
@@ -531,7 +537,7 @@ const emailVerifyPost = async (req, res) => {
 
 const emailOtpGet = (req, res) => {
   if (req.session.admin) {
-    return res.redirect("/admin/home");
+    return res.redirect("/admin/dashboard");
   }
 
   if (!req.session.user) {
@@ -563,7 +569,7 @@ const emailOtpPost = async (req, res) => {
 
 const resetEmailGet = async (req, res) => {
   if (req.session.admin) {
-    return res.redirect("/admin/home");
+    return res.redirect("/admin/dashboard");
   }
 
   if (!req.session.user) {
@@ -751,7 +757,7 @@ const deleteAvatar = async (req, res) => {
 const addressGet = async (req, res) => {
   try {
     if (req.session.admin) {
-      return res.redirect("/admin/home");
+      return res.redirect("/admin/dashboard");
     }
 
     if (!req.session.user) {
@@ -761,6 +767,7 @@ const addressGet = async (req, res) => {
     const userId = req.session.user;
 
     const userAddresses = await address.findOne({ user_id: userId }).lean();
+    // console.log(userAddresses);
 
     const addresses = userAddresses?.address || [];
 
@@ -782,7 +789,7 @@ const addressGet = async (req, res) => {
 
 const addressAddGet = (req, res) => {
   if (req.session.admin) {
-    return res.redirect("/admin/home");
+    return res.redirect("/admin/dashboard");
   }
 
   if (!req.session.user) {
@@ -797,8 +804,11 @@ const addressAddPost = async (req, res) => {
   try {
     const userId = req.session.user;
 
+    const userData = await userCollection.findOne({ user_id: userId });
+
     const { name, area, district, state, pincode, country, mobile } = req.body;
-    // Name validation
+
+    // Validation
     if (
       !name ||
       !area ||
@@ -857,43 +867,45 @@ const addressAddPost = async (req, res) => {
       await userAddress.save();
     }
 
-    req.session.flash = { success: "Address added successfully" };
+    // req.session.flash = { success: "Address added successfully" };
     return res.redirect("/account/address");
   } catch (error) {
-    console.log("Error adding Address : ", error);
-    req.session.flash = { error: "Failed to add address" };
-    return res.redirect("/account/address/add");
+    console.error("Error adding address : ", error);
+    return res.redirect("/pageNotFound");
   }
 };
 
 const addressEditGet = async (req, res) => {
   try {
     if (req.session.admin) {
-    return res.redirect("/admin/home");
-  }
+      return res.redirect("/admin/dashboard");
+    }
 
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
+    if (!req.session.user) {
+      return res.redirect("/login");
+    }
 
-  const userId = req.session.user;
-  const addressId = req.params.id;
+    const userId = req.session.user;
+    const addressId = req.params.id;
 
-  const userAddresses = await address.findOne({ user_id: userId }).lean();
+    const userAddresses = await address
+      .findOne(
+        { user_id: userId, "address._id": addressId },
+        { "address.$": 1 },
+      )
+      .lean();
 
-  if (!userAddresses) {
-    return res.redirect("/account/address");
-  }
+    if (!userAddresses) {
+      return res.redirect("/account/address");
+    }
 
-  const addressToEdit = userAddresses.address.find(
-    (addr) => addr._id.toString() === addressId,
-  );
+    const addressToEdit = userAddresses.address[0];
 
-  if (!addressToEdit) {
-    return res.redirect("/account/address");
-  }
+    if (!addressToEdit) {
+      return res.redirect("/account/address");
+    }
 
-  return res.render("addressEdit", { address: addressToEdit });
+    return res.render("addressEdit", { address: addressToEdit });
   } catch (error) {
     console.log("Address Edit Get Error : ", error);
     return res.redirect("/account/address");
@@ -904,10 +916,18 @@ const addressEditPost = async (req, res) => {
   try {
     const userId = req.session.user;
     const addressId = req.params.id;
-    
+
     const { name, area, district, state, pincode, country, mobile } = req.body;
 
-    if (!name || !area || !district || !state || !pincode || !country || !mobile) {
+    if (
+      !name ||
+      !area ||
+      !district ||
+      !state ||
+      !pincode ||
+      !country ||
+      !mobile
+    ) {
       req.session.flash = { error: "All fields are required" };
       return res.redirect(`/account/address/edit/${addressId}`);
     }
@@ -927,34 +947,26 @@ const addressEditPost = async (req, res) => {
     const userAddress = await address.findOne({ user_id: userId });
 
     if (!userAddress) {
-      return res.redirect('/account/address');
+      return res.redirect("/account/address");
     }
 
-    // address index find
-    const addressIndex = userAddress.address.findIndex(
-      (addr) => addr._id.toString() === addressId
+    await address.updateOne(
+      { user_id: userId, "address._id": addressId },
+      {
+        $set: {
+          "address.$.name": name,
+          "address.$.mobile": mobile,
+          "address.$.area": area,
+          "address.$.district": district,
+          "address.$.state": state,
+          "address.$.country": country,
+          "address.$.pincode": pincode,
+        },
+      },
     );
 
-    if (addressIndex === -1) {
-      return res.redirect('/account/address');
-    }
-
-    userAddress.address[addressIndex] = {
-      _id: userAddress.address[addressIndex]._id, // keep the same id
-      name,
-      mobile,
-      area,
-      district,
-      state,
-      country,
-      pincode,
-      is_default: userAddress.address[addressIndex].is_default // keep default status
-    };
-
-    await userAddress.save();
-    
-    req.session.flash = { success: "Address updated successfully" };
-    return res.redirect('/account/address');
+    // req.session.flash = { success: "Address updated successfully" };
+    return res.redirect("/account/address/");
   } catch (error) {
     console.log("Error updating Address : ", error);
     req.session.flash = { error: "Failed to update address" };
@@ -964,38 +976,31 @@ const addressEditPost = async (req, res) => {
 
 const addressDeletePost = async (req, res) => {
   try {
-    const userId = req.session.user;
     const addressId = req.params.id;
 
-    // Find address document
-    const userAddress = await address.findOne({ user_id: userId });
+    const findAddress = await address.findOne({ "address._id": addressId });
 
-    if (!userAddress) {
-      return res.redirect('/account/address');
+    if (!findAddress) {
+      return res.redirect("/account/address");
     }
 
-    // Filter out the address to delete
-    const wasDefault = userAddress.address.find(
-      (addr) => addr._id.toString() === addressId
-    )?.is_default;
-
-    userAddress.address = userAddress.address.filter(
-      (addr) => addr._id.toString() !== addressId
+    await address.updateOne(
+      {
+        "address._id": addressId,
+      },
+      {
+        $pull: {
+          address: {
+            _id: addressId,
+          },
+        },
+      },
     );
 
-    // to make the next first address as default
-    if (wasDefault && userAddress.address.length > 0) {
-      userAddress.address[0].is_default = true;
-    }
-
-    await userAddress.save();
-    
-    req.session.flash = { success: "Address deleted successfully" };
-    return res.redirect('/account/address');
+    return res.redirect('/account/address')
   } catch (error) {
-    console.log("Error deleting Address : ", error);
-    req.session.flash = { error: "Failed to delete address" };
-    return res.redirect('/account/address');
+    console.log("Error in deleting : ",error)
+    return res.redirect('/account/address')
   }
 };
 
@@ -1019,7 +1024,7 @@ export default {
   changePassGet,
   accoutGet,
   changePassPost,
-  profileEditGet,
+  accountEditGet,
   emailVerifyGet,
   emailVerifyPost,
   emailOtpPost,
@@ -1035,5 +1040,5 @@ export default {
   addressAddPost,
   addressEditGet,
   addressEditPost,
-  addressDeletePost
+  addressDeletePost,
 };

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/Styles/login.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-left">Login</div>
+        <div class="logo">
+            <div class="logo">Admin</div>
+        </div>
+        <div class="nav-right">
+            <a href="#" class="nav-item">
+                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                </svg>
+                <span>Search</span>
+            </a>
+            <a href="/admin/login" class="nav-item">
+                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                </svg>
+                <span>Login</span>
+                <!-- <svg class="dropdown-arrow" fill="currentColor" viewBox="0 0 20 20"> -->
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-header">
+            <div class="breadcrumb">Admin > Login</div>
+            <h1>Login</h1>
+        </div>
+
+        <div class="login-form-container">
+
+            <!-- Login Form -->
+            <form action="/admin/login" method="POST" id="loginForm">
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required
+                        <% if (typeof loginErr !== 'undefined' && loginErr) { %>class="error"<% } %>
+                    />
+                    <% if (typeof loginErr !== 'undefined' && loginErr) { %>
+                        <div class="field-error"><%= loginErr %></div>
+                    <% } %>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required
+                        <% if (typeof loginErr1 !== 'undefined' && loginErr1) { %>class="error"<% } %>
+                    />
+                    <% if (typeof loginErr1 !== 'undefined' && loginErr1) { %>
+                        <div class="field-error"><%= loginErr1 %></div>
+                    <% } %>
+                </div>
+
+                <!-- Forgot Password Link -->
+                <div class="forgot-password">
+                    <a href="/forgot-password">Forgot Password?</a>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="submit-btn">Login</button>
+            </form>
+
+            <!-- Signup Link -->
+            <div class="signup-link">
+                Don't have an account? <a href="/signup">Sign up</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

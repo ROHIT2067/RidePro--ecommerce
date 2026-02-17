@@ -11,6 +11,7 @@ dotenv.config();
 import passport from "./Config/passport.js";
 import { attachUserToLocals } from "./middlewares/attachUser.js";
 import connectDB from "./Config/databaseConnect.js"
+import adminRouter from "./Routes/AdminRoutes.js"
 
 const PORT = process.env.PORT;
 
@@ -51,6 +52,7 @@ app.use(nocache());
 
 app.get('/',(req,res)=>res.redirect('/login'))
 app.use('/',userRouter)
+app.use('/admin',adminRouter)
 
 app.use((req, res, next) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');

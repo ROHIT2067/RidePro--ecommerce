@@ -1,7 +1,7 @@
 import express from "express"
 const router=express.Router()
 import { blockIfLoggedIn } from "../middlewares/authMiddleware.js"
-import userController from "../Controller/UserController.js"
+import userController from "../Controller/user/UserController.js"
 import passport from "../Config/passport.js"
 import upload from '../middlewares/multer.js';
 
@@ -30,7 +30,7 @@ router.post('/reset-password',userController.resetPassPost)
 router.get('/account/password',userController.changePassGet)
 router.post('/account/password',userController.changePassPost)
 router.get('/account',userController.accoutGet)
-router.get('/account/edit',userController.profileEditGet)
+router.get('/account/edit',userController.accountEditGet)
 router.get('/emailVerify',userController.emailVerifyGet)
 router.post('/emailVerify',userController.emailVerifyPost)
 router.get('/emailOtp',userController.emailOtpGet)
@@ -39,8 +39,12 @@ router.get('/reset-email',userController.resetEmailGet)
 router.post('/resendOtp',userController.resendEmailPost)
 router.post('/reset-email',userController.resetEmailPost)
 router.post('/account/edit',userController.accountEditPost)
+
+// ProfilePhoto Upload
 router.post('/account/upload-avatar', upload.single('avatar'), userController.uploadAvatar);
 router.delete('/account/delete-avatar', userController.deleteAvatar);
+
+// Address Management
 router.get('/account/address',userController.addressGet)
 router.get('/account/address/add',userController.addressAddGet)
 router.post('/account/address/add',userController.addressAddPost)
