@@ -170,6 +170,10 @@ const loginPost = async (req, res) => {
       return res.redirect("/login");
     }
 
+    if (findUser.is_blocked == true) {
+      req.session.loginErr = "This account is Blocked";
+      return res.redirect("/login");
+    }
     if (!findUser.password) {
       req.session.loginErr = "This account uses Google login";
       return res.redirect("/login");
@@ -833,6 +837,15 @@ const addressAddPost = async (req, res) => {
       req.session.flash = { error: "Mobile number must be 10 digits" };
       return res.redirect("/account/address/add");
     }
+    if (area.length > 50) {
+      req.session.flash = { error: "Area must be at most 50 characters" };
+      return res.redirect("/account/address/add");
+    }
+
+    if (district.length > 50) {
+      req.session.flash = { error: "District must be at most 50 characters" };
+      return res.redirect("/account/address/add");
+    }
 
     const userAddress = await address.findOne({ user_id: userId });
 
@@ -944,6 +957,16 @@ const addressEditPost = async (req, res) => {
       return res.redirect(`/account/address/edit/${addressId}`);
     }
 
+    if (area.length > 50) {
+      req.session.flash = { error: "Area must be at most 50 characters" };
+      return res.redirect("/account/address/add");
+    }
+
+    if (district.length > 50) {
+      req.session.flash = { error: "District must be at most 50 characters" };
+      return res.redirect("/account/address/add");
+    }
+
     const userAddress = await address.findOne({ user_id: userId });
 
     if (!userAddress) {
@@ -997,10 +1020,10 @@ const addressDeletePost = async (req, res) => {
       },
     );
 
-    return res.redirect('/account/address')
+    return res.redirect("/account/address");
   } catch (error) {
-    console.log("Error in deleting : ",error)
-    return res.redirect('/account/address')
+    console.log("Error in deleting : ", error);
+    return res.redirect("/account/address");
   }
 };
 

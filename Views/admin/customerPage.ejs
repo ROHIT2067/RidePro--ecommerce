@@ -473,18 +473,33 @@
 
         <!-- Pagination -->
         <div class="pagination">
-          <button class="pagination-btn">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-          <button class="pagination-btn active">1</button>
-          <button class="pagination-btn">2</button>
-          <span class="pagination-dots">...</span>
-          <button class="pagination-btn">7</button>
-          <button class="pagination-btn">8</button>
-          <button class="pagination-btn">
-            <i class="fas fa-chevron-right"></i>
-          </button>
-        </div>
+
+  <% if (currentPage > 1) { %>
+    <a 
+      class="pagination-btn" 
+      href="/admin/customers?page=<%= currentPage - 1 %><%= search ? `&search=${search}` : '' %>">
+      <i class="fas fa-chevron-left"></i>
+    </a>
+  <% } %>
+
+  <% for (let i = 1; i <= totalPages; i++) { %>
+    <a 
+      class="pagination-btn <%= i === currentPage ? 'active' : '' %>" 
+      href="/admin/customers?page=<%= i %><%= search ? `&search=${search}` : '' %>">
+      <%= i %>
+    </a>
+  <% } %>
+
+  <% if (currentPage < totalPages) { %>
+    <a 
+      class="pagination-btn" 
+      href="/admin/customers?page=<%= currentPage + 1 %><%= search ? `&search=${search}` : '' %>">
+      <i class="fas fa-chevron-right"></i>
+    </a>
+  <% } %>
+
+</div>
+
       </div>
     </main>
   </div>

@@ -12,6 +12,8 @@ router.get('/dashboard',adminController.adminDashboardGet)
 
 // Customer Management
 router.get('/customers',customerController.customerGet)
+router.post('/customers/update-status',customerController.updateCustomerStatus);
+
 
 
 export default router
