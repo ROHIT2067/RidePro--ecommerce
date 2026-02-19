@@ -359,6 +359,54 @@
   transform: translateY(-1px);
 }
 
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #d1d5db;
+  border-radius: 999px;
+  transition: 0.2s;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  top: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+/* Active = Green */
+.switch input:checked + .slider {
+  background-color: #16a34a;
+}
+
+/* Blocked = Red */
+.switch input:not(:checked) + .slider {
+  background-color: #dc2626;
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(22px);
+}
+
 
     /* Responsive Design */
     @media (max-width: 768px) {
@@ -451,14 +499,16 @@
         <td><%= user.is_blocked ? 'Blocked' : 'Active' %></td>
 
         <td style="text-align: center;">
-          <button 
-            class="action-btn"
-            data-user-id="<%= user._id %>"
-            data-status="<%= user.is_blocked ? 'blocked' : 'active' %>"
-            data-username="<%= user.username %>"
-            onclick="openStatusModalFromBtn(this)">
-            <i class="fas fa-ellipsis-h"></i>
-          </button>
+          <label class="switch">
+  <input 
+    type="checkbox"
+    <%= user.is_blocked ? '' : 'checked' %>
+    data-user-id="<%= user._id %>"
+    data-username="<%= user.username %>"
+    onchange="confirmToggle(this)"
+  >
+  <span class="slider"></span>
+</label>
         </td>
       </tr>
     <% }) %>
@@ -505,86 +555,55 @@
   </div>
 
   <script>
-  let selectedStatus = 'block'
-  let currentUserId = ''
-  let currentUserName = ''
-
-  function openStatusModalFromBtn(btn) {
-    const userId = btn.dataset.userId
-    const currentStatus = btn.dataset.status
-    const username = btn.dataset.username
-
-    currentUserId = userId
-    currentUserName = username
-    selectedStatus = currentStatus === 'blocked' ? 'unblock' : 'block'
+  function confirmToggle(toggle) {
+    const userId = toggle.dataset.userId
+    const username = toggle.dataset.username
+    const willBlock = !toggle.checked
 
     Swal.fire({
-      title: 'Edit Customers Status',
-      html: `
-        <div class="status-buttons">
-          <button class="status-btn block" onclick="selectStatus('block')" id="blockBtn">
-            Block
-          </button>
-          <button class="status-btn unblock" onclick="selectStatus('unblock')" id="unblockBtn">
-            Unblock
-          </button>
-        </div>
-        <button class="save-btn" onclick="saveStatus()">
-          SAVE CHANGE
-        </button>
-      `,
-      showConfirmButton: false,
-      showCloseButton: true,
-      width: '480px',
-      didOpen: () => updateButtonStates()
-    })
-  }
+      icon: 'warning',
+      title: willBlock ? 'Block user?' : 'Unblock user?',
+      text: willBlock
+        ? `Are you sure you want to block ${username}?`
+        : `Are you sure you want to unblock ${username}?`,
+      showCancelButton: true,
+      confirmButtonText: willBlock ? 'Yes, Block' : 'Yes, Unblock',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (!result.isConfirmed) {
+        toggle.checked = !toggle.checked
+        return
+      }
 
-  function selectStatus(status) {
-    selectedStatus = status
-    updateButtonStates()
-  }
-
-  function updateButtonStates() {
-    const blockBtn = document.getElementById('blockBtn')
-    const unblockBtn = document.getElementById('unblockBtn')
-    if (!blockBtn || !unblockBtn) return
-
-    if (selectedStatus === 'block') {
-      blockBtn.style.backgroundColor = '#3b82f6'
-      unblockBtn.style.backgroundColor = '#1a1a1a'
-    } else {
-      blockBtn.style.backgroundColor = '#1a1a1a'
-      unblockBtn.style.backgroundColor = '#3b82f6'
-    }
-  }
-
-  function saveStatus() {
-    Swal.close()
-
-    fetch('/admin/customers/update-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: currentUserId, status: selectedStatus })
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (!data.success) throw new Error()
-        Swal.fire({
-          icon: 'success',
-          title: 'Status Updated',
-          text: `${currentUserName} has been ${selectedStatus}ed successfully!`,
-          timer: 2000,
-          showConfirmButton: false
-        }).then(() => location.reload())
-      })
-      .catch(() => {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to update customer status. Please try again.'
+      fetch('/admin/customers/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          status: willBlock ? 'block' : 'unblock'
         })
       })
+        .then(r => r.json())
+        .then(data => {
+          if (!data.success) throw new Error()
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Updated',
+            text: `${username} is now ${willBlock ? 'blocked' : 'active'}`,
+            timer: 1400,
+            showConfirmButton: false
+          })
+        })
+        .catch(() => {
+          toggle.checked = !toggle.checked
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed',
+            text: 'Status update failed. Try again.'
+          })
+        })
+    })
   }
 </script>
 

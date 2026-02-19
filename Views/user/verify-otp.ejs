@@ -140,16 +140,17 @@
   // TIMER FUNCTIONS
 
   function getOrInitExpiry() {
-    let expiry = localStorage.getItem("otpExpiry");
-    
-    // If no expiry exists or expiry has already passed, create a new one
-    if (!expiry || Number(expiry) <= Date.now()) {
-      expiry = Date.now() + (OTP_DURATION * 1000); // Convert seconds to milliseconds
-      localStorage.setItem("otpExpiry", expiry);
-    }
-    
-    return Number(expiry);
+  let expiry = localStorage.getItem("otpExpiry");
+
+  // If expiry doesn't exist, create it (first load only)
+  if (!expiry) {
+    expiry = Date.now() + (OTP_DURATION * 1000);
+    localStorage.setItem("otpExpiry", expiry);
   }
+
+  return Number(expiry);
+}
+
 
   function formatTime(seconds) {
     const m = Math.floor(seconds / 60);
@@ -161,18 +162,17 @@
   let timerInterval;
 
   function updateTimer() {
-    const remaining = Math.max(0, Math.floor((expiry - Date.now()) / 1000));
+  const remaining = Math.max(0, Math.floor((expiry - Date.now()) / 1000));
 
-    if (remaining <= 0) {
-      timerDisplay.textContent = "00:00";
-      resendOtp.classList.remove("hidden");
-      verifyBtn.disabled = true;
-      clearInterval(timerInterval);
-      return;
-    }
+  timerDisplay.textContent = formatTime(remaining);
 
-    timerDisplay.textContent = formatTime(remaining);
+  if (remaining <= 0) {
+    resendOtp.classList.remove("hidden");
+    verifyBtn.disabled = true;
+    clearInterval(timerInterval);
   }
+}
+
 
   function startTimer() {
     clearInterval(timerInterval); // Clear any existing interval

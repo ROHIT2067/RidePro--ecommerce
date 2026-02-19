@@ -904,7 +904,7 @@ const addressEditGet = async (req, res) => {
     const userAddresses = await address
       .findOne(
         { user_id: userId, "address._id": addressId },
-        { "address.$": 1 },
+        { "address.$": 1 },  //return only the matched address inside the address array, instead of the full array.
       )
       .lean();
 
@@ -912,7 +912,7 @@ const addressEditGet = async (req, res) => {
       return res.redirect("/account/address");
     }
 
-    const addressToEdit = userAddresses.address[0];
+    const addressToEdit = userAddresses.address[0]; //gets the matched address from the array.
 
     if (!addressToEdit) {
       return res.redirect("/account/address");
