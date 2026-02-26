@@ -1,185 +1,373 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RidePro - Motorcycle Gear</title>
-     <link rel="stylesheet" href="/Styles/home.css">
-</head>
-<body>
-    <!-- Header -->
-    <header>
-        <a href="/home" class="logo">RidePro</a>
-        <div class="nav-right">
-            <a href="#" class="nav-item">
-                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-                </svg>
-                <span>Search</span>
-            </a>
-            <a href="#" class="nav-item">
-                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042H6.14l.94-2.846 1.952.012L7.043 16H17a1 1 0 000-2H8.245l-.166-.67 6.76-.001.946-2.855L17.5 3H3z"/>
-                </svg>
-                <span>Cart</span>
-            </a>
-            <a href="/account" class="nav-item">
-                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-                </svg>
-                <span>Profile</span>
-            </a>
-        </div>
-    </header>
 
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <img class="hero-image" src="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=1600&q=80" alt="AIR GT PANTS - Motorcycle gear"/>
-        <div class="hero-overlay">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RidePro - Premium Motorcycle Gear</title>
+  <meta name="description"
+    content="Shop premium motorcycle riding gear, jackets, pants, gloves, and accessories at RidePro." />
+  <link rel="stylesheet" href="/styles/header.css" />
+  <link rel="stylesheet" href="/styles/home.css" />
+  <link rel="stylesheet" href="/styles/footer.css" />
+</head>
+
+<body>
+
+  <%- include('partials/header') %>
+
+    <!-- ===== HERO CAROUSEL ===== -->
+    <section class="hero-section" id="hero-carousel" aria-label="Featured Products">
+      <div class="hero-track">
+
+        <div class="hero-slide active">
+          <!-- Replace with hero banner: AIR GT PANTS — rider in full off-road gear, dusty action shot -->
+          <img class="hero-image" src="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=1600&q=80"
+            alt="AIR GT PANTS" />
+          <div class="hero-overlay">
+            <p class="hero-eyebrow">New Collection</p>
             <h1 class="hero-title">AIR GT PANTS</h1>
             <p class="hero-subtitle">The Full Collection.</p>
-            <button type="button" class="explore-btn">Explore now</button>
+            <a href="#" class="explore-btn">Explore now</a>
+          </div>
         </div>
-        <button type="button" class="hero-arrow prev" aria-label="Previous">
-            <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-        </button>
-        <button type="button" class="hero-arrow next" aria-label="Next">
-            <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
-        </button>
-        <div class="hero-dots">
-            <span class="hero-dot active"></span>
-            <span class="hero-dot"></span>
-            <span class="hero-dot"></span>
+
+        <div class="hero-slide">
+          <!-- Replace with hero banner: ADVENTURE JACKET — dramatic mountain backdrop, touring shot -->
+          <img class="hero-image" src="https://images.unsplash.com/photo-1547549082-6bc5f2f6c2fa?w=1600&q=80"
+            alt="Adventure Jacket Collection" />
+          <div class="hero-overlay">
+            <p class="hero-eyebrow">Bestseller</p>
+            <h1 class="hero-title">ADVENTURE JACKET</h1>
+            <p class="hero-subtitle">Built For The Journey.</p>
+            <a href="#" class="explore-btn">Explore now</a>
+          </div>
         </div>
+
+        <div class="hero-slide">
+          <!-- Replace with hero banner: RIDING GLOVES — grip and protection lifestyle close-up -->
+          <img class="hero-image" src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=1600&q=80"
+            alt="Riding Gloves Collection" />
+          <div class="hero-overlay">
+            <p class="hero-eyebrow">Top Rated</p>
+            <h1 class="hero-title">RIDING GLOVES</h1>
+            <p class="hero-subtitle">Grip. Protect. Perform.</p>
+            <a href="#" class="explore-btn">Explore now</a>
+          </div>
+        </div>
+
+      </div>
+
+      <button type="button" class="hero-arrow prev" id="hero-prev" aria-label="Previous slide">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+            clip-rule="evenodd" />
+        </svg>
+      </button>
+      <button type="button" class="hero-arrow next" id="hero-next" aria-label="Next slide">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+            clip-rule="evenodd" />
+        </svg>
+      </button>
+
+      <div class="hero-dots" id="hero-dots">
+        <button class="hero-dot active" data-slide="0" aria-label="Slide 1"></button>
+        <button class="hero-dot" data-slide="1" aria-label="Slide 2"></button>
+        <button class="hero-dot" data-slide="2" aria-label="Slide 3"></button>
+      </div>
     </section>
 
-    <!-- Category Grid -->
-    <section class="category-grid">
-        <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&q=80" alt="Offroad"/>
-            <span class="category-label">OFFROAD</span>
-        </div>
-        <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=600&q=80" alt="Gloves"/>
-            <span class="category-label">GLOVES</span>
-        </div>
-        <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Jackets"/>
-            <span class="category-label">JACKETS</span>
-        </div>
-        <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80" alt="Base Layers"/>
-            <span class="category-label">BASE LAYERS</span>
-        </div>
-        <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=600&q=80" alt="Pants"/>
-            <span class="category-label">PANTS</span>
-        </div>
-        <div class="category-item">
-            <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80" alt="Luggage"/>
-            <span class="category-label">LUGGAGE</span>
-        </div>
+    <!-- ===== CATEGORY GRID (2 × 3) ===== -->
+    <section class="category-grid" aria-label="Shop by Category">
+
+      <a href="#" class="category-item">
+        <!-- Replace with Figma OFFROAD category image: dirt rider, full off-road gear, mud shot -->
+        <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&q=80" alt="Offroad Gear" />
+        <span class="category-label">OFFROAD</span>
+      </a>
+
+      <a href="#" class="category-item">
+        <!-- Replace with Figma GLOVES category image: riding gloves close-up, knuckle protection -->
+        <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=600&q=80" alt="Riding Gloves" />
+        <span class="category-label">GLOVES</span>
+      </a>
+
+      <a href="#" class="category-item">
+        <!-- Replace with Figma JACKETS category image: rider on motorcycle in touring jacket -->
+        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Riding Jackets" />
+        <span class="category-label">JACKETS</span>
+      </a>
+
+      <a href="#" class="category-item">
+        <!-- Replace with Figma BASE LAYERS category image: technical base layer fabric detail -->
+        <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80" alt="Base Layers" />
+        <span class="category-label">BASE LAYERS</span>
+      </a>
+
+      <a href="#" class="category-item">
+        <!-- Replace with Figma PANTS category image: riding pants with armor pocket detail -->
+        <img src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=600&q=80" alt="Riding Pants" />
+        <span class="category-label">PANTS</span>
+      </a>
+
+      <a href="#" class="category-item">
+        <!-- Replace with Figma LUGGAGE category image: motorcycle with tank bag and saddlebags -->
+        <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80" alt="Motorcycle Luggage" />
+        <span class="category-label">LUGGAGE</span>
+      </a>
+
     </section>
 
-    <!-- Get Monsoon Ready Banner -->
-    <section class="monsoon-banner" style="position: relative;">
-        <button type="button" class="banner-arrows prev" aria-label="Previous" style="z-index: 2;">&#10094;</button>
-        <button type="button" class="banner-arrows next" aria-label="Next" style="z-index: 2;">&#10095;</button>
-        <div class="monsoon-left">
-            <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=800&q=80" alt="Get Monsoon Ready"/>
-            <div class="monsoon-overlay">
-                <h2>GET MONSOON READY</h2>
-                <button type="button" class="explore-btn">Explore now</button>
+    <!-- ===== PRODUCT STRIP 1 ===== -->
+    <section class="product-strip" aria-label="Product Highlights">
+      <div class="strip-item">
+        <!-- Replace: off-road rider boots/lower body action shot, dirt terrain -->
+        <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&q=80" alt="Off-road gear" />
+      </div>
+      <div class="strip-item">
+        <!-- Replace: dark motorcycle jacket lifestyle shot, urban setting -->
+        <img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=500&q=80" alt="Touring jacket" />
+      </div>
+      <div class="strip-item">
+        <!-- Replace: adventure rider full gear on trail -->
+        <img src="https://images.unsplash.com/photo-1547549082-6bc5f2f6c2fa?w=500&q=80" alt="Adventure riding" />
+      </div>
+      <div class="strip-item">
+        <!-- Replace: red motocross bike, dynamic cornering -->
+        <img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&q=80" alt="Motocross" />
+      </div>
+      <div class="strip-item">
+        <!-- Replace: yellow/hi-vis rain gear lifestyle -->
+        <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500&q=80" alt="Rain gear" />
+      </div>
+    </section>
+
+    <!-- ===== TWO-PANEL BANNER ===== -->
+    <section class="two-panel-banner" aria-label="Featured Collections">
+
+      <div class="panel-left">
+        <!-- Replace: cinematic adventure motorcycle + rider, open road or mountain pass -->
+        <img src="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=800&q=80" alt="Landcross Collection" />
+        <div class="panel-overlay">
+          <h2 class="panel-title">LANDCROSS!</h2>
+          <a href="#" class="explore-btn">Explore now</a>
+        </div>
+      </div>
+
+      <div class="panel-right">
+        <!-- Replace: person wearing bright yellow/green GORE-TEX rain jacket, standing pose -->
+        <img class="panel-right-img" src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80"
+          alt="GORE-TEX Rain Jacket" />
+        <div class="panel-right-content">
+          <h3 class="panel-right-title">GORE-TEX JACKET</h3>
+          <div class="feature-icons">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                <path d="M12 2C8 2 5 5.5 5 9c0 5 7 13 7 13s7-8 7-13c0-3.5-3-7-7-7z" />
+                <circle cx="12" cy="9" r="2.5" />
+              </svg>
+              <span>Waterproof</span>
             </div>
-        </div>
-        <div class="monsoon-right">
-            <h3 class="monsoon-product-title">H2GO PRO RAIN JACKET</h3>
-            <p class="monsoon-price">₹ 1,399</p>
-            <div class="monsoon-thumbnails">
-                <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=150&q=80" alt="Jacket"/>
-                <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=150&q=80" alt="Pants"/>
-                <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=150&q=80" alt="Gloves"/>
-                <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150&q=80" alt="Boots"/>
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                <path d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2" />
+              </svg>
+              <span>Windproof</span>
             </div>
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v4l3 3" />
+              </svg>
+              <span>Breathable</span>
+            </div>
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              <span>Durable</span>
+            </div>
+          </div>
         </div>
+      </div>
+
     </section>
 
-    <!-- Main Showcase Banner -->
-    <section class="showcase-banner" style="position: relative;">
-        <button type="button" class="hero-arrow prev" aria-label="Previous" style="left: 1.5rem;">&#10094;</button>
-        <button type="button" class="hero-arrow next" aria-label="Next" style="right: 1.5rem;">&#10095;</button>
-        <img src="https://images.unsplash.com/photo-1547549082-6bc5f2f6c2fa?w=1600&q=80" alt="RidePro Adventure"/>
-        <span class="showcase-logo">RidePro</span>
-        <button type="button" class="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">
-            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
-        </button>
+    <!-- ===== PRODUCT STRIP 2 ===== -->
+    <section class="product-strip strip-alt" aria-label="More Products">
+      <div class="strip-item">
+        <!-- Replace: rider boots/lower body, green terrain -->
+        <img src="https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&q=80" alt="Riding boots" />
+      </div>
+      <div class="strip-item">
+        <!-- Replace: rider in dark jacket, urban night shot -->
+        <img src="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=500&q=80" alt="Dark jacket" />
+      </div>
+      <div class="strip-item">
+        <!-- Replace: black motorcycle cornering on road -->
+        <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=500&q=80" alt="Cornering" />
+      </div>
+      <div class="strip-item">
+        <!-- Replace: red motocross bike in action -->
+        <img src="https://images.unsplash.com/photo-1547549082-6bc5f2f6c2fa?w=500&q=80" alt="Motocross" />
+      </div>
+      <div class="strip-item">
+        <!-- Replace: yellow/green rain jacket rider action -->
+        <img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&q=80" alt="Rain jacket" />
+      </div>
     </section>
 
-    <!-- Product Detail: H2GO PRO RAIN PANTS -->
-    <section class="product-detail-section">
-        <div>
-            <img class="product-detail-image" src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=600&q=80" alt="H2GO PRO RAIN PANTS"/>
+    <!-- ===== GET MONSOON READY ===== -->
+    <section class="monsoon-banner" aria-label="Monsoon Collection">
+
+      <div class="monsoon-left">
+        <!-- Replace: rider in bright yellow rain gear on motorcycle in rain/monsoon conditions -->
+        <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=900&q=80" alt="Get Monsoon Ready" />
+        <div class="monsoon-overlay">
+          <h2>GET MONSOON<br>READY</h2>
+          <a href="#" class="explore-btn">Explore now</a>
+        </div>
+      </div>
+
+      <div class="monsoon-right">
+        <span class="monsoon-brand">RidePro</span>
+        <h3 class="monsoon-product-title">H2GO PRO RAIN JACKET</h3>
+        <p class="monsoon-price">₹ 1,399</p>
+        <div class="monsoon-thumbnails">
+          <!-- Replace: H2GO rain jacket front view flat lay -->
+          <img class="monsoon-thumb active-thumb"
+            src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=200&q=80" alt="Rain Jacket" />
+          <!-- Replace: H2GO rain pants flat lay -->
+          <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=200&q=80"
+            alt="Rain Pants" />
+          <!-- Replace: waterproof gloves flat lay -->
+          <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=200&q=80"
+            alt="Gloves" />
+          <!-- Replace: waterproof boots flat lay -->
+          <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&q=80"
+            alt="Boots" />
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ===== PRODUCT DETAIL: H2GO PRO RAIN PANTS ===== -->
+    <div class="product-detail-wrapper">
+      <section class="product-detail-section" aria-label="Featured Product">
+        <div class="product-detail-media">
+          <!-- Replace: H2GO PRO RAIN PANTS full-length flat-lay with hi-vis detailing -->
+          <img class="product-detail-image"
+            src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=600&q=80" alt="H2GO PRO RAIN PANTS" />
         </div>
         <div class="product-detail-info">
-            <h2>H2GO PRO RAIN PANTS</h2>
-            <div class="product-rating">
-                <span class="stars">★★★★★</span>
-                <a href="#" class="reviews-link">9 Reviews</a>
-            </div>
-            <p>Water-resistant riding pants built for monsoon. Lightweight and packable.</p>
-            <p class="price">₹ 1,399</p>
-            <div class="product-options">
-                <select name="size" id="size" aria-label="Size">
-                    <option value="">Select Size</option>
-                    <option value="S">S</option>
-                    <option value="M">M</option>
-                    <option value="L">L</option>
-                    <option value="XL">XL</option>
-                </select>
-                <select name="quantity" id="quantity" aria-label="Quantity">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                </select>
-            </div>
-            <button type="button" class="add-to-cart-btn">Add To Cart</button>
+          <span class="product-brand">RidePro</span>
+          <h2 class="product-detail-name">H2GO PRO RAIN PANTS</h2>
+          <div class="product-rating">
+            <span class="stars" aria-hidden="true">★★★★★</span>
+            <a href="#" class="reviews-link">9 Reviews</a>
+          </div>
+          <p class="product-description">
+            Water-resistant riding pants built for monsoon commutes and touring in the wet.
+            Lightweight, packable, and compatible over most riding pants.
+          </p>
+          <p class="price">₹ 1,399</p>
+          <div class="product-options">
+            <label for="size" class="option-label">Size</label>
+            <select name="size" id="size">
+              <option value="">Select Size</option>
+              <option value="XS">XS</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+            </select>
+            <label for="quantity" class="option-label">Quantity</label>
+            <select name="quantity" id="quantity">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+          <button type="button" class="add-to-cart-btn">Add To Cart</button>
         </div>
-        <button type="button" class="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">
-            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
-        </button>
+      </section>
+    </div>
+
+    <!-- ===== SHOWCASE BANNER ===== -->
+    <section class="showcase-banner" aria-label="Brand Showcase">
+      <!-- Replace: dramatic wide-angle adventure motorcycle + rider, golden-hour lighting -->
+      <img src="https://images.unsplash.com/photo-1547549082-6bc5f2f6c2fa?w=1800&q=80" alt="RidePro Adventure" />
+      <span class="showcase-logo">RidePro</span>
+      <button type="button" class="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})"
+        aria-label="Back to top">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+            clip-rule="evenodd" />
+        </svg>
+      </button>
     </section>
 
-    <!-- Footer -->
-     <%- include('partials/footer') %>
-    <script>
-  window.addEventListener("pageshow", function (event) {
-    if (event.persisted) {
-      window.location.reload(); // forces reload from server, not cache
-    }
-  });
-</script>
-<div id="toast" class="toast hidden"></div>
+    <%- include('partials/footer') %>
 
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const toastType = params.get("toast");
+      <div id="toast" class="toast hidden" role="alert" aria-live="polite"></div>
 
-  if (toastType === "already_logged_in") {
-    showToast("You are already logged in. Logout to switch accounts.");
-  }
+      <script>
+        window.addEventListener("pageshow", function (e) {
+          if (e.persisted) window.location.reload();
+        });
 
-  function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.remove("hidden");
-    toast.classList.add("show");
+        (function () {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get("toast") === "already_logged_in") {
+            showToast("You are already logged in. Logout to switch accounts.");
+          }
+        })();
 
-    setTimeout(() => {
-      toast.classList.remove("show");
-      toast.classList.add("hidden");
-    }, 3000);
-  }
-</script>
+        function showToast(msg) {
+          const t = document.getElementById("toast");
+          t.textContent = msg;
+          t.classList.remove("hidden");
+          t.classList.add("show");
+          setTimeout(() => { t.classList.remove("show"); t.classList.add("hidden"); }, 3000);
+        }
+
+        (function () {
+          const slides = document.querySelectorAll(".hero-slide");
+          const dots = document.querySelectorAll(".hero-dot");
+          const prev = document.getElementById("hero-prev");
+          const next = document.getElementById("hero-next");
+          let current = 0, timer;
+
+          function go(idx) {
+            slides[current].classList.remove("active");
+            dots[current].classList.remove("active");
+            current = (idx + slides.length) % slides.length;
+            slides[current].classList.add("active");
+            dots[current].classList.add("active");
+          }
+
+          function autoStart() { timer = setInterval(() => go(current + 1), 5000); }
+          function autoReset() { clearInterval(timer); autoStart(); }
+
+          prev.addEventListener("click", () => { go(current - 1); autoReset(); });
+          next.addEventListener("click", () => { go(current + 1); autoReset(); });
+          dots.forEach(d => d.addEventListener("click", () => { go(+d.dataset.slide); autoReset(); }));
+          autoStart();
+        })();
+
+        document.querySelectorAll(".monsoon-thumb").forEach(thumb => {
+          thumb.addEventListener("click", function () {
+            document.querySelectorAll(".monsoon-thumb").forEach(t => t.classList.remove("active-thumb"));
+            this.classList.add("active-thumb");
+          });
+        });
+      </script>
 
 </body>
+
 </html>

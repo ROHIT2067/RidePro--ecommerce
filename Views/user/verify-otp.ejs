@@ -1,48 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OTP Verify</title>
-    <link rel="stylesheet" href="/Styles/verify-otp.css" />
-  </head>
-  <body>
-    <!-- Header -->
-    <header>
-      <div class="header-left">OTP Verify</div>
-      <div class="logo">
-        <div class="logo-circle">R</div>
-      </div>
-      <div class="nav-right">
-        <a href="#" class="nav-item">
-          <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fill-rule="evenodd"
-              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          <span>Search</span>
-        </a>
-        <a href="/login" class="nav-item">
-          <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fill-rule="evenodd"
-              d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          <span>Log In</span>
-          <svg class="dropdown-arrow" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fill-rule="evenodd"
-              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </a>
-      </div>
-    </header>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OTP Verify</title>
+  <link rel="stylesheet" href="/styles/verify-otp.css" />
+  <link rel="stylesheet" href="/styles/header.css" />
+  <link rel="stylesheet" href="/styles/footer.css" />
+</head>
+
+<body>
+  <%- include('partials/header') %>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -69,15 +38,7 @@
 
           <div class="form-group">
             <label for="otp">Enter OTP</label>
-            <input
-              type="text"
-              id="otp"
-              name="otp"
-              maxlength="6"
-              pattern="[0-9]{6}"
-              placeholder="000000"
-              required
-            />
+            <input type="text" id="otp" name="otp" maxlength="6" pattern="[0-9]{6}" placeholder="000000" required />
           </div>
 
           <button type="submit" class="submit-btn" id="verifyBtn">
@@ -98,226 +59,228 @@
     </main>
 
     <!-- Footer -->
-     <%- include('partials/footer') %>
+    <%- include('partials/footer') %>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+      <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    <script>
-  // ============================================
-  // CONFIGURATION
-  // ============================================
-  const OTP_DURATION = 60; // 60 seconds (1 minute)
-  
-  // ============================================
-  // DOM ELEMENTS
-  // ============================================
-  const timerDisplay = document.getElementById("timer");
-  const resendOtp = document.getElementById("resendOtp");
-  const otpInput = document.getElementById("otp");
-  const otpForm = document.getElementById("otpForm");
-  const verifyBtn = document.getElementById("verifyBtn");
-  const toast = document.getElementById("toast");
-  const toastMessage = document.getElementById("toastMessage");
+      <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const OTP_DURATION = 60; // 60 seconds (1 minute)
 
-
-  // TOAST NOTIFICATION FUNCTIONS
-
-  function showToast(message, type = "success") {
-    toast.className = "toast";
-    toastMessage.textContent = message;
-    toast.classList.add(type === "error" ? "toast-error" : "toast-success");
-    toast.classList.remove("hidden");
-
-    setTimeout(() => toast.classList.add("show"), 10);
-
-    setTimeout(() => {
-      toast.classList.remove("show");
-      setTimeout(() => toast.classList.add("hidden"), 300);
-    }, 3000);
-  }
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const timerDisplay = document.getElementById("timer");
+        const resendOtp = document.getElementById("resendOtp");
+        const otpInput = document.getElementById("otp");
+        const otpForm = document.getElementById("otpForm");
+        const verifyBtn = document.getElementById("verifyBtn");
+        const toast = document.getElementById("toast");
+        const toastMessage = document.getElementById("toastMessage");
 
 
-  // TIMER FUNCTIONS
+        // TOAST NOTIFICATION FUNCTIONS
 
-  // Remove getOrInitExpiry() entirely. Replace with this:
-function getOrInitExpiry() {
-  let expiry = localStorage.getItem("otpExpiry");
-  if (!expiry || Number(expiry) <= Date.now()) {
-    expiry = Date.now() + (OTP_DURATION * 1000);
-    localStorage.setItem("otpExpiry", expiry);
-  }
-  return Number(expiry);
-}
+        function showToast(message, type = "success") {
+          toast.className = "toast";
+          toastMessage.textContent = message;
+          toast.classList.add(type === "error" ? "toast-error" : "toast-success");
+          toast.classList.remove("hidden");
 
-let expiry = getOrInitExpiry();
+          setTimeout(() => toast.classList.add("show"), 10);
 
-
-  function formatTime(seconds) {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }
-
-  // let expiry = getOrInitExpiry();
-  let timerInterval;
-
-  function updateTimer() {
-  const remaining = Math.max(0, Math.floor((expiry - Date.now()) / 1000));
-
-  timerDisplay.textContent = formatTime(remaining);
-
-  if (remaining <= 0) {
-    resendOtp.classList.remove("hidden");
-    verifyBtn.disabled = true;
-    clearInterval(timerInterval);
-  }
-}
-
-
-  function startTimer() {
-    clearInterval(timerInterval); // Clear any existing interval
-    updateTimer(); // Update immediately
-    timerInterval = setInterval(updateTimer, 1000); // Then update every second
-  }
-
-  // Start the timer when page loads
-  startTimer();
-
-
-  // INPUT VALIDATION
-
-  otpInput.addEventListener("input", function() {
-    this.value = this.value.replace(/[^0-9]/g, "");
-  });
-
-
-  // VERIFY OTP FORM SUBMISSION
-
-  otpForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const otp = otpInput.value.trim();
-
-    // Basic validation
-    if (!otp || otp.length !== 6) {
-      showToast("Please enter a valid 6-digit OTP", "error");
-      return;
-    }
-
-    // Disable button to prevent multiple submissions
-    verifyBtn.disabled = true;
-    verifyBtn.textContent = "VERIFYING...";
-
-    fetch("/verify-otp", {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
-      body: JSON.stringify({ otp }),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          // If response is not OK, still try to parse JSON for error message
-          return res.json().then(data => {
-            throw new Error(data.message || "Verification failed");
-          });
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (!data.success) {
-          showToast(data.message || "Invalid OTP", "error");
-          verifyBtn.disabled = false;
-          verifyBtn.textContent = "VERIFY";
-          otpInput.value = ""; // Clear input on error
-          otpInput.focus();
-          return;
+          setTimeout(() => {
+            toast.classList.remove("show");
+            setTimeout(() => toast.classList.add("hidden"), 300);
+          }, 3000);
         }
 
-        // Success - clear localStorage and redirect
-        localStorage.removeItem("otpExpiry");
-        showToast("OTP verified successfully! Redirecting...", "success");
 
-        setTimeout(() => {
-          window.location.href = data.redirectUrl || "/";
-        }, 1200);
-      })
-      .catch((error) => {
-        console.error("Verification error:", error);
-        showToast(error.message || "Server error. Please try again.", "error");
-        verifyBtn.disabled = false;
-        verifyBtn.textContent = "VERIFY";
-        otpInput.value = "";
-        otpInput.focus();
-      });
-  });
+        // TIMER FUNCTIONS
 
+        function getOrInitExpiry() {
+          let expiry = localStorage.getItem("otpExpiry");
 
-  // RESEND OTP
+          // If expiry doesn't exist, create it (first load only)
+          if (!expiry) {
+            expiry = Date.now() + (OTP_DURATION * 1000);
+            localStorage.setItem("otpExpiry", expiry);
+          }
 
-  document.getElementById("resendLink").addEventListener("click", function (e) {
-    e.preventDefault();
-
-    fetch("/resend-otp", { 
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.success) {
-          showToast(data.message || "Failed to resend OTP", "error");
-          return;
+          return Number(expiry);
         }
 
-        // Reset timer
-        expiry = Date.now() + (OTP_DURATION * 1000);
-        localStorage.setItem("otpExpiry", expiry);
 
-        // Hide resend link and re-enable verify button
-        resendOtp.classList.add("hidden");
-        verifyBtn.disabled = false;
-        
-        // Restart timer
+        function formatTime(seconds) {
+          const m = Math.floor(seconds / 60);
+          const s = seconds % 60;
+          return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+        }
+
+        let expiry = getOrInitExpiry();
+        let timerInterval;
+
+        function updateTimer() {
+          const remaining = Math.max(0, Math.floor((expiry - Date.now()) / 1000));
+
+          timerDisplay.textContent = formatTime(remaining);
+
+          if (remaining <= 0) {
+            resendOtp.classList.remove("hidden");
+            verifyBtn.disabled = true;
+            clearInterval(timerInterval);
+          }
+        }
+
+
+        function startTimer() {
+          clearInterval(timerInterval); // Clear any existing interval
+          updateTimer(); // Update immediately
+          timerInterval = setInterval(updateTimer, 1000); // Then update every second
+        }
+
+        // Start the timer when page loads
         startTimer();
 
-        // Clear OTP input
-        otpInput.value = "";
-        otpInput.focus();
 
-        showToast("OTP resent successfully!", "success");
-      })
-      .catch((error) => {
-        console.error("Resend error:", error);
-        showToast("Server error. Please try again.", "error");
-      });
-  });
+        // INPUT VALIDATION
 
-  // PAGE VISIBILITY - Pause/Resume Timer
-  document.addEventListener("visibilitychange", function () {
-  if (document.hidden) {
-    clearInterval(timerInterval);
-  } else {
-    // Just restart the tick — expiry variable is already correct
-    startTimer();
-  }
-});
-</script>
+        otpInput.addEventListener("input", function () {
+          this.value = this.value.replace(/[^0-9]/g, "");
+        });
 
-<script>
-  // Prevent going back to this page after session is active
-  window.history.pushState(null, "", window.location.href);
-  window.onpopstate = function() {
-    window.history.pushState(null, "", window.location.href);
-    window.location.href = "/home"; // or check session via AJAX
-  };
-</script>
 
-    <div id="toast" class="toast hidden">
-      <span id="toastMessage"></span>
-    </div>
-  </body>
+        // VERIFY OTP FORM SUBMISSION
+
+        otpForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const otp = otpInput.value.trim();
+
+          // Basic validation
+          if (!otp || otp.length !== 6) {
+            showToast("Please enter a valid 6-digit OTP", "error");
+            return;
+          }
+
+          // Disable button to prevent multiple submissions
+          verifyBtn.disabled = true;
+          verifyBtn.textContent = "VERIFYING...";
+
+          fetch("/verify-otp", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify({ otp }),
+          })
+            .then((res) => {
+              if (!res.ok) {
+                // If response is not OK, still try to parse JSON for error message
+                return res.json().then(data => {
+                  throw new Error(data.message || "Verification failed");
+                });
+              }
+              return res.json();
+            })
+            .then((data) => {
+              if (!data.success) {
+                showToast(data.message || "Invalid OTP", "error");
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = "VERIFY";
+                otpInput.value = ""; // Clear input on error
+                otpInput.focus();
+                return;
+              }
+
+              // Success - clear localStorage and redirect
+              localStorage.removeItem("otpExpiry");
+              showToast("OTP verified successfully! Redirecting...", "success");
+
+              setTimeout(() => {
+                window.location.href = data.redirectUrl || "/";
+              }, 1200);
+            })
+            .catch((error) => {
+              console.error("Verification error:", error);
+              showToast(error.message || "Server error. Please try again.", "error");
+              verifyBtn.disabled = false;
+              verifyBtn.textContent = "VERIFY";
+              otpInput.value = "";
+              otpInput.focus();
+            });
+        });
+
+
+        // RESEND OTP
+
+        document.getElementById("resendLink").addEventListener("click", function (e) {
+          e.preventDefault();
+
+          fetch("/resend-otp", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            }
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (!data.success) {
+                showToast(data.message || "Failed to resend OTP", "error");
+                return;
+              }
+
+              // Reset timer
+              expiry = Date.now() + (OTP_DURATION * 1000);
+              localStorage.setItem("otpExpiry", expiry);
+
+              // Hide resend link and re-enable verify button
+              resendOtp.classList.add("hidden");
+              verifyBtn.disabled = false;
+
+              // Restart timer
+              startTimer();
+
+              // Clear OTP input
+              otpInput.value = "";
+              otpInput.focus();
+
+              showToast("OTP resent successfully!", "success");
+            })
+            .catch((error) => {
+              console.error("Resend error:", error);
+              showToast("Server error. Please try again.", "error");
+            });
+        });
+
+        // PAGE VISIBILITY - Pause/Resume Timer
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            clearInterval(timerInterval);
+          } else {
+            // Recalculate and restart timer when page becomes visible
+            expiry = getOrInitExpiry();
+            startTimer();
+          }
+        });
+      </script>
+
+      <script>
+        // Prevent going back to this page after session is active
+        window.history.pushState(null, "", window.location.href);
+        window.onpopstate = function () {
+          window.history.pushState(null, "", window.location.href);
+          window.location.href = "/home"; // or check session via AJAX
+        };
+      </script>
+
+      <div id="toast" class="toast hidden">
+        <span id="toastMessage"></span>
+      </div>
+</body>
+
 </html>

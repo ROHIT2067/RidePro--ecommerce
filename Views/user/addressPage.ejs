@@ -1,142 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Shipping Address | RidePro</title>
-  <link rel="stylesheet" href="/Styles/profile.css" />
+  <link rel="stylesheet" href="/styles/profile.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/header.css" />
+  <link rel="stylesheet" href="/styles/footer.css" />
   <!-- SweetAlert2 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 </head>
+
 <body>
 
-<%- include('partials/header') %>
+  <%- include('partials/header') %>
 
-<main class="main-content">
-  <div class="content-header">
-    <div class="breadcrumb">
-      <a href="/">RidePro</a> &gt; My Account &gt; Shipping Address
-    </div>
-    <h1>My Account</h1>
-  </div>
-
-  <div class="account-layout">
-    <%- include('partials/sidebar') %>
-
-    <div class="account-main">
-      <h2>Shipping Address</h2>
-
-      <!-- Address Selector Dropdown -->
-      <div class="address-select">
-        <form method="GET" action="/account/address">
-          <select name="addressId" id="addressSelect">
-            <option value="">Add New Address</option>
-            <% if (addresses && addresses.length) { %>
-              <% addresses.forEach((addr, index) => { %>
-                <option value="<%= addr._id %>" <%= selectedAddress && selectedAddress._id.toString() === addr._id.toString() ? 'selected' : '' %>>
-                  <%= addr.name %> - <%= addr.area %>, <%= addr.district %>
-                </option>
-              <% }) %>
-            <% } %>
-          </select>
-        </form>
+    <main class="main-content">
+      <div class="content-header">
+        <div class="breadcrumb">
+          <a href="/">RidePro</a> &gt; My Account &gt; Shipping Address
+        </div>
+        <h1>My Account</h1>
       </div>
 
-      <% if (!addresses || addresses.length === 0) { %>
-        <!-- No Address State -->
-        <div class="no-address">
-          <p>No address found.</p>
-          <a href="/account/address/add" class="btn-primary">Add Address</a>
-        </div>
-      <% } else if (selectedAddress) { %>
-        <!-- Address Display Card -->
-        <div class="address-card">
-          <div class="form-row">
-            <label>NAME</label>
-            <input type="text" value="<%= selectedAddress.name %>" disabled />
-          </div>
+      <div class="account-layout">
+        <%- include('partials/sidebar') %>
 
-          <div class="form-row">
-            <label>AREA</label>
-            <input type="text" value="<%= selectedAddress.area %>" disabled />
-          </div>
+          <div class="account-main">
+            <h2>Shipping Address</h2>
 
-          <div class="form-row two">
-            <div>
-              <label>DISTRICT</label>
-              <input type="text" value="<%= selectedAddress.district %>" disabled />
+            <!-- Address Selector Dropdown -->
+            <div class="address-select">
+              <form method="GET" action="/account/address">
+                <select name="addressId" id="addressSelect">
+                  <option value="">Add New Address</option>
+                  <% if (addresses && addresses.length) { %>
+                    <% addresses.forEach((addr, index)=> { %>
+                      <option value="<%= addr._id %>" <%=selectedAddress &&
+                        selectedAddress._id.toString()===addr._id.toString() ? 'selected' : '' %>>
+                        <%= addr.name %> - <%= addr.area %>, <%= addr.district %>
+                      </option>
+                      <% }) %>
+                        <% } %>
+                </select>
+              </form>
             </div>
-            <div>
-              <label>STATE</label>
-              <input type="text" value="<%= selectedAddress.state %>" disabled />
-            </div>
+
+            <% if (!addresses || addresses.length===0) { %>
+              <!-- No Address State -->
+              <div class="no-address">
+                <p>No address found.</p>
+                <a href="/account/address/add" class="btn-primary">Add Address</a>
+              </div>
+              <% } else if (selectedAddress) { %>
+                <!-- Address Display Card -->
+                <div class="address-card">
+                  <div class="form-row">
+                    <label>NAME</label>
+                    <input type="text" value="<%= selectedAddress.name %>" disabled />
+                  </div>
+
+                  <div class="form-row">
+                    <label>AREA</label>
+                    <input type="text" value="<%= selectedAddress.area %>" disabled />
+                  </div>
+
+                  <div class="form-row two">
+                    <div>
+                      <label>DISTRICT</label>
+                      <input type="text" value="<%= selectedAddress.district %>" disabled />
+                    </div>
+                    <div>
+                      <label>STATE</label>
+                      <input type="text" value="<%= selectedAddress.state %>" disabled />
+                    </div>
+                  </div>
+
+                  <div class="form-row two">
+                    <div>
+                      <label>PINCODE</label>
+                      <input type="text" value="<%= selectedAddress.pincode %>" disabled />
+                    </div>
+                    <div>
+                      <label>COUNTRY</label>
+                      <input type="text" value="<%= selectedAddress.country %>" disabled />
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <label>MOBILE</label>
+                    <input type="text" value="<%= selectedAddress.mobile %>" disabled />
+                  </div>
+
+                  <div class="actions">
+                    <a href="/account/address/edit/<%= selectedAddress._id %>" class="btn-primary">Edit</a>
+                    <form method="POST" action="/account/address/delete/<%= selectedAddress._id %>"
+                      style="display:inline;" id="deleteForm-<%= selectedAddress._id %>">
+                      <button type="button" class="btn-danger"
+                        onclick="confirmDelete('<%= selectedAddress._id %>')">Delete Address</button>
+                    </form>
+                  </div>
+                </div>
+                <% } %>
           </div>
+      </div>
+    </main>
 
-          <div class="form-row two">
-            <div>
-              <label>PINCODE</label>
-              <input type="text" value="<%= selectedAddress.pincode %>" disabled />
-            </div>
-            <div>
-              <label>COUNTRY</label>
-              <input type="text" value="<%= selectedAddress.country %>" disabled />
-            </div>
-          </div>
+    <%- include('partials/footer')%>
 
-          <div class="form-row">
-            <label>MOBILE</label>
-            <input type="text" value="<%= selectedAddress.mobile %>" disabled />
-          </div>
+      <!-- SweetAlert2 JS -->
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-          <div class="actions">
-            <a href="/account/address/edit/<%= selectedAddress._id %>" class="btn-primary">Edit</a>
-            <form method="POST" action="/account/address/delete/<%= selectedAddress._id %>" style="display:inline;" id="deleteForm-<%= selectedAddress._id %>">
-              <button type="button" class="btn-danger" onclick="confirmDelete('<%= selectedAddress._id %>')">Delete Address</button>
-            </form>
-          </div>
-        </div>
-      <% } %>
-    </div>
-  </div>
-</main>
+      <script>
+        // Handle address selection change
+        document.getElementById('addressSelect')?.addEventListener('change', function () {
+          if (this.value === '') {
+            // Navigate to add address page
+            window.location.href = '/account/address/add';
+          } else {
+            // Reload with selected address
+            window.location.href = '/account/address?addressId=' + this.value;
+          }
+        });
 
-<%- include('partials/footer')%>
-
-<!-- SweetAlert2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-  // Handle address selection change
-  document.getElementById('addressSelect')?.addEventListener('change', function() {
-    if (this.value === '') {
-      // Navigate to add address page
-      window.location.href = '/account/address/add';
-    } else {
-      // Reload with selected address
-      window.location.href = '/account/address?addressId=' + this.value;
-    }
-  });
-
-  // SweetAlert delete confirmation
-  function confirmDelete(addressId) {
-    Swal.fire({
-      title: 'Delete Address?',
-      text: "Are you sure you want to delete this address? This action cannot be undone.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Submit the form
-        document.getElementById('deleteForm-' + addressId).submit();
-      }
-    });
-  }
-</script>
+        // SweetAlert delete confirmation
+        function confirmDelete(addressId) {
+          Swal.fire({
+            title: 'Delete Address?',
+            text: "Are you sure you want to delete this address? This action cannot be undone.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Submit the form
+              document.getElementById('deleteForm-' + addressId).submit();
+            }
+          });
+        }
+      </script>
 
 </body>
+
 </html>

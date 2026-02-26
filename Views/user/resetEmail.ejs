@@ -1,122 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password</title>
-    <link rel="stylesheet" href="/Styles/login.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Email</title>
+  <link rel="stylesheet" href="/styles/login.css">
+  <link rel="stylesheet" href="/styles/header.css">
+  <link rel="stylesheet" href="/styles/footer.css">
 </head>
+
 <body>
-    <!-- Header -->
-    <header>
-        <div class="header-left">Reset password</div>
-        <div class="logo">
-            <div class="logo-circle">R</div>
-        </div>
-        <div class="nav-right">
-            <a href="#" class="nav-item">
-                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-                </svg>
-                <span>Search</span>
-            </a>
-            <div class="avatar-large-edit">
-                  <%= typeof user !== 'undefined' && user.username ?
-                  user.username : ':)' %>
-                </div>
-        </div>
-    </header>
+  <!-- Header -->
+  <%- include('partials/header') %>
 
     <!-- Main Content -->
     <main class="main-content">
-        <div class="content-header">
-            <div class="breadcrumb">RidePro > Reset Password</div>
-            <h1>Reset Password</h1>
-        </div>
+      <div class="content-header">
+        <div class="breadcrumb">RidePro > Reset Email</div>
+        <h1>Reset Email</h1>
+      </div>
 
-        <div class="reset-form-container">
-           <form action="/reset-email" method="POST" id="resetForm">
-  <% if (typeof error !== 'undefined' && error) { %>
-    <div class="error-message"><%= error %></div>
-  <% } %>
+      <div class="reset-form-container">
+        <form action="/reset-email" method="POST" id="resetForm">
+          <% if (typeof error !=='undefined' && error) { %>
+            <div class="error-message">
+              <%= error %>
+            </div>
+            <% } %>
 
-  <div class="form-group">
-    <label for="newEmail">New email</label>
-    <input 
-      type="email" 
-      id="newEmail" 
-      name="newEmail" 
-      required
-    />
-    <div class="field-error" id="newEmailError"></div>
-  </div>
+              <div class="form-group">
+                <label for="newEmail">New email</label>
+                <input type="email" id="newEmail" name="newEmail" required />
+                <div class="field-error" id="newEmailError"></div>
+              </div>
 
-  <div class="form-group">
-    <label for="confirmEmail">Confirm email</label>
-    <input 
-      type="email" 
-      id="confirmEmail" 
-      name="confirmEmail" 
-      required
-    />
-    <div class="field-error" id="confirmEmailError"></div>
-  </div>
+              <div class="form-group">
+                <label for="confirmEmail">Confirm email</label>
+                <input type="email" id="confirmEmail" name="confirmEmail" required />
+                <div class="field-error" id="confirmEmailError"></div>
+              </div>
 
-  <button type="submit" class="submit-btn">Reset email</button>
-</form>
+              <button type="submit" class="submit-btn">Reset email</button>
+        </form>
 
-        </div>
+      </div>
     </main>
 
     <!-- Footer -->
-     <%- include('partials/footer') %>
+    <%- include('partials/footer') %>
 
-    <script>
-  document.getElementById('resetForm').addEventListener('submit', function(e) {
-    const newEmailInput = document.getElementById('newEmail');
-    const confirmEmailInput = document.getElementById('confirmEmail');
+      <script>
+        document.getElementById('resetForm').addEventListener('submit', function (e) {
+          const newEmailInput = document.getElementById('newEmail');
+          const confirmEmailInput = document.getElementById('confirmEmail');
 
-    const newEmail = newEmailInput.value.trim();
-    const confirmEmail = confirmEmailInput.value.trim();
+          const newEmail = newEmailInput.value.trim();
+          const confirmEmail = confirmEmailInput.value.trim();
 
-    const newEmailError = document.getElementById('newEmailError');
-    const confirmEmailError = document.getElementById('confirmEmailError');
+          const newEmailError = document.getElementById('newEmailError');
+          const confirmEmailError = document.getElementById('confirmEmailError');
 
-    newEmailError.textContent = '';
-    confirmEmailError.textContent = '';
-    newEmailInput.classList.remove('error');
-    confirmEmailInput.classList.remove('error');
+          newEmailError.textContent = '';
+          confirmEmailError.textContent = '';
+          newEmailInput.classList.remove('error');
+          confirmEmailInput.classList.remove('error');
 
-    let hasError = false;
+          let hasError = false;
 
-    // Browser-level validation (best first line of defense)
-    if (!newEmailInput.checkValidity()) {
-      newEmailError.textContent = 'Enter a valid email address';
-      newEmailInput.classList.add('error');
-      hasError = true;
-    }
+          // Browser-level validation (best first line of defense)
+          if (!newEmailInput.checkValidity()) {
+            newEmailError.textContent = 'Enter a valid email address';
+            newEmailInput.classList.add('error');
+            hasError = true;
+          }
 
-    // Extra regex for stricter check (no fake domains like a@b.c)
-    const strictEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+          // Extra regex for stricter check (no fake domains like a@b.c)
+          const strictEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-    if (!strictEmailRegex.test(newEmail)) {
-      newEmailError.textContent = 'Enter a valid email address';
-      newEmailInput.classList.add('error');
-      hasError = true;
-    }
+          if (!strictEmailRegex.test(newEmail)) {
+            newEmailError.textContent = 'Enter a valid email address';
+            newEmailInput.classList.add('error');
+            hasError = true;
+          }
 
-    if (newEmail !== confirmEmail) {
-      confirmEmailError.textContent = 'Email does not match';
-      confirmEmailInput.classList.add('error');
-      hasError = true;
-    }
+          if (newEmail !== confirmEmail) {
+            confirmEmailError.textContent = 'Email does not match';
+            confirmEmailInput.classList.add('error');
+            hasError = true;
+          }
 
-    if (hasError) {
-      e.preventDefault();
-    }
-  });
-</script>
+          if (hasError) {
+            e.preventDefault();
+          }
+        });
+      </script>
 
 
 </body>
+
 </html>

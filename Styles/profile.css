@@ -355,97 +355,9 @@ header {
 }
 
 /* Footer */
-footer {
-  background-color: #1a1a1a;
-  color: white;
-  padding: 3rem 2rem 2rem;
-}
 
-.footer-graphic {
-  height: 100px;
-  background:
-    linear-gradient(to bottom, transparent, #1a1a1a),
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 200"><path d="M0,120 L200,80 L400,100 L600,60 L800,90 L1000,50 L1200,70 L1200,200 L0,200 Z" fill="%231a1a1a"/></svg>');
-  background-size: cover;
-  margin-bottom: 2rem;
-  position: relative;
-}
 
-.footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
 
-.footer-section h3 {
-  font-size: 1rem;
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.footer-section ul {
-  list-style: none;
-}
-
-.footer-section ul li {
-  margin-bottom: 0.5rem;
-}
-
-.footer-section ul li a {
-  color: #ccc;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-.footer-section ul li a:hover {
-  color: white;
-}
-
-.footer-section p {
-  color: #ccc;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  margin-bottom: 0.5rem;
-}
-
-.footer-section a {
-  color: #0066cc;
-  text-decoration: none;
-}
-
-.footer-section a:hover {
-  text-decoration: underline;
-}
-
-.footer-bottom {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 2rem;
-  border-top: 1px solid #333;
-}
-
-.social-icons {
-  display: flex;
-  gap: 1rem;
-}
-
-.social-icon {
-  width: 24px;
-  height: 24px;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-.social-icon:hover {
-  opacity: 1;
-}
 
 /* ========================================
    PROFILE DISPLAY PAGE STYLES
@@ -754,6 +666,7 @@ footer {
 
 /* Tablet and below (768px) */
 @media (max-width: 768px) {
+
   /* Profile Display Page */
   .profile-header {
     flex-direction: column;
@@ -818,6 +731,7 @@ footer {
 
 /* Mobile (480px) */
 @media (max-width: 480px) {
+
   /* Profile Display Page */
   .avatar-large {
     width: 100px;
@@ -994,7 +908,8 @@ footer {
   font-weight: bold;
   color: white;
   margin: 0 auto 1rem;
-  overflow: hidden; /* Important for images */
+  overflow: hidden;
+  /* Important for images */
   position: relative;
 }
 
@@ -1118,12 +1033,12 @@ footer {
   padding: 0;
 }
 
-.form-row.two > div {
+.form-row.two>div {
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #f0f0f0;
 }
 
-.form-row.two > div:first-child {
+.form-row.two>div:first-child {
   border-right: 1px solid #f0f0f0;
 }
 
@@ -1202,7 +1117,7 @@ footer {
     grid-template-columns: 1fr;
   }
 
-  .form-row.two > div {
+  .form-row.two>div {
     border-right: none;
   }
 

@@ -1,105 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign up</title>
-    <link rel="stylesheet" href="/Styles/signup.css">
+    <link rel="stylesheet" href="/styles/signup.css">
+    <link rel="stylesheet" href="/styles/header.css">
+    <link rel="stylesheet" href="/styles/footer.css">
 </head>
+
 <body>
     <!-- Header -->
-    <header>
-        <div class="logo">R</div>
-        <div class="nav-right">
-            <a href="#" class="nav-item">
-                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-                </svg>
-                <span>Q Search</span>
-            </a>
-            <a href="/login" class="nav-item">
-                <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-                </svg>
-                <span>Log in</span>
-            </a>
-            <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-            </svg>
-        </div>
-    </header>
+    <%- include('partials/header') %>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="content-header">
-            <h1>Sign Up</h1>
-            <div class="breadcrumb">RidePRo ></div>
-        </div>
-
-        <div class="signup-form-container">
-            <!-- Error Message -->
-            <% if (serverError) { %>
-    <div class="server-error">
-        <%= serverError %>
-        </div>
-            <% } %>
-
-            <!-- Google Sign-in Button -->
-            <a href="/auth/google" class="google-btn" onclick="console.log('Clicked')" style="text-decoration: none; color: rgb(66, 133, 244);">
-                <svg class="google-icon" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Continue with Google
-            </a>
-
-            <!-- Separator -->
-            <div class="separator">
-                <span>OR</span>
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>Sign Up</h1>
+                <div class="breadcrumb">RidePRo ></div>
             </div>
 
-            <!-- Signup Form -->
-            <form novalidate action="/signup" method="POST" id="signupForm">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input 
-                        type="text" 
-                        id="username" 
-                        name="username" 
-                        required
-                        
-                    />
-                    <div id="err1" class="error-message"></div>
-                </div>
+            <div class="signup-form-container">
+                <!-- Error Message -->
+                <% if (serverError) { %>
+                    <div class="server-error">
+                        <%= serverError %>
+                    </div>
+                    <% } %>
 
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        required
-                    />
-                    <div id="err2" class="error-message"></div>
-                </div>
+                        <!-- Google Sign-in Button -->
+                        <a href="/auth/google" class="google-btn" onclick="console.log('Clicked')"
+                            style="text-decoration: none; color: rgb(66, 133, 244);">
+                            <svg class="google-icon" viewBox="0 0 24 24">
+                                <path fill="#4285F4"
+                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                <path fill="#34A853"
+                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                <path fill="#FBBC05"
+                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                <path fill="#EA4335"
+                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                            </svg>
+                            Continue with Google
+                        </a>
 
-                <div class="form-group">
-  <label for="password">Password</label>
+                        <!-- Separator -->
+                        <div class="separator">
+                            <span>OR</span>
+                        </div>
 
-  <div style="position: relative;">
-    <input 
-      type="password" 
-      id="password" 
-      name="password" 
-      required
-      style="padding-right: 40px;"
-    />
+                        <!-- Signup Form -->
+                        <form novalidate action="/signup" method="POST" id="signupForm">
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" id="username" name="username" required />
+                                <div id="err1" class="error-message"></div>
+                            </div>
 
-    <span 
-      id="togglePassword"
-      style="
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required />
+                                <div id="err2" class="error-message"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password">Password</label>
+
+                                <div style="position: relative;">
+                                    <input type="password" id="password" name="password" required
+                                        style="padding-right: 40px;" />
+
+                                    <span id="togglePassword" style="
         position: absolute;
         right: 10px;
         top: 50%;
@@ -107,191 +79,175 @@
         cursor: pointer;
         display: flex;
         align-items: center;
-      "
-      aria-label="Toggle password visibility"
-    >
-      <!-- Eye icon -->
-      <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 5c-7.633 0-12 7-12 7s4.367 7 12 7 12-7 12-7-4.367-7-12-7zm0 12c-2.761 0-5-2.239-5-5s2.239-5 5-5 5 2.239 5 5-2.239 5-5 5zm0-8c-1.654 0-3 1.346-3 3s1.346 3 3 3 3-1.346 3-3-1.346-3-3-3z"/>
-      </svg>
-    </span>
-  </div>
+      " aria-label="Toggle password visibility">
+                                        <!-- Eye icon -->
+                                        <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                            fill="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                d="M12 5c-7.633 0-12 7-12 7s4.367 7 12 7 12-7 12-7-4.367-7-12-7zm0 12c-2.761 0-5-2.239-5-5s2.239-5 5-5 5 2.239 5 5-2.239 5-5 5zm0-8c-1.654 0-3 1.346-3 3s1.346 3 3 3 3-1.346 3-3-1.346-3-3-3z" />
+                                        </svg>
+                                    </span>
+                                </div>
 
-  <div id="err3" class="error-message"></div>
-</div>
+                                <div id="err3" class="error-message"></div>
+                            </div>
 
-                <div class="form-group">
-                    <label for="phoneNumber">Mobile</label>
-                    <input 
-                        type="tel" 
-                        id="phoneNumber" 
-                        name="phoneNumber" 
-                        required
-                        
-                        
-                    />
-                    <div id="err4" class="error-message"></div>
-                </div>
+                            <div class="form-group">
+                                <label for="phoneNumber">Mobile</label>
+                                <input type="tel" id="phoneNumber" name="phoneNumber" required />
+                                <div id="err4" class="error-message"></div>
+                            </div>
 
-                <div class="form-group">
-                    <label for="referralCode">
-                        Referral Code 
-                        <span class="optional-label">(Optional)</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="referralCode" 
-                        name="referralCode"
-                    />
-                </div>
+                            <div class="form-group">
+                                <label for="referralCode">
+                                    Referral Code
+                                    <span class="optional-label">(Optional)</span>
+                                </label>
+                                <input type="text" id="referralCode" name="referralCode" />
+                            </div>
 
-                <div class="terms-text">
-                    By Creating An Account You Agree With Our 
-                    <a href="/terms">Terms Of Service</a>, 
-                    <a href="/privacy">Privacy Policy</a>.
-                </div>
+                            <div class="terms-text">
+                                By Creating An Account You Agree With Our
+                                <a href="/terms">Terms Of Service</a>,
+                                <a href="/privacy">Privacy Policy</a>.
+                            </div>
 
-                <button type="submit" class="submit-btn">Create account</button>
-            </form>
+                            <button type="submit" class="submit-btn">Create account</button>
+                        </form>
 
-            <div class="login-link">
-                Already have an account? <a href="/login">Log in</a>
+                        <div class="login-link">
+                            Already have an account? <a href="/login">Log in</a>
+                        </div>
             </div>
-        </div>
-    </main>
+        </main>
 
-    <!-- Footer -->
-     <%- include('partials/footer') %>
-
+        <!-- Footer -->
+        <%- include('partials/footer') %>
 
 
-    <script>
-        const nameid=document.getElementById('username')
-        const emailid=document.getElementById('email')
-        const passid=document.getElementById('password')
-        const phoneid=document.getElementById('phoneNumber')
-        const err1=document.getElementById('err1')
-        const err2=document.getElementById('err2')
-        const err3=document.getElementById('err3')
-        const err4=document.getElementById('err4')
-        const signform=document.getElementById('signupForm')
 
-        function nameValidation(e){
-            const nameval=nameid.value;
-            const namepattern=/^[a-zA-Z][a-zA-Z0-9_]*$/
+            <script>
+                const nameid = document.getElementById('username')
+                const emailid = document.getElementById('email')
+                const passid = document.getElementById('password')
+                const phoneid = document.getElementById('phoneNumber')
+                const err1 = document.getElementById('err1')
+                const err2 = document.getElementById('err2')
+                const err3 = document.getElementById('err3')
+                const err4 = document.getElementById('err4')
+                const signform = document.getElementById('signupForm')
 
-            if(nameval.trim()==""){
-                err1.style.display="block"
-                err1.innerHTML="Please enter a Valid Username"
-            }else if(!namepattern.test(nameval)){
-                err1.style.display="block"
-                err1.innerHTML="Username must only contain alphabets,numbers,underscores"
-            }else if (nameval.length < 3 || nameval.length > 15) {
-                err1.style.display = "block";
-                err1.innerHTML = "Username must be between 3 and 15 characters";
-            }else{
-                err1.style.display='none'
-                err1.innerHTML=''
-            }
-        }
+                function nameValidation(e) {
+                    const nameval = nameid.value;
+                    const namepattern = /^[a-zA-Z][a-zA-Z0-9_]*$/
 
-        function emailValidation(e){
-            const emailval=emailid.value
-            const emailpattern=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-            if(emailval.trim()==""){
-                err2.style.display='block'
-                err2.innerHTML="Please enter a Valid Email"
-            }else if(!emailpattern.test(emailval)){
-                err2.style.display='block'
-                err2.innerHTML="Invalid Email Format"
-            }else{
-                err2.style.display="none"
-                err2.innerHTML=''
-            }
-        }
-
-        function phoneValidation(e){
-            const phoneval=phoneid.value
-            const phonepattern=/^\d{10}$/
-
-            if(phoneval.trim()==''){
-                err4.style.display='block'
-                err4.innerHTML='Enter phone number'
-            }else if(!phonepattern.test(phoneval)){
-                err4.style.display='block'
-                err4.innerHTML='Phone number must be exactly 10 digits or can only contain numbers'
-            }else{
-                err4.style.display='none'
-                err4.innerHTML=''
-            }
-        }
-
-        function passValidation(e){
-            const passval=passid.value
-            const passpattern=/^[a-zA-Z0-9_]+$/
-
-            if(passval.length<8){
-                err3.style.display='block'
-                err3.innerHTML="Should contain atleast 8 characters"
-            }else if(!passpattern.test(passval)){
-                err3.style.display='block'
-                err3.innerHTML='Should only contain numbers or alphabets'
-            }else{
-                err3.style.display='none'
-                err3.innerHTML=''
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded',function(){
-            
-            signform.addEventListener("submit",function(e){
-                // e.preventDefault()
-                nameValidation()
-                emailValidation()
-                phoneValidation()
-                passValidation()
-
-                if(!nameid || !emailid || !phoneid || !passid || !err1 || !err2 || !err3 || !err4 || !signform){
-                    console.error("1 or more not found")
+                    if (nameval.trim() == "") {
+                        err1.style.display = "block"
+                        err1.innerHTML = "Please enter a Valid Username"
+                    } else if (!namepattern.test(nameval)) {
+                        err1.style.display = "block"
+                        err1.innerHTML = "Username must only contain alphabets,numbers,underscores"
+                    } else if (nameval.length < 3 || nameval.length > 15) {
+                        err1.style.display = "block";
+                        err1.innerHTML = "Username must be between 3 and 15 characters";
+                    } else {
+                        err1.style.display = 'none'
+                        err1.innerHTML = ''
+                    }
                 }
 
+                function emailValidation(e) {
+                    const emailval = emailid.value
+                    const emailpattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-                if(err1.innerHTML || err2.innerHTML || err3.innerHTML || err4.innerHTML){
-                    e.preventDefault()
+                    if (emailval.trim() == "") {
+                        err2.style.display = 'block'
+                        err2.innerHTML = "Please enter a Valid Email"
+                    } else if (!emailpattern.test(emailval)) {
+                        err2.style.display = 'block'
+                        err2.innerHTML = "Invalid Email Format"
+                    } else {
+                        err2.style.display = "none"
+                        err2.innerHTML = ''
+                    }
                 }
 
-                if(err1.innerHTML || err2.innerHTML || err3.innerHTML || err4.innerHTML){
-        e.preventDefault()
-    } else {
-        localStorage.removeItem("otpExpiry") // ✅ Clear stale timer only if form is valid
-    }
-            })
-        })
-    </script>
+                function phoneValidation(e) {
+                    const phoneval = phoneid.value
+                    const phonepattern = /^\d{10}$/
 
-    <script>
-  // Prevent going back to this page after session is active
-  window.history.pushState(null, "", window.location.href);
-  window.onpopstate = function() {
-    window.history.pushState(null, "", window.location.href);
-    window.location.href = "/home"; // or check session via AJAX
-  };
-</script>
+                    if (phoneval.trim() == '') {
+                        err4.style.display = 'block'
+                        err4.innerHTML = 'Enter phone number'
+                    } else if (!phonepattern.test(phoneval)) {
+                        err4.style.display = 'block'
+                        err4.innerHTML = 'Phone number must be exactly 10 digits or can only contain numbers'
+                    } else {
+                        err4.style.display = 'none'
+                        err4.innerHTML = ''
+                    }
+                }
 
-<script>
-  const passwordInput = document.getElementById("password");
-  const toggle = document.getElementById("togglePassword");
-  const eyeIcon = document.getElementById("eyeIcon");
+                function passValidation(e) {
+                    const passval = passid.value
+                    const passpattern = /^[a-zA-Z0-9_]+$/
 
-  toggle.addEventListener("click", () => {
-    const isHidden = passwordInput.type === "password";
-    passwordInput.type = isHidden ? "text" : "password";
+                    if (passval.length < 8) {
+                        err3.style.display = 'block'
+                        err3.innerHTML = "Should contain atleast 8 characters"
+                    } else if (!passpattern.test(passval)) {
+                        err3.style.display = 'block'
+                        err3.innerHTML = 'Should only contain numbers or alphabets'
+                    } else {
+                        err3.style.display = 'none'
+                        err3.innerHTML = ''
+                    }
+                }
 
-    eyeIcon.innerHTML = isHidden
-      ? '<path d="M1.5 1.5l21 21M9.53 9.53A3 3 0 0012 15a3 3 0 002.47-5.47M12 5c-7.633 0-12 7-12 7a21.77 21.77 0 005.17 5.17M18.83 18.83A21.77 21.77 0 0024 12s-4.367-7-12-7a11.9 11.9 0 00-3.29.45" />'
-      : '<path d="M12 5c-7.633 0-12 7-12 7s4.367 7 12 7 12-7 12-7-4.367-7-12-7zm0 12c-2.761 0-5-2.239-5-5s2.239-5 5-5 5 2.239 5 5-2.239 5-5 5zm0-8c-1.654 0-3 1.346-3 3s1.346 3 3 3 3-1.346 3-3-1.346-3-3-3z"/>';
-  });
-</script>
+                document.addEventListener('DOMContentLoaded', function () {
+
+                    signform.addEventListener("submit", function (e) {
+                        // e.preventDefault()
+                        nameValidation()
+                        emailValidation()
+                        phoneValidation()
+                        passValidation()
+
+                        if (!nameid || !emailid || !phoneid || !passid || !err1 || !err2 || !err3 || !err4 || !signform) {
+                            console.error("1 or more not found")
+                        }
+
+
+                        if (err1.innerHTML || err2.innerHTML || err3.innerHTML || err4.innerHTML) {
+                            e.preventDefault()
+                        }
+                    })
+                })
+            </script>
+
+            <script>
+                // Prevent going back to this page after session is active
+                window.history.pushState(null, "", window.location.href);
+                window.onpopstate = function () {
+                    window.history.pushState(null, "", window.location.href);
+                    window.location.href = "/home"; // or check session via AJAX
+                };
+            </script>
+
+            <script>
+                const passwordInput = document.getElementById("password");
+                const toggle = document.getElementById("togglePassword");
+                const eyeIcon = document.getElementById("eyeIcon");
+
+                toggle.addEventListener("click", () => {
+                    const isHidden = passwordInput.type === "password";
+                    passwordInput.type = isHidden ? "text" : "password";
+
+                    eyeIcon.innerHTML = isHidden
+                        ? '<path d="M1.5 1.5l21 21M9.53 9.53A3 3 0 0012 15a3 3 0 002.47-5.47M12 5c-7.633 0-12 7-12 7a21.77 21.77 0 005.17 5.17M18.83 18.83A21.77 21.77 0 0024 12s-4.367-7-12-7a11.9 11.9 0 00-3.29.45" />'
+                        : '<path d="M12 5c-7.633 0-12 7-12 7s4.367 7 12 7 12-7 12-7-4.367-7-12-7zm0 12c-2.761 0-5-2.239-5-5s2.239-5 5-5 5 2.239 5 5-2.239 5-5 5zm0-8c-1.654 0-3 1.346-3 3s1.346 3 3 3 3-1.346 3-3-1.346-3-3-3z"/>';
+                });
+            </script>
 </body>
+
 </html>

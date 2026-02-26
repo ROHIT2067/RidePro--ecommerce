@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Edit Shipping Address | RidePro</title>
-  <link rel="stylesheet" href="/Styles/profile.css" />
+  <link rel="stylesheet" href="/styles/profile.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/header.css" />
+  <link rel="stylesheet" href="/styles/footer.css" />
   <style>
     .error-message {
       background-color: #fee;
@@ -15,6 +18,7 @@
       border-radius: 4px;
       margin-bottom: 20px;
     }
+
     .success-message {
       background-color: #efe;
       border: 1px solid #cfc;
@@ -23,172 +27,183 @@
       border-radius: 4px;
       margin-bottom: 20px;
     }
+
     .form-error {
       color: #c33;
       font-size: 0.875rem;
       margin-top: 5px;
       display: none;
     }
+
     .form-row input.invalid {
       border-color: #c33;
     }
   </style>
 </head>
+
 <body>
 
-<%- include('partials/header') %>
+  <%- include('partials/header') %>
 
-<main class="main-content">
-  <div class="content-header">
-    <div class="breadcrumb">
-      <a href="/">RidePro</a> &gt; My Account &gt; Shipping Address &gt; Edit
-    </div>
-    <h1>My Account</h1>
-  </div>
-
-  <div class="account-layout">
-    <%- include('partials/sidebar') %>
-
-    <div class="account-main">
-      <h2>Edit Shipping Address</h2>
-
-      <form method="POST" action="/account/address/edit/<%= address._id %>" class="address-form" id="addressForm">
-
-        <div class="form-row">
-          <label for="name">Name *</label>
-          <input type="text" id="name" name="name" value="<%= address.name %>" required minlength="2" maxlength="50" />
-          <span class="form-error" id="nameError">Please enter a valid name (2-50 characters)</span>
+    <main class="main-content">
+      <div class="content-header">
+        <div class="breadcrumb">
+          <a href="/">RidePro</a> &gt; My Account &gt; Shipping Address &gt; Edit
         </div>
+        <h1>My Account</h1>
+      </div>
 
-        <div class="form-row">
-          <label for="area">Area/Street *</label>
-          <input type="text" id="area" name="area" value="<%= address.area %>" required minlength="3" maxlength="100" />
-          <span class="form-error" id="areaError">Please enter a valid area (3-100 characters)</span>
-        </div>
+      <div class="account-layout">
+        <%- include('partials/sidebar') %>
 
-        <div class="form-row two">
-          <div>
-            <label for="district">District *</label>
-            <input type="text" id="district" name="district" value="<%= address.district %>" required minlength="2" maxlength="50" />
-            <span class="form-error" id="districtError">Please enter a valid district</span>
+          <div class="account-main">
+            <h2>Edit Shipping Address</h2>
+
+            <form method="POST" action="/account/address/edit/<%= address._id %>" class="address-form" id="addressForm">
+
+              <div class="form-row">
+                <label for="name">Name *</label>
+                <input type="text" id="name" name="name" value="<%= address.name %>" required minlength="2"
+                  maxlength="50" />
+                <span class="form-error" id="nameError">Please enter a valid name (2-50 characters)</span>
+              </div>
+
+              <div class="form-row">
+                <label for="area">Area/Street *</label>
+                <input type="text" id="area" name="area" value="<%= address.area %>" required minlength="3"
+                  maxlength="100" />
+                <span class="form-error" id="areaError">Please enter a valid area (3-100 characters)</span>
+              </div>
+
+              <div class="form-row two">
+                <div>
+                  <label for="district">District *</label>
+                  <input type="text" id="district" name="district" value="<%= address.district %>" required
+                    minlength="2" maxlength="50" />
+                  <span class="form-error" id="districtError">Please enter a valid district</span>
+                </div>
+                <div>
+                  <label for="state">State *</label>
+                  <input type="text" id="state" name="state" value="<%= address.state %>" required minlength="2"
+                    maxlength="50" />
+                  <span class="form-error" id="stateError">Please enter a valid state</span>
+                </div>
+              </div>
+
+              <div class="form-row two">
+                <div>
+                  <label for="pincode">Pincode *</label>
+                  <input type="text" id="pincode" name="pincode" value="<%= address.pincode %>" required pattern="\d{6}"
+                    maxlength="6" placeholder="123456" />
+                  <span class="form-error" id="pincodeError">Pincode must be exactly 6 digits</span>
+                </div>
+                <div>
+                  <label for="country">Country *</label>
+                  <input type="text" id="country" name="country" value="<%= address.country %>" required minlength="2"
+                    maxlength="50" />
+                  <span class="form-error" id="countryError">Please enter a valid country</span>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label for="mobile">Mobile Number *</label>
+                <input type="text" id="mobile" name="mobile" value="<%= address.mobile %>" required pattern="\d{10}"
+                  maxlength="10" placeholder="9876543210" />
+                <span class="form-error" id="mobileError">Mobile number must be exactly 10 digits</span>
+              </div>
+
+              <div class="actions">
+                <button type="submit" class="btn-primary">Update Address</button>
+                <a href="/account/address" class="btn-outline">Cancel</a>
+              </div>
+
+            </form>
           </div>
-          <div>
-            <label for="state">State *</label>
-            <input type="text" id="state" name="state" value="<%= address.state %>" required minlength="2" maxlength="50" />
-            <span class="form-error" id="stateError">Please enter a valid state</span>
-          </div>
-        </div>
+      </div>
+    </main>
 
-        <div class="form-row two">
-          <div>
-            <label for="pincode">Pincode *</label>
-            <input type="text" id="pincode" name="pincode" value="<%= address.pincode %>" required pattern="\d{6}" maxlength="6" placeholder="123456" />
-            <span class="form-error" id="pincodeError">Pincode must be exactly 6 digits</span>
-          </div>
-          <div>
-            <label for="country">Country *</label>
-            <input type="text" id="country" name="country" value="<%= address.country %>" required minlength="2" maxlength="50" />
-            <span class="form-error" id="countryError">Please enter a valid country</span>
-          </div>
-        </div>
+    <%- include('partials/footer') %>
 
-        <div class="form-row">
-          <label for="mobile">Mobile Number *</label>
-          <input type="text" id="mobile" name="mobile" value="<%= address.mobile %>" required pattern="\d{10}" maxlength="10" placeholder="9876543210" />
-          <span class="form-error" id="mobileError">Mobile number must be exactly 10 digits</span>
-        </div>
+      <script>
+        // Form validation
+        const form = document.getElementById('addressForm');
+        const inputs = {
+          name: document.getElementById('name'),
+          area: document.getElementById('area'),
+          district: document.getElementById('district'),
+          state: document.getElementById('state'),
+          pincode: document.getElementById('pincode'),
+          country: document.getElementById('country'),
+          mobile: document.getElementById('mobile')
+        };
 
-        <div class="actions">
-          <button type="submit" class="btn-primary">Update Address</button>
-          <a href="/account/address" class="btn-outline">Cancel</a>
-        </div>
+        // Validation patterns
+        const patterns = {
+          pincode: /^\d{6}$/,
+          mobile: /^\d{10}$/,
+          text: /^[a-zA-Z\s]{2,50}$/,
+          area: /^.{3,100}$/
+        };
 
-      </form>
-    </div>
-  </div>
-</main>
+        // Real-time validation
+        inputs.pincode.addEventListener('input', function (e) {
+          this.value = this.value.replace(/\D/g, '').slice(0, 6);
+          validateField(this, patterns.pincode, 'pincodeError');
+        });
 
-<%- include('partials/footer') %>
+        inputs.mobile.addEventListener('input', function (e) {
+          this.value = this.value.replace(/\D/g, '').slice(0, 10);
+          validateField(this, patterns.mobile, 'mobileError');
+        });
 
-<script>
-  // Form validation
-  const form = document.getElementById('addressForm');
-  const inputs = {
-    name: document.getElementById('name'),
-    area: document.getElementById('area'),
-    district: document.getElementById('district'),
-    state: document.getElementById('state'),
-    pincode: document.getElementById('pincode'),
-    country: document.getElementById('country'),
-    mobile: document.getElementById('mobile')
-  };
+        inputs.name.addEventListener('blur', function () {
+          validateField(this, patterns.text, 'nameError');
+        });
 
-  // Validation patterns
-  const patterns = {
-    pincode: /^\d{6}$/,
-    mobile: /^\d{10}$/,
-    text: /^[a-zA-Z\s]{2,50}$/,
-    area: /^.{3,100}$/
-  };
+        inputs.district.addEventListener('blur', function () {
+          validateField(this, patterns.text, 'districtError');
+        });
 
-  // Real-time validation
-  inputs.pincode.addEventListener('input', function(e) {
-    this.value = this.value.replace(/\D/g, '').slice(0, 6);
-    validateField(this, patterns.pincode, 'pincodeError');
-  });
+        inputs.state.addEventListener('blur', function () {
+          validateField(this, patterns.text, 'stateError');
+        });
 
-  inputs.mobile.addEventListener('input', function(e) {
-    this.value = this.value.replace(/\D/g, '').slice(0, 10);
-    validateField(this, patterns.mobile, 'mobileError');
-  });
+        inputs.area.addEventListener('blur', function () {
+          validateField(this, patterns.area, 'areaError');
+        });
 
-  inputs.name.addEventListener('blur', function() {
-    validateField(this, patterns.text, 'nameError');
-  });
+        function validateField(input, pattern, errorId) {
+          const errorElement = document.getElementById(errorId);
+          if (input.value && !pattern.test(input.value)) {
+            input.classList.add('invalid');
+            errorElement.style.display = 'block';
+            return false;
+          } else {
+            input.classList.remove('invalid');
+            errorElement.style.display = 'none';
+            return true;
+          }
+        }
 
-  inputs.district.addEventListener('blur', function() {
-    validateField(this, patterns.text, 'districtError');
-  });
+        // Form submission validation
+        form.addEventListener('submit', function (e) {
+          let isValid = true;
 
-  inputs.state.addEventListener('blur', function() {
-    validateField(this, patterns.text, 'stateError');
-  });
+          // Validate all fields
+          if (!validateField(inputs.name, patterns.text, 'nameError')) isValid = false;
+          if (!validateField(inputs.area, patterns.area, 'areaError')) isValid = false;
+          if (!validateField(inputs.district, patterns.text, 'districtError')) isValid = false;
+          if (!validateField(inputs.state, patterns.text, 'stateError')) isValid = false;
+          if (!validateField(inputs.pincode, patterns.pincode, 'pincodeError')) isValid = false;
+          if (!validateField(inputs.mobile, patterns.mobile, 'mobileError')) isValid = false;
 
-  inputs.area.addEventListener('blur', function() {
-    validateField(this, patterns.area, 'areaError');
-  });
-
-  function validateField(input, pattern, errorId) {
-    const errorElement = document.getElementById(errorId);
-    if (input.value && !pattern.test(input.value)) {
-      input.classList.add('invalid');
-      errorElement.style.display = 'block';
-      return false;
-    } else {
-      input.classList.remove('invalid');
-      errorElement.style.display = 'none';
-      return true;
-    }
-  }
-
-  // Form submission validation
-  form.addEventListener('submit', function(e) {
-    let isValid = true;
-
-    // Validate all fields
-    if (!validateField(inputs.name, patterns.text, 'nameError')) isValid = false;
-    if (!validateField(inputs.area, patterns.area, 'areaError')) isValid = false;
-    if (!validateField(inputs.district, patterns.text, 'districtError')) isValid = false;
-    if (!validateField(inputs.state, patterns.text, 'stateError')) isValid = false;
-    if (!validateField(inputs.pincode, patterns.pincode, 'pincodeError')) isValid = false;
-    if (!validateField(inputs.mobile, patterns.mobile, 'mobileError')) isValid = false;
-
-    if (!isValid) {
-      e.preventDefault();
-      alert('Please fix the errors before submitting');
-    }
-  });
-</script>
+          if (!isValid) {
+            e.preventDefault();
+            alert('Please fix the errors before submitting');
+          }
+        });
+      </script>
 
 </body>
+
 </html>
