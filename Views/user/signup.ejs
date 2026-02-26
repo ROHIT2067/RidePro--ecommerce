@@ -260,6 +260,12 @@
                 if(err1.innerHTML || err2.innerHTML || err3.innerHTML || err4.innerHTML){
                     e.preventDefault()
                 }
+
+                if(err1.innerHTML || err2.innerHTML || err3.innerHTML || err4.innerHTML){
+        e.preventDefault()
+    } else {
+        localStorage.removeItem("otpExpiry") // ✅ Clear stale timer only if form is valid
+    }
             })
         })
     </script>
