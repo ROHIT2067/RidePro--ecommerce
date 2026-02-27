@@ -2,10 +2,6 @@ import userCollection from "../../Models/UserModel.js";
 
 const customerGet = async (req, res) => {
   try {
-    if (req.session.user) {
-      return res.redirect("/home");
-    }
-
     if (!req.session.admin) {
       return res.redirect("/admin/login");
     }

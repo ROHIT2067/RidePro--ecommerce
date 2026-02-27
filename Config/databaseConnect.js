@@ -10,7 +10,7 @@ const connectDB = async () => {
     process.exit(1);
   }
 };
-console.log("CONNECTED DB:", mongoose.connection.name);
+console.log("DB CONNECTED");
 
 
 export default connectDB;

@@ -2,14 +2,7 @@ import userCollection from "../../Models/UserModel.js";
 import address from "../../Models/AddressModel.js";
 import bcrypt from "bcrypt";
 
-
-
-
-
 const adminLoginGet = (req, res) => {
-  if (req.session.user) {
-    return res.redirect("/home");
-  }
   if (!req.session.admin) {
     if (!req.session.user) {
       const loginErr = req.session.loginErr || null;
@@ -64,10 +57,6 @@ const adminLoginPost = async (req, res) => {
 };
 
 const adminDashboardGet=(req,res)=>{
-    if(req.session.user){
-        return res.redirect('/home')
-    }
-
     if(!req.session.admin){
         return res.redirect('/login')
     }
