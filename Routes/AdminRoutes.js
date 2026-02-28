@@ -19,5 +19,7 @@ router.post("/customers/update-status",customerController.updateCustomerStatusPo
 // Category Management
 router.get('/category',blockIfLoggedIn,categoryController.categoryInfoGet)
 router.post('/category/add',categoryController.addCategoryPost)
-
+router.post("/category/delete/:catId",categoryController.categoryDelete);
+router.get("/category/edit/:catId", categoryController.categoryEditGet);
+router.post("/category/edit/:catId", categoryController.categoryEditPost);
 export default router;

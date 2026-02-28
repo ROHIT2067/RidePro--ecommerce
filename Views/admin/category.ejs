@@ -16,274 +16,93 @@
       color: #1a1a1a;
     }
 
-    .sidebar {
-      width: 250px;
-      background-color: #ffffff;
-      border-right: 1px solid #e5e7eb;
-      padding: 20px 0;
-      position: fixed;
-      height: 100vh;
-      overflow-y: auto;
-    }
-    .logo {
-      padding: 0 20px 30px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 20px;
-      font-weight: 700;
-      color: #1a1a1a;
-    }
+    .sidebar { width: 250px; background-color: #ffffff; border-right: 1px solid #e5e7eb; padding: 20px 0; position: fixed; height: 100vh; overflow-y: auto; }
+    .logo { padding: 0 20px 30px; display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; color: #1a1a1a; }
     .logo i { font-size: 24px; }
     .nav-menu { list-style: none; }
     .nav-item { margin-bottom: 5px; }
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 20px;
-      color: #6b7280;
-      text-decoration: none;
-      transition: all 0.3s ease;
-      font-size: 14px;
-    }
+    .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: #6b7280; text-decoration: none; transition: all 0.3s ease; font-size: 14px; }
     .nav-link:hover { background-color: #f9fafb; color: #1a1a1a; }
-    .nav-link.active {
-      background-color: #f3f4f6;
-      color: #1a1a1a;
-      font-weight: 500;
-      border-left: 3px solid #3b82f6;
-    }
+    .nav-link.active { background-color: #f3f4f6; color: #1a1a1a; font-weight: 500; border-left: 3px solid #3b82f6; }
     .nav-link i { width: 20px; text-align: center; font-size: 16px; }
 
-    .main-content {
-      margin-left: 250px;
-      flex: 1;
-      padding: 30px 40px;
-    }
+    .main-content { margin-left: 250px; flex: 1; padding: 30px 40px; }
 
-    .breadcrumb {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 30px;
-      font-size: 14px;
-      color: #6b7280;
-    }
+    .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 30px; font-size: 14px; color: #6b7280; }
     .breadcrumb-separator { color: #d1d5db; }
     .breadcrumb-active { color: #1a1a1a; font-weight: 500; }
 
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-      overflow: hidden;
-      margin-bottom: 30px;
-    }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; margin-bottom: 30px; }
 
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .data-table thead tr {
-      background-color: #9ca3af;
-      color: #fff;
-    }
-    .data-table th {
-      padding: 14px 20px;
-      font-size: 14px;
-      font-weight: 500;
-      text-align: left;
-    }
-    .data-table th:first-child,
-    .data-table td:first-child {
-      text-align: center;
-      width: 80px;
-    }
-    .data-table tbody tr {
-      border-bottom: 1px solid #f3f4f6;
-      transition: background 0.15s;
-    }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table thead tr { background-color: #9ca3af; color: #fff; }
+    .data-table th { padding: 14px 20px; font-size: 14px; font-weight: 500; text-align: left; }
+    .data-table th:first-child, .data-table td:first-child { text-align: center; width: 80px; }
+    .data-table tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.15s; }
     .data-table tbody tr:last-child { border-bottom: none; }
     .data-table tbody tr:hover { background: #fafafa; }
-    .data-table td {
-      padding: 16px 20px;
-      font-size: 14px;
-      color: #374151;
-    }
+    .data-table td { padding: 16px 20px; font-size: 14px; color: #374151; }
 
-    .toggle-cell {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .toggle {
-      position: relative;
-      display: inline-block;
-      width: 44px;
-      height: 24px;
-    }
+    .toggle-cell { display: flex; align-items: center; gap: 16px; }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      inset: 0;
-      background-color: #e5e7eb;
-      border-radius: 34px;
-      transition: 0.3s;
-    }
-    .slider::before {
-      content: '';
-      position: absolute;
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background: #fff;
-      border-radius: 50%;
-      transition: 0.3s;
-    }
+    .slider { position: absolute; cursor: pointer; inset: 0; background-color: #e5e7eb; border-radius: 34px; transition: 0.3s; }
+    .slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
     .toggle input:checked + .slider { background-color: #3b82f6; }
     .toggle input:checked + .slider::before { transform: translateX(20px); }
 
-    .action-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 6px 8px;
-      border-radius: 6px;
-      transition: background 0.15s;
-      font-size: 16px;
-    }
+    .action-btn { background: none; border: none; cursor: pointer; padding: 6px 8px; border-radius: 6px; transition: background 0.15s; font-size: 16px; }
     .action-btn.edit { color: #6b7280; }
     .action-btn.edit:hover { background: #f3f4f6; color: #1a1a1a; }
     .action-btn.delete { color: #ef4444; }
     .action-btn.delete:hover { background: #fef2f2; }
 
-    .pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 6px;
-      padding: 20px 0 10px;
-    }
-    .page-btn {
-      width: 34px;
-      height: 34px;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      background: #fff;
-      color: #374151;
-      font-size: 13px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      transition: all 0.15s;
-    }
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; padding: 20px 0 10px; }
+    .page-btn { width: 34px; height: 34px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.15s; }
     .page-btn:hover { background: #f3f4f6; }
-    .page-btn.active {
-      background: #3b82f6;
-      border-color: #3b82f6;
-      color: #fff;
-      font-weight: 600;
-    }
-    .page-btn.disabled {
-      opacity: 0.4;
-      pointer-events: none;
-    }
+    .page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; font-weight: 600; }
+    .page-btn.disabled { opacity: 0.4; pointer-events: none; }
 
-    .form-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 32px 36px 36px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      max-width: 680px;
-    }
-    .form-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 28px;
-    }
-    .form-card-header h2 {
-      font-size: 1.3rem;
-      font-weight: 700;
-    }
-    .category-type-select {
-      padding: 8px 14px;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 13px;
-      color: #374151;
-      background: #fff;
-      cursor: pointer;
-      appearance: none;
-      padding-right: 30px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-    }
-    .form-row {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-    .form-row label {
-      font-size: 15px;
-      font-weight: 500;
-      color: #374151;
-      min-width: 60px;
-    }
-    .form-row input[type="text"] {
-      flex: 1;
-      padding: 10px 14px;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 14px;
-      background: #f3f4f6;
-      color: #1a1a1a;
-      transition: border-color 0.2s;
-    }
-    .form-row input[type="text"]:focus {
-      outline: none;
-      border-color: #3b82f6;
-      background: #fff;
-    }
-    .form-row .toggle-label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-      color: #374151;
-      margin-left: auto;
-    }
-    .save-btn {
-      display: block;
-      margin: 0 auto;
-      padding: 12px 48px;
-      background-color: #3b82f6;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+    .form-card { background: #fff; border-radius: 16px; padding: 32px 36px 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); max-width: 680px; }
+    .form-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .form-card-header h2 { font-size: 1.3rem; font-weight: 700; }
+    .form-row { display: flex; align-items: center; gap: 24px; margin-bottom: 24px; }
+    .form-row label { font-size: 15px; font-weight: 500; color: #374151; min-width: 60px; }
+    .form-row input[type="text"] { flex: 1; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f3f4f6; color: #1a1a1a; transition: border-color 0.2s; }
+    .form-row input[type="text"]:focus { outline: none; border-color: #3b82f6; background: #fff; }
+    .save-btn { display: block; margin: 0 auto; padding: 12px 48px; background-color: #3b82f6; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; transition: background 0.2s; }
     .save-btn:hover { background-color: #2563eb; }
 
-    .alert {
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      font-size: 14px;
-    }
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
     .alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
     .alert-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+    .search-form { display: flex; align-items: center; }
+    .search-input { padding: 9px 14px; border: 1px solid #e5e7eb; border-right: none; border-radius: 8px 0 0 8px; font-size: 14px; background: #fff; color: #1a1a1a; width: 220px; transition: border-color 0.2s; font-family: inherit; }
+    .search-input:focus { outline: none; border-color: #3b82f6; }
+    .search-btn { padding: 9px 14px; background: #3b82f6; border: 1px solid #3b82f6; border-radius: 0 8px 8px 0; color: #fff; cursor: pointer; font-size: 14px; transition: background 0.2s; display: flex; align-items: center; }
+    .search-btn:hover { background: #2563eb; border-color: #2563eb; }
+    .search-clear { margin-left: 8px; font-size: 13px; color: #6b7280; text-decoration: none; padding: 6px 10px; border-radius: 6px; transition: background 0.15s; }
+    .search-clear:hover { background: #f3f4f6; color: #1a1a1a; }
+
+    /* ── Modal ───────────────────────────────────── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #fff; border-radius: 14px; padding: 32px 36px; max-width: 420px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.15); text-align: center; }
+    .modal-icon { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 22px; }
+    .modal-icon.warning { background: #fef3c7; color: #d97706; }
+    .modal-icon.info    { background: #fee2e2; color: #b91c1c; }
+    .modal h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #1a1a1a; }
+    .modal p  { font-size: 14px; color: #6b7280; margin-bottom: 24px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+    .modal-btn { padding: 9px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s; }
+    .modal-btn.cancel  { background: #f3f4f6; color: #374151; }
+    .modal-btn.cancel:hover  { background: #e5e7eb; }
+    .modal-btn.confirm { background: #ef4444; color: #fff; }
+    .modal-btn.confirm:hover { background: #dc2626; }
+    .modal-btn.ok      { background: #3b82f6; color: #fff; }
+    .modal-btn.ok:hover      { background: #2563eb; }
   </style>
 </head>
 <body>
@@ -292,12 +111,32 @@
 
   <main class="main-content">
 
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb">
-      <span>Admin</span>
-      <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right" style="font-size:11px"></i></span>
-      <span class="breadcrumb-active">Category</span>
-    </nav>
+    <!-- Page Header -->
+    <div class="page-header">
+      <nav class="breadcrumb" style="margin-bottom:0;">
+        <span>Admin</span>
+        <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right" style="font-size:11px"></i></span>
+        <span class="breadcrumb-active">Category</span>
+      </nav>
+
+      <div style="display:flex; align-items:center;">
+        <form class="search-form" action="/admin/category" method="GET">
+          <input
+            type="text"
+            name="search"
+            class="search-input"
+            placeholder="Search categories..."
+            value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
+          />
+          <button type="submit" class="search-btn">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </form>
+        <a href="/admin/category" class="search-clear">
+          <i class="fa-solid fa-xmark"></i> Clear
+        </a>
+      </div>
+    </div>
 
     <!-- Flash messages -->
     <% if (typeof successMsg !== 'undefined' && successMsg) { %>
@@ -314,6 +153,7 @@
           <tr>
             <th>S.No</th>
             <th>Name</th>
+            <th>Status</th>
             <th>List / Unlist</th>
           </tr>
         </thead>
@@ -323,6 +163,17 @@
               <tr>
                 <td><%= (currentPage - 1) * 4 + index + 1 %></td>
                 <td><%= cat.name %></td>
+                <td>
+                  <span style="
+                    display: inline-block;
+                    padding: 4px 10px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    background-color: <%= cat.status === 'Active' ? '#dcfce7' : '#fee2e2' %>;
+                    color: <%= cat.status === 'Active' ? '#15803d' : '#b91c1c' %>;
+                  "><%= cat.status %></span>
+                </td>
                 <td>
                   <div class="toggle-cell">
                     <form action="/admin/category/toggle/<%= cat._id %>" method="POST" style="display:inline;">
@@ -336,13 +187,24 @@
                       </label>
                     </form>
 
-                    <a href="/admin/category/edit/<%= cat._id %>" class="action-btn edit" title="Edit">
-                      <i class="fa-regular fa-pen-to-square"></i>
-                    </a>
+                   <% if (cat.status === 'Active') { %>
+  <a href="/admin/category/edit/<%= cat._id %>" class="action-btn edit" title="Edit">
+    <i class="fa-regular fa-pen-to-square"></i>
+  </a>
+<% } else { %>
+  <span class="action-btn edit" style="opacity:0.3; cursor:not-allowed;" title="Cannot edit inactive category">
+    <i class="fa-regular fa-pen-to-square"></i>
+  </span>
+<% } %>
 
-                    <form action="/admin/category/delete/<%= cat._id %>?_method=DELETE" method="POST" style="display:inline;"
-                          onsubmit="return confirm('Delete \'<%= cat.name %>\'?')">
-                      <button type="submit" class="action-btn delete" title="Delete">
+                    <!-- Delete -->
+                    <form id="deleteForm-<%= cat._id %>" action="/admin/category/delete/<%= cat._id %>" method="POST" style="display:inline;">
+                      <button
+                        type="button"
+                        class="action-btn delete"
+                        title="Delete"
+                        onclick="handleDelete('<%= cat._id %>', '<%= cat.name %>', '<%= cat.status %>')"
+                      >
                         <i class="fa-regular fa-trash-can"></i>
                       </button>
                     </form>
@@ -352,7 +214,7 @@
             <% }) %>
           <% } else { %>
             <tr>
-              <td colspan="3" style="text-align:center; color:#9ca3af; padding: 40px;">
+              <td colspan="4" style="text-align:center; color:#9ca3af; padding: 40px;">
                 No categories found.
               </td>
             </tr>
@@ -360,20 +222,15 @@
         </tbody>
       </table>
 
-      <!-- Pagination -->
       <% if (totalPages > 1) { %>
         <div class="pagination">
-          <a href="?page=<%= currentPage - 1 %>"
-             class="page-btn <%= currentPage === 1 ? 'disabled' : '' %>">
+          <a href="?page=<%= currentPage - 1 %>" class="page-btn <%= currentPage === 1 ? 'disabled' : '' %>">
             <i class="fa-solid fa-chevron-left" style="font-size:11px"></i>
           </a>
           <% for (let i = 1; i <= totalPages; i++) { %>
-            <a href="?page=<%= i %>" class="page-btn <%= i === currentPage ? 'active' : '' %>">
-              <%= i %>
-            </a>
+            <a href="?page=<%= i %>" class="page-btn <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
           <% } %>
-          <a href="?page=<%= currentPage + 1 %>"
-             class="page-btn <%= currentPage === totalPages ? 'disabled' : '' %>">
+          <a href="?page=<%= currentPage + 1 %>" class="page-btn <%= currentPage === totalPages ? 'disabled' : '' %>">
             <i class="fa-solid fa-chevron-right" style="font-size:11px"></i>
           </a>
         </div>
@@ -384,23 +241,17 @@
     <div class="form-card">
       <div class="form-card-header">
         <h2>Add New Category</h2>
-        <select class="category-type-select" name="type">
-          <option value="main">Main Category</option>
-          <option value="sub">Sub Category</option>
-        </select>
       </div>
 
       <div id="formMsg" style="display:none; padding:10px 14px; border-radius:8px; margin-bottom:18px; font-size:14px;"></div>
 
       <form id="addCategoryForm" enctype="multipart/form-data">
 
-        <!-- Name -->
         <div class="form-row">
           <label for="catName">Name:</label>
           <input type="text" id="catName" name="name" required placeholder="e.g. Helmets" />
         </div>
 
-        <!-- Description -->
         <div class="form-row" style="align-items: flex-start;">
           <label for="catDesc" style="padding-top: 10px;">Description:</label>
           <textarea
@@ -415,22 +266,6 @@
           ></textarea>
         </div>
 
-        <!-- Images (wired up later) -->
-        <div class="form-row" style="align-items: flex-start;">
-          <label for="catImages" style="padding-top: 8px;">Images:</label>
-          <div style="flex:1;">
-            <input
-              type="file"
-              id="catImages"
-              name="image_url"
-              multiple
-              accept="image/*"
-              style="width:100%; padding:10px 14px; border:1px dashed #d1d5db; border-radius:8px; font-size:13px; background:#f9fafb; cursor:pointer;"
-            />
-            <p style="font-size:12px; color:#9ca3af; margin-top:6px;">You can select multiple images.</p>
-          </div>
-        </div>
-
         <button type="submit" class="save-btn">SAVE</button>
       </form>
 
@@ -441,6 +276,27 @@
           const name        = document.getElementById('catName').value.trim();
           const description = document.getElementById('catDesc').value.trim();
           const msgEl       = document.getElementById('formMsg');
+
+          // ── Validation ───────────────────────────────
+          if (!/^[a-zA-Z ]+$/.test(name)) {
+            msgEl.textContent      = 'Name must contain alphabets only.';
+            msgEl.style.display    = 'block';
+            msgEl.style.background = '#fef2f2';
+            msgEl.style.color      = '#b91c1c';
+            msgEl.style.border     = '1px solid #fecaca';
+            return;
+          }
+
+          const wordCount = description.trim().split(/\s+/).filter(Boolean).length;
+          if (wordCount > 40) {
+            msgEl.textContent      = `Description must be under 40 words (currently ${wordCount}).`;
+            msgEl.style.display    = 'block';
+            msgEl.style.background = '#fef2f2';
+            msgEl.style.color      = '#b91c1c';
+            msgEl.style.border     = '1px solid #fecaca';
+            return;
+          }
+          // ─────────────────────────────────────────────
 
           try {
             const res = await fetch('/admin/category/add', {
@@ -478,6 +334,60 @@
     </div>
 
   </main>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+      <div class="modal-icon warning">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3>Deactivate Category?</h3>
+      <p id="deleteModalMsg">This will set the category to Inactive.</p>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeModal('deleteModal')">Cancel</button>
+        <button class="modal-btn confirm" id="deleteConfirmBtn">Yes, Deactivate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Already Inactive Modal -->
+  <div class="modal-overlay" id="alreadyInactiveModal">
+    <div class="modal">
+      <div class="modal-icon info">
+        <i class="fa-solid fa-ban"></i>
+      </div>
+      <h3>Already Inactive</h3>
+      <p>This category is already inactive and has been delisted.</p>
+      <div class="modal-actions">
+        <button class="modal-btn ok" onclick="closeModal('alreadyInactiveModal')">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function handleDelete(id, name, status) {
+      if (status === 'Inactive') {
+        document.getElementById('alreadyInactiveModal').classList.add('show');
+        return;
+      }
+      document.getElementById('deleteModalMsg').textContent =
+        'This will set "' + name + '" to Inactive.';
+      document.getElementById('deleteConfirmBtn').onclick = function () {
+        document.getElementById('deleteForm-' + id).submit();
+      };
+      document.getElementById('deleteModal').classList.add('show');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('show');
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.classList.remove('show');
+      });
+    });
+  </script>
 
 </body>
 </html>
