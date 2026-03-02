@@ -44,7 +44,7 @@
     .data-table td { padding: 16px 20px; font-size: 14px; color: #374151; }
 
     .toggle-cell { display: flex; align-items: center; gap: 16px; }
-    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; }
     .toggle input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; cursor: pointer; inset: 0; background-color: #e5e7eb; border-radius: 34px; transition: 0.3s; }
     .slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
@@ -54,8 +54,6 @@
     .action-btn { background: none; border: none; cursor: pointer; padding: 6px 8px; border-radius: 6px; transition: background 0.15s; font-size: 16px; }
     .action-btn.edit { color: #6b7280; }
     .action-btn.edit:hover { background: #f3f4f6; color: #1a1a1a; }
-    .action-btn.delete { color: #ef4444; }
-    .action-btn.delete:hover { background: #fef2f2; }
 
     .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; padding: 20px 0 10px; }
     .page-btn { width: 34px; height: 34px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.15s; }
@@ -86,23 +84,22 @@
     .search-clear { margin-left: 8px; font-size: 13px; color: #6b7280; text-decoration: none; padding: 6px 10px; border-radius: 6px; transition: background 0.15s; }
     .search-clear:hover { background: #f3f4f6; color: #1a1a1a; }
 
-    /* ── Modal ───────────────────────────────────── */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; align-items: center; justify-content: center; }
     .modal-overlay.show { display: flex; }
     .modal { background: #fff; border-radius: 14px; padding: 32px 36px; max-width: 420px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.15); text-align: center; }
     .modal-icon { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 22px; }
     .modal-icon.warning { background: #fef3c7; color: #d97706; }
-    .modal-icon.info    { background: #fee2e2; color: #b91c1c; }
+    .modal-icon.success { background: #dcfce7; color: #15803d; }
     .modal h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #1a1a1a; }
     .modal p  { font-size: 14px; color: #6b7280; margin-bottom: 24px; }
     .modal-actions { display: flex; gap: 10px; justify-content: center; }
     .modal-btn { padding: 9px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s; }
     .modal-btn.cancel  { background: #f3f4f6; color: #374151; }
-    .modal-btn.cancel:hover  { background: #e5e7eb; }
+    .modal-btn.cancel:hover { background: #e5e7eb; }
     .modal-btn.confirm { background: #ef4444; color: #fff; }
     .modal-btn.confirm:hover { background: #dc2626; }
-    .modal-btn.ok      { background: #3b82f6; color: #fff; }
-    .modal-btn.ok:hover      { background: #2563eb; }
+    .modal-btn.ok { background: #3b82f6; color: #fff; }
+    .modal-btn.ok:hover { background: #2563eb; }
   </style>
 </head>
 <body>
@@ -111,7 +108,6 @@
 
   <main class="main-content">
 
-    <!-- Page Header -->
     <div class="page-header">
       <nav class="breadcrumb" style="margin-bottom:0;">
         <span>Admin</span>
@@ -138,7 +134,6 @@
       </div>
     </div>
 
-    <!-- Flash messages -->
     <% if (typeof successMsg !== 'undefined' && successMsg) { %>
       <div class="alert alert-success"><%= successMsg %></div>
     <% } %>
@@ -146,7 +141,6 @@
       <div class="alert alert-error"><%= errorMsg %></div>
     <% } %>
 
-    <!-- Category Table -->
     <div class="card">
       <table class="data-table">
         <thead>
@@ -176,38 +170,22 @@
                 </td>
                 <td>
                   <div class="toggle-cell">
-                    <form action="/admin/category/toggle/<%= cat._id %>" method="POST" style="display:inline;">
-                      <label class="toggle">
-                        <input
-                          type="checkbox"
-                          <%= cat.status === 'Active' ? 'checked' : '' %>
-                          onchange="this.form.submit()"
-                        />
-                        <span class="slider"></span>
-                      </label>
-                    </form>
 
-                   <% if (cat.status === 'Active') { %>
-  <a href="/admin/category/edit/<%= cat._id %>" class="action-btn edit" title="Edit">
-    <i class="fa-regular fa-pen-to-square"></i>
-  </a>
-<% } else { %>
-  <span class="action-btn edit" style="opacity:0.3; cursor:not-allowed;" title="Cannot edit inactive category">
-    <i class="fa-regular fa-pen-to-square"></i>
-  </span>
-<% } %>
+                    <label class="toggle" onclick="handleToggle(event, '<%= cat._id %>', '<%= cat.name %>', '<%= cat.status %>')">
+                      <input type="checkbox" <%= cat.status === 'Active' ? 'checked' : '' %> readonly />
+                      <span class="slider"></span>
+                    </label>
 
-                    <!-- Delete -->
-                    <form id="deleteForm-<%= cat._id %>" action="/admin/category/delete/<%= cat._id %>" method="POST" style="display:inline;">
-                      <button
-                        type="button"
-                        class="action-btn delete"
-                        title="Delete"
-                        onclick="handleDelete('<%= cat._id %>', '<%= cat.name %>', '<%= cat.status %>')"
-                      >
-                        <i class="fa-regular fa-trash-can"></i>
-                      </button>
-                    </form>
+                    <% if (cat.status === 'Active') { %>
+                      <a href="/admin/category/edit/<%= cat._id %>" class="action-btn edit" title="Edit">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                      </a>
+                    <% } else { %>
+                      <span class="action-btn edit" style="opacity:0.3; cursor:not-allowed;" title="Cannot edit inactive category">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                      </span>
+                    <% } %>
+
                   </div>
                 </td>
               </tr>
@@ -246,7 +224,6 @@
       <div id="formMsg" style="display:none; padding:10px 14px; border-radius:8px; margin-bottom:18px; font-size:14px;"></div>
 
       <form id="addCategoryForm" enctype="multipart/form-data">
-
         <div class="form-row">
           <label for="catName">Name:</label>
           <input type="text" id="catName" name="name" required placeholder="e.g. Helmets" />
@@ -277,7 +254,6 @@
           const description = document.getElementById('catDesc').value.trim();
           const msgEl       = document.getElementById('formMsg');
 
-          // ── Validation ───────────────────────────────
           if (!/^[a-zA-Z ]+$/.test(name)) {
             msgEl.textContent      = 'Name must contain alphabets only.';
             msgEl.style.display    = 'block';
@@ -296,7 +272,6 @@
             msgEl.style.border     = '1px solid #fecaca';
             return;
           }
-          // ─────────────────────────────────────────────
 
           try {
             const res = await fetch('/admin/category/add', {
@@ -335,55 +310,60 @@
 
   </main>
 
-  <!-- Delete Confirm Modal -->
-  <div class="modal-overlay" id="deleteModal">
+  <!-- Toggle Confirm Modal -->
+  <div class="modal-overlay" id="toggleModal">
     <div class="modal">
-      <div class="modal-icon warning">
+      <div class="modal-icon warning" id="toggleModalIcon">
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
-      <h3>Deactivate Category?</h3>
-      <p id="deleteModalMsg">This will set the category to Inactive.</p>
+      <h3 id="toggleModalTitle">Deactivate Category?</h3>
+      <p id="toggleModalMsg">This will set the category to Inactive.</p>
       <div class="modal-actions">
-        <button class="modal-btn cancel" onclick="closeModal('deleteModal')">Cancel</button>
-        <button class="modal-btn confirm" id="deleteConfirmBtn">Yes, Deactivate</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Already Inactive Modal -->
-  <div class="modal-overlay" id="alreadyInactiveModal">
-    <div class="modal">
-      <div class="modal-icon info">
-        <i class="fa-solid fa-ban"></i>
-      </div>
-      <h3>Already Inactive</h3>
-      <p>This category is already inactive and has been delisted.</p>
-      <div class="modal-actions">
-        <button class="modal-btn ok" onclick="closeModal('alreadyInactiveModal')">OK</button>
+        <button class="modal-btn cancel" onclick="closeModal('toggleModal')">Cancel</button>
+        <button class="modal-btn confirm" id="toggleConfirmBtn">Yes, Deactivate</button>
       </div>
     </div>
   </div>
 
   <script>
-    function handleDelete(id, name, status) {
-      if (status === 'Inactive') {
-        document.getElementById('alreadyInactiveModal').classList.add('show');
-        return;
+    function handleToggle(e, id, name, status) {
+      e.preventDefault();
+
+      const title = document.getElementById('toggleModalTitle');
+      const msg   = document.getElementById('toggleModalMsg');
+      const btn   = document.getElementById('toggleConfirmBtn');
+      const icon  = document.getElementById('toggleModalIcon');
+
+      if (status === 'Active') {
+        icon.className    = 'modal-icon warning';
+        icon.innerHTML    = '<i class="fa-solid fa-triangle-exclamation"></i>';
+        title.textContent = 'Deactivate Category?';
+        msg.textContent   = `This will set "${name}" to Inactive.`;
+        btn.className     = 'modal-btn confirm';
+        btn.textContent   = 'Yes, Deactivate';
+      } else {
+        icon.className    = 'modal-icon success';
+        icon.innerHTML    = '<i class="fa-solid fa-circle-check"></i>';
+        title.textContent = 'Activate Category?';
+        msg.textContent   = `This will set "${name}" to Active.`;
+        btn.className     = 'modal-btn ok';
+        btn.textContent   = 'Yes, Activate';
       }
-      document.getElementById('deleteModalMsg').textContent =
-        'This will set "' + name + '" to Inactive.';
-      document.getElementById('deleteConfirmBtn').onclick = function () {
-        document.getElementById('deleteForm-' + id).submit();
+
+      btn.onclick = function () {
+        fetch(`/admin/category/toggle/${id}`, { method: 'POST' })
+          .then(() => window.location.reload());
       };
-      document.getElementById('deleteModal').classList.add('show');
+
+      document.getElementById('toggleModal').classList.add('show');
     }
 
     function closeModal(id) {
       document.getElementById(id).classList.remove('show');
     }
 
-    document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
-      overlay.addEventListener('click', function(e) {
+    document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
+      overlay.addEventListener('click', function (e) {
         if (e.target === overlay) overlay.classList.remove('show');
       });
     });

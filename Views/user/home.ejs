@@ -1,373 +1,296 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RidePro - Premium Motorcycle Gear</title>
-  <meta name="description"
-    content="Shop premium motorcycle riding gear, jackets, pants, gloves, and accessories at RidePro." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RidePro — Premium Riding Gear</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles/header.css" />
-  <link rel="stylesheet" href="/styles/home.css" />
   <link rel="stylesheet" href="/styles/footer.css" />
+  <link rel="stylesheet" href="/Styles/home.css">
 </head>
-
 <body>
 
   <%- include('partials/header') %>
 
-    <!-- ===== HERO CAROUSEL ===== -->
-    <section class="hero-section" id="hero-carousel" aria-label="Featured Products">
-      <div class="hero-track">
+  <!-- ══════════════════════════════════════════════════════════════
+       HERO CAROUSEL
+       To add your own background images, go to the CSS above and
+       replace the background gradient in .carousel-slide:nth-child(n)
+       with:
+         background-image: url('/images/hero1.jpg');
+         background-size: cover;
+         background-position: center;
+  ══════════════════════════════════════════════════════════════ -->
+  <section class="carousel" id="heroCarousel">
+    <div class="carousel-track" id="carouselTrack">
 
-        <div class="hero-slide active">
-          <!-- Replace with hero banner: AIR GT PANTS — rider in full off-road gear, dusty action shot -->
-          <img class="hero-image" src="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=1600&q=80"
-            alt="AIR GT PANTS" />
-          <div class="hero-overlay">
-            <p class="hero-eyebrow">New Collection</p>
-            <h1 class="hero-title">AIR GT PANTS</h1>
-            <p class="hero-subtitle">The Full Collection.</p>
-            <a href="#" class="explore-btn">Explore now</a>
-          </div>
-        </div>
-
-        <div class="hero-slide">
-          <!-- Replace with hero banner: ADVENTURE JACKET — dramatic mountain backdrop, touring shot -->
-          <img class="hero-image" src="https://images.unsplash.com/photo-1547549082-6bc5f2f6c2fa?w=1600&q=80"
-            alt="Adventure Jacket Collection" />
-          <div class="hero-overlay">
-            <p class="hero-eyebrow">Bestseller</p>
-            <h1 class="hero-title">ADVENTURE JACKET</h1>
-            <p class="hero-subtitle">Built For The Journey.</p>
-            <a href="#" class="explore-btn">Explore now</a>
-          </div>
-        </div>
-
-        <div class="hero-slide">
-          <!-- Replace with hero banner: RIDING GLOVES — grip and protection lifestyle close-up -->
-          <img class="hero-image" src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=1600&q=80"
-            alt="Riding Gloves Collection" />
-          <div class="hero-overlay">
-            <p class="hero-eyebrow">Top Rated</p>
-            <h1 class="hero-title">RIDING GLOVES</h1>
-            <p class="hero-subtitle">Grip. Protect. Perform.</p>
-            <a href="#" class="explore-btn">Explore now</a>
-          </div>
-        </div>
-
-      </div>
-
-      <button type="button" class="hero-arrow prev" id="hero-prev" aria-label="Previous slide">
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd"
-            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-            clip-rule="evenodd" />
-        </svg>
-      </button>
-      <button type="button" class="hero-arrow next" id="hero-next" aria-label="Next slide">
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd"
-            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-            clip-rule="evenodd" />
-        </svg>
-      </button>
-
-      <div class="hero-dots" id="hero-dots">
-        <button class="hero-dot active" data-slide="0" aria-label="Slide 1"></button>
-        <button class="hero-dot" data-slide="1" aria-label="Slide 2"></button>
-        <button class="hero-dot" data-slide="2" aria-label="Slide 3"></button>
-      </div>
-    </section>
-
-    <!-- ===== CATEGORY GRID (2 × 3) ===== -->
-    <section class="category-grid" aria-label="Shop by Category">
-
-      <a href="#" class="category-item">
-        <!-- Replace with Figma OFFROAD category image: dirt rider, full off-road gear, mud shot -->
-        <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&q=80" alt="Offroad Gear" />
-        <span class="category-label">OFFROAD</span>
-      </a>
-
-      <a href="#" class="category-item">
-        <!-- Replace with Figma GLOVES category image: riding gloves close-up, knuckle protection -->
-        <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=600&q=80" alt="Riding Gloves" />
-        <span class="category-label">GLOVES</span>
-      </a>
-
-      <a href="#" class="category-item">
-        <!-- Replace with Figma JACKETS category image: rider on motorcycle in touring jacket -->
-        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Riding Jackets" />
-        <span class="category-label">JACKETS</span>
-      </a>
-
-      <a href="#" class="category-item">
-        <!-- Replace with Figma BASE LAYERS category image: technical base layer fabric detail -->
-        <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80" alt="Base Layers" />
-        <span class="category-label">BASE LAYERS</span>
-      </a>
-
-      <a href="#" class="category-item">
-        <!-- Replace with Figma PANTS category image: riding pants with armor pocket detail -->
-        <img src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=600&q=80" alt="Riding Pants" />
-        <span class="category-label">PANTS</span>
-      </a>
-
-      <a href="#" class="category-item">
-        <!-- Replace with Figma LUGGAGE category image: motorcycle with tank bag and saddlebags -->
-        <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80" alt="Motorcycle Luggage" />
-        <span class="category-label">LUGGAGE</span>
-      </a>
-
-    </section>
-
-    <!-- ===== PRODUCT STRIP 1 ===== -->
-    <section class="product-strip" aria-label="Product Highlights">
-      <div class="strip-item">
-        <!-- Replace: off-road rider boots/lower body action shot, dirt terrain -->
-        <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&q=80" alt="Off-road gear" />
-      </div>
-      <div class="strip-item">
-        <!-- Replace: dark motorcycle jacket lifestyle shot, urban setting -->
-        <img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=500&q=80" alt="Touring jacket" />
-      </div>
-      <div class="strip-item">
-        <!-- Replace: adventure rider full gear on trail -->
-        <img src="https://images.unsplash.com/photo-1547549082-6bc5f2f6c2fa?w=500&q=80" alt="Adventure riding" />
-      </div>
-      <div class="strip-item">
-        <!-- Replace: red motocross bike, dynamic cornering -->
-        <img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&q=80" alt="Motocross" />
-      </div>
-      <div class="strip-item">
-        <!-- Replace: yellow/hi-vis rain gear lifestyle -->
-        <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500&q=80" alt="Rain gear" />
-      </div>
-    </section>
-
-    <!-- ===== TWO-PANEL BANNER ===== -->
-    <section class="two-panel-banner" aria-label="Featured Collections">
-
-      <div class="panel-left">
-        <!-- Replace: cinematic adventure motorcycle + rider, open road or mountain pass -->
-        <img src="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=800&q=80" alt="Landcross Collection" />
-        <div class="panel-overlay">
-          <h2 class="panel-title">LANDCROSS!</h2>
-          <a href="#" class="explore-btn">Explore now</a>
-        </div>
-      </div>
-
-      <div class="panel-right">
-        <!-- Replace: person wearing bright yellow/green GORE-TEX rain jacket, standing pose -->
-        <img class="panel-right-img" src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80"
-          alt="GORE-TEX Rain Jacket" />
-        <div class="panel-right-content">
-          <h3 class="panel-right-title">GORE-TEX JACKET</h3>
-          <div class="feature-icons">
-            <div class="feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
-                <path d="M12 2C8 2 5 5.5 5 9c0 5 7 13 7 13s7-8 7-13c0-3.5-3-7-7-7z" />
-                <circle cx="12" cy="9" r="2.5" />
-              </svg>
-              <span>Waterproof</span>
-            </div>
-            <div class="feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
-                <path d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2" />
-              </svg>
-              <span>Windproof</span>
-            </div>
-            <div class="feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 8v4l3 3" />
-              </svg>
-              <span>Breathable</span>
-            </div>
-            <div class="feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
-              <span>Durable</span>
-            </div>
+      <!-- Slide 1 -->
+      <div class="carousel-slide active">
+        <span class="slide-badge">New 2025 Collection</span>
+        <div class="slide-content">
+          <p class="slide-eyebrow">Premium Riding Gear</p>
+          <h1 class="slide-title">Gear Up.<span>Ride Hard.</span></h1>
+          <p class="slide-sub">Built for riders who refuse to compromise. Every stitch, every buckle engineered for performance and protection.</p>
+          <div class="slide-actions">
+            <a href="/products" class="btn-primary">Explore Gear →</a>
+            <a href="/categories" class="btn-ghost">Browse Categories</a>
           </div>
         </div>
       </div>
 
-    </section>
-
-    <!-- ===== PRODUCT STRIP 2 ===== -->
-    <section class="product-strip strip-alt" aria-label="More Products">
-      <div class="strip-item">
-        <!-- Replace: rider boots/lower body, green terrain -->
-        <img src="https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&q=80" alt="Riding boots" />
-      </div>
-      <div class="strip-item">
-        <!-- Replace: rider in dark jacket, urban night shot -->
-        <img src="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=500&q=80" alt="Dark jacket" />
-      </div>
-      <div class="strip-item">
-        <!-- Replace: black motorcycle cornering on road -->
-        <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=500&q=80" alt="Cornering" />
-      </div>
-      <div class="strip-item">
-        <!-- Replace: red motocross bike in action -->
-        <img src="https://images.unsplash.com/photo-1547549082-6bc5f2f6c2fa?w=500&q=80" alt="Motocross" />
-      </div>
-      <div class="strip-item">
-        <!-- Replace: yellow/green rain jacket rider action -->
-        <img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&q=80" alt="Rain jacket" />
-      </div>
-    </section>
-
-    <!-- ===== GET MONSOON READY ===== -->
-    <section class="monsoon-banner" aria-label="Monsoon Collection">
-
-      <div class="monsoon-left">
-        <!-- Replace: rider in bright yellow rain gear on motorcycle in rain/monsoon conditions -->
-        <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=900&q=80" alt="Get Monsoon Ready" />
-        <div class="monsoon-overlay">
-          <h2>GET MONSOON<br>READY</h2>
-          <a href="#" class="explore-btn">Explore now</a>
-        </div>
-      </div>
-
-      <div class="monsoon-right">
-        <span class="monsoon-brand">RidePro</span>
-        <h3 class="monsoon-product-title">H2GO PRO RAIN JACKET</h3>
-        <p class="monsoon-price">₹ 1,399</p>
-        <div class="monsoon-thumbnails">
-          <!-- Replace: H2GO rain jacket front view flat lay -->
-          <img class="monsoon-thumb active-thumb"
-            src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=200&q=80" alt="Rain Jacket" />
-          <!-- Replace: H2GO rain pants flat lay -->
-          <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=200&q=80"
-            alt="Rain Pants" />
-          <!-- Replace: waterproof gloves flat lay -->
-          <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=200&q=80"
-            alt="Gloves" />
-          <!-- Replace: waterproof boots flat lay -->
-          <img class="monsoon-thumb" src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&q=80"
-            alt="Boots" />
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ===== PRODUCT DETAIL: H2GO PRO RAIN PANTS ===== -->
-    <div class="product-detail-wrapper">
-      <section class="product-detail-section" aria-label="Featured Product">
-        <div class="product-detail-media">
-          <!-- Replace: H2GO PRO RAIN PANTS full-length flat-lay with hi-vis detailing -->
-          <img class="product-detail-image"
-            src="https://images.unsplash.com/photo-1624378515195-6bbdb73deb6e?w=600&q=80" alt="H2GO PRO RAIN PANTS" />
-        </div>
-        <div class="product-detail-info">
-          <span class="product-brand">RidePro</span>
-          <h2 class="product-detail-name">H2GO PRO RAIN PANTS</h2>
-          <div class="product-rating">
-            <span class="stars" aria-hidden="true">★★★★★</span>
-            <a href="#" class="reviews-link">9 Reviews</a>
+      <!-- Slide 2 -->
+      <div class="carousel-slide">
+        <span class="slide-badge">Best Sellers</span>
+        <div class="slide-content">
+          <p class="slide-eyebrow">Top Rated Helmets</p>
+          <h1 class="slide-title">Protect<span>Your Ride.</span></h1>
+          <p class="slide-sub">ISI & ECE certified helmets trusted by thousands of riders across India.</p>
+          <div class="slide-actions">
+            <a href="/products?category=helmets" class="btn-primary">Shop Helmets →</a>
+            <a href="/categories" class="btn-ghost">All Categories</a>
           </div>
-          <p class="product-description">
-            Water-resistant riding pants built for monsoon commutes and touring in the wet.
-            Lightweight, packable, and compatible over most riding pants.
-          </p>
-          <p class="price">₹ 1,399</p>
-          <div class="product-options">
-            <label for="size" class="option-label">Size</label>
-            <select name="size" id="size">
-              <option value="">Select Size</option>
-              <option value="XS">XS</option>
-              <option value="S">S</option>
-              <option value="M">M</option>
-              <option value="L">L</option>
-              <option value="XL">XL</option>
-              <option value="XXL">XXL</option>
-            </select>
-            <label for="quantity" class="option-label">Quantity</label>
-            <select name="quantity" id="quantity">
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-            </select>
-          </div>
-          <button type="button" class="add-to-cart-btn">Add To Cart</button>
         </div>
-      </section>
+      </div>
+
+      <!-- Slide 3 -->
+      <div class="carousel-slide">
+        <span class="slide-badge">New Arrivals</span>
+        <div class="slide-content">
+          <p class="slide-eyebrow">Riding Jackets & Suits</p>
+          <h1 class="slide-title">Armored.<span>Ready.</span></h1>
+          <p class="slide-sub">CE-certified armored jackets and suits for every type of rider and every road.</p>
+          <div class="slide-actions">
+            <a href="/products?category=jackets" class="btn-primary">Shop Jackets →</a>
+            <a href="/categories" class="btn-ghost">All Categories</a>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- ===== SHOWCASE BANNER ===== -->
-    <section class="showcase-banner" aria-label="Brand Showcase">
-      <!-- Replace: dramatic wide-angle adventure motorcycle + rider, golden-hour lighting -->
-      <img src="https://images.unsplash.com/photo-1547549082-6bc5f2f6c2fa?w=1800&q=80" alt="RidePro Adventure" />
-      <span class="showcase-logo">RidePro</span>
-      <button type="button" class="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})"
-        aria-label="Back to top">
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd"
-            d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-            clip-rule="evenodd" />
-        </svg>
-      </button>
-    </section>
+    <!-- Dot Controls -->
+    <div class="carousel-dots" id="carouselDots">
+      <button class="dot active" data-index="0"></button>
+      <button class="dot" data-index="1"></button>
+      <button class="dot" data-index="2"></button>
+    </div>
+  </section>
 
-    <%- include('partials/footer') %>
+  <!-- ── STATS ── -->
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-value">500+</div><div class="stat-label">Products</div></div>
+    <div class="stat"><div class="stat-value">20K+</div><div class="stat-label">Happy Riders</div></div>
+    <div class="stat"><div class="stat-value">4.9★</div><div class="stat-label">Avg Rating</div></div>
+  </div>
 
-      <div id="toast" class="toast hidden" role="alert" aria-live="polite"></div>
+  <!-- ══════════════════════════════════════════════════════════════
+       SHOP BY CATEGORY
+       Replace each <img src="..."> with your actual category photo.
+       Recommended image size: 800x600px
+       Example: src="/images/categories/helmets.jpg"
+  ══════════════════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Shop by <em>Category</em></h2>
+      <a href="/categories" class="section-link">All Categories →</a>
+    </div>
+    <div class="categories">
 
-      <script>
-        window.addEventListener("pageshow", function (e) {
-          if (e.persisted) window.location.reload();
-        });
+      <a href="/products?category=helmets" class="category-card">
+        <!-- TODO: Replace src with → src="/images/categories/helmets.jpg" -->
+        <img class="cat-img" src="/Images/SM7_Header_Desktop.jpg" alt="Helmets" />
+        <div class="cat-body">
+          <div class="cat-name">Helmets</div>
+          <div class="cat-count">120+ Products</div>
+          <span class="cat-arrow">→</span>
+        </div>
+      </a>
 
-        (function () {
-          const params = new URLSearchParams(window.location.search);
-          if (params.get("toast") === "already_logged_in") {
-            showToast("You are already logged in. Logout to switch accounts.");
-          }
-        })();
+      <a href="/products?category=jackets" class="category-card">
+        <!-- TODO: Replace src with → src="/images/categories/jackets.jpg" -->
+        <img class="cat-img" src="/Images/Built with CE Level 2 impact protectors and premium abrasion-resistant materials and Fast-R sli.heic" alt="Jackets" />
+        <div class="cat-body">
+          <div class="cat-name">Jackets</div>
+          <div class="cat-count">85+ Products</div>
+          <span class="cat-arrow">→</span>
+        </div>
+      </a>
 
-        function showToast(msg) {
-          const t = document.getElementById("toast");
-          t.textContent = msg;
-          t.classList.remove("hidden");
-          t.classList.add("show");
-          setTimeout(() => { t.classList.remove("show"); t.classList.add("hidden"); }, 3000);
-        }
+      <a href="/products?category=gloves" class="category-card">
+        <!-- TODO: Replace src with → src="/images/categories/gloves.jpg" -->
+        <img class="cat-img" src="/Images/Gloves1.jpg" alt="Gloves" />
+        <div class="cat-body">
+          <div class="cat-name">Gloves</div>
+          <div class="cat-count">60+ Products</div>
+          <span class="cat-arrow">→</span>
+        </div>
+      </a>
 
-        (function () {
-          const slides = document.querySelectorAll(".hero-slide");
-          const dots = document.querySelectorAll(".hero-dot");
-          const prev = document.getElementById("hero-prev");
-          const next = document.getElementById("hero-next");
-          let current = 0, timer;
+      <a href="/products?category=boots" class="category-card">
+        <!-- TODO: Replace src with → src="/images/categories/boots.jpg" -->
+        <img class="cat-img" src="/Images/The ultimate combination of street and track performance, the SMX-6 V3 riding boots are packed w.jpg" alt="Boots" />
+        <div class="cat-body">
+          <div class="cat-name">Boots</div>
+          <div class="cat-count">75+ Products</div>
+          <span class="cat-arrow">→</span>
+        </div>
+      </a>
 
-          function go(idx) {
-            slides[current].classList.remove("active");
-            dots[current].classList.remove("active");
-            current = (idx + slides.length) % slides.length;
-            slides[current].classList.add("active");
-            dots[current].classList.add("active");
-          }
+      <a href="/products?category=pants" class="category-card">
+        <!-- TODO: Replace src with → src="/images/categories/pants.jpg" -->
+        <img class="cat-img" src="/Images/The Air GT Pants are built around comfort and versatility, featuring a touring fit with adjusta.heic" alt="Pants" />
+        <div class="cat-body">
+          <div class="cat-name">Pants</div>
+          <div class="cat-count">50+ Products</div>
+          <span class="cat-arrow">→</span>
+        </div>
+      </a>
 
-          function autoStart() { timer = setInterval(() => go(current + 1), 5000); }
-          function autoReset() { clearInterval(timer); autoStart(); }
+      <a href="/products?category=lifestyle" class="category-card">
+        <!-- TODO: Replace src with → src="/images/categories/lifestyle.jpg" -->
+        <img class="cat-img" src="/Images/The Wordmark Trucker Cap is an easy addition to your everyday style, designed to represent your .jpg" alt="Lifestyle Merch" />
+        <div class="cat-body">
+          <div class="cat-name">Lifestyle Merch</div>
+          <div class="cat-count">40+ Products</div>
+          <span class="cat-arrow">→</span>
+        </div>
+      </a>
 
-          prev.addEventListener("click", () => { go(current - 1); autoReset(); });
-          next.addEventListener("click", () => { go(current + 1); autoReset(); });
-          dots.forEach(d => d.addEventListener("click", () => { go(+d.dataset.slide); autoReset(); }));
-          autoStart();
-        })();
+    </div>
+  </section>
 
-        document.querySelectorAll(".monsoon-thumb").forEach(thumb => {
-          thumb.addEventListener("click", function () {
-            document.querySelectorAll(".monsoon-thumb").forEach(t => t.classList.remove("active-thumb"));
-            this.classList.add("active-thumb");
-          });
-        });
-      </script>
+  <!-- ══════════════════════════════════════════════════════════════
+       FEATURED GEAR
+       Replace each <img src="..."> with your actual product photo.
+       Recommended image size: 600x600px (square)
+       Example: src="/images/products/helmet-aeroshield.jpg"
+  ══════════════════════════════════════════════════════════════ -->
+  <section class="section" style="padding-top: 0;">
+    <div class="section-header">
+      <h2 class="section-title"><em>Featured</em> Gear</h2>
+      <a href="/products" class="section-link">View All →</a>
+    </div>
+    <div class="products-grid">
+
+      <a href="/product/1" class="product-card">
+        <!-- TODO: Replace src with → src="/images/products/helmet1.jpg" -->
+        <img class="product-img" src="https://placehold.co/600x600/161616/555555?text=Product+Photo" alt="AeroShield Pro Helmet" />
+        <div class="product-badge">New</div>
+        <div class="product-info">
+          <div class="product-category">Helmet</div>
+          <div class="product-name">AeroShield Pro Full-Face Helmet</div>
+          <div class="product-footer">
+            <div class="product-price">₹14,999</div>
+            <button class="btn-cart" onclick="event.preventDefault()">🛒</button>
+          </div>
+        </div>
+      </a>
+
+      <a href="/product/2" class="product-card">
+        <!-- TODO: Replace src with → src="/images/products/jacket1.jpg" -->
+        <img class="product-img" src="https://placehold.co/600x600/161616/555555?text=Product+Photo" alt="TitanWear Jacket" />
+        <div class="product-badge">Bestseller</div>
+        <div class="product-info">
+          <div class="product-category">Jacket</div>
+          <div class="product-name">TitanWear CE-Certified Riding Jacket</div>
+          <div class="product-footer">
+            <div class="product-price"><span class="old-price">₹9,500</span>₹7,499</div>
+            <button class="btn-cart" onclick="event.preventDefault()">🛒</button>
+          </div>
+        </div>
+      </a>
+
+      <a href="/product/3" class="product-card">
+        <!-- TODO: Replace src with → src="/images/products/gloves1.jpg" -->
+        <img class="product-img" src="https://placehold.co/600x600/161616/555555?text=Product+Photo" alt="GripForce Gloves" />
+        <div class="product-info">
+          <div class="product-category">Gloves</div>
+          <div class="product-name">GripForce Pro Leather Gloves</div>
+          <div class="product-footer">
+            <div class="product-price">₹2,299</div>
+            <button class="btn-cart" onclick="event.preventDefault()">🛒</button>
+          </div>
+        </div>
+      </a>
+
+      <a href="/product/4" class="product-card">
+        <!-- TODO: Replace src with → src="/images/products/boots1.jpg" -->
+        <img class="product-img" src="https://placehold.co/600x600/161616/555555?text=Product+Photo" alt="IronStep Boots" />
+        <div class="product-badge">Sale</div>
+        <div class="product-info">
+          <div class="product-category">Boots</div>
+          <div class="product-name">IronStep Waterproof Riding Boots</div>
+          <div class="product-footer">
+            <div class="product-price"><span class="old-price">₹6,000</span>₹4,799</div>
+            <button class="btn-cart" onclick="event.preventDefault()">🛒</button>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ── TRUST FEATURES ── -->
+  <section class="section" style="padding-top: 0;">
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">🚚</div>
+        <div class="feature-title">Free Shipping</div>
+        <div class="feature-desc">On all orders above ₹1,999. Fast delivery across India within 3–5 business days.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🛡️</div>
+        <div class="feature-title">Certified Safety</div>
+        <div class="feature-desc">All helmets and protective gear are ISI / DOT / ECE certified for your safety.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔄</div>
+        <div class="feature-title">Easy Returns</div>
+        <div class="feature-desc">7-day hassle-free returns. Wrong size? We'll exchange it, no questions asked.</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">💬</div>
+        <div class="feature-title">Rider Support</div>
+        <div class="feature-desc">Expert support from fellow riders available 9AM–9PM, 7 days a week.</div>
+      </div>
+    </div>
+  </section>
+
+  <%- include('partials/footer') %>
+
+  <!-- ── CAROUSEL SCRIPT ── -->
+  <script>
+    const track = document.getElementById('carouselTrack');
+    const slides = track.querySelectorAll('.carousel-slide');
+    const dots = document.querySelectorAll('.dot');
+    let current = 0;
+    let autoTimer;
+
+    function goTo(index) {
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = (index + slides.length) % slides.length;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+      track.style.transform = `translateX(-${current * 100}%)`;
+    }
+
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        clearInterval(autoTimer);
+        goTo(parseInt(dot.dataset.index));
+        startAuto();
+      });
+    });
+
+    function startAuto() {
+      autoTimer = setInterval(() => goTo(current + 1), 5000);
+    }
+
+    startAuto();
+  </script>
 
 </body>
-
 </html>

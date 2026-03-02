@@ -1,5 +1,5 @@
 import Category from "../../Models/CategoryModel.js";
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
 const categoryInfoGet = async (req, res) => {
   try {
@@ -76,11 +76,7 @@ const categoryDelete = async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing Data" });
     }
 
-    const updateCategory = await Category.findByIdAndUpdate(
-      catId,
-      { status: "Inactive" }, // ← just set to Inactive instead of deleting
-      { new: true },
-    );
+    const updateCategory = await Category.findById(catId);
 
     if (!updateCategory) {
       return res
@@ -88,7 +84,11 @@ const categoryDelete = async (req, res) => {
         .json({ success: false, message: "Category not Found" });
     }
 
-    return res.redirect("/admin/category");
+    const newStatus = updateCategory.status === "Active" ? "Inactive" : "Active";
+
+    await Category.findByIdAndUpdate(catId, { status: newStatus });
+
+    return res.status(200).json({ success: true });
   } catch (error) {
     console.log("Error in updating status ", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -120,35 +120,42 @@ const categoryEditGet = async (req, res) => {
   }
 };
 
-const categoryEditPost=async (req,res)=>{
+const categoryEditPost = async (req, res) => {
   try {
-    const {catId}=req.params
+    const { catId } = req.params;
 
-    const {name, description}=req.body
+    const { name, description } = req.body;
 
-    const category=await Category.findById(catId)
+    const category = await Category.findById(catId);
 
-    if(!category){
-      return res.redirect('/admin/category')
+    if (!category) {
+      return res.redirect("/admin/category");
     }
 
-    const exist = await Category.findOne({ 
-  name: { $regex: new RegExp(`^${name}$`, 'i') },
-  _id: { $ne: new mongoose.Types.ObjectId(catId) }  // ✅ convert to ObjectId
-});
+    const exist = await Category.findOne({
+      name: { $regex: new RegExp(`^${name}$`, "i") },
+      _id: { $ne: new mongoose.Types.ObjectId(catId) }, // ✅ convert to ObjectId
+    });
 
-    if(exist){
-     return res.status(400).json({ success: false, message: "Category already exists" })
+    if (exist) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Category already exists" });
     }
 
-    await Category.findByIdAndUpdate(catId,{$set:{name,description}})
+    await Category.findByIdAndUpdate(catId, { $set: { name, description } });
 
-    return res.status(200).json({ message: 'Category updated successfully!' });
-
+    return res.status(200).json({ message: "Category updated successfully!" });
   } catch (error) {
-    console.log("Error in editing category",error)
-    return res.status(500).json({ error: 'Internal server error' });
+    console.log("Error in editing category", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
-export default { categoryInfoGet, addCategoryPost, categoryDelete, categoryEditGet, categoryEditPost};
+export default {
+  categoryInfoGet,
+  addCategoryPost,
+  categoryDelete,
+  categoryEditGet,
+  categoryEditPost,
+};

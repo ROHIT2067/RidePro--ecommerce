@@ -46,6 +46,7 @@ app.set('view engine','ejs')
 app.set('views',[path.join(__dirname,'Views/user'),path.join(__dirname,'Views/admin')])
 app.use(express.static(path.join(process.cwd(), "public")));
 app.use('/styles', express.static(path.join(process.cwd(), 'Styles')));
+app.use('/Images', express.static(path.join(process.cwd(), 'Images')));
 
 
 app.use(nocache());
