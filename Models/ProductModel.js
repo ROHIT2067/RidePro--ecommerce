@@ -12,20 +12,20 @@ const productSchema = new Schema(
     },
     category: {
       type: Schema.Types.ObjectId,
-      ref: "categoryId",
+      ref: "Category",
       required: true,
     },
-    rating:{
-        type:Number,
-        default:0,
+    rating: {
+      type: Number,
+      default: 0,
     },
-    review_count:{
-        type:Number,
-        default:0,
+    review_count: {
+      type: Number,
+      default: 0,
     },
     status: {
       type: String,
-      enum: ["Available", "Out Of Stock", "Discountinued"],
+      enum: ["Available", "Out Of Stock"],
       required: true,
       default: "Available",
     },

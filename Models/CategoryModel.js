@@ -13,10 +13,6 @@ const categorySchema = new Schema(
       required: true,
       trim: true,
     },
-    image_url: {
-      type: [String],
-      default: [],
-    },
     status: {
       type: String,
       enum: ["Active", "Inactive"],

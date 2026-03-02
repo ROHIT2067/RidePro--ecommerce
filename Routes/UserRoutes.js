@@ -1,10 +1,13 @@
 import express from "express";
 const router = express.Router();
 import { blockIfLoggedIn } from "../middlewares/authMiddleware.js";
-import userController from "../Controller/user/UserController.js";
+import userController from "../Controller/user/userController.js";
 import passport from "../Config/passport.js";
 import upload from "../middlewares/multer.js";
+import accountController from "../Controller/user/accountController.js";
+import addressController from "../Controller/user/addressController.js";
 
+router.get("/", blockIfLoggedIn, userController.landingPageGet);
 router.get("/home", userController.homeGet);
 router.get("/login", userController.loginGet);
 router.get("/signup", userController.signupGet);
@@ -42,33 +45,33 @@ router.post("/verify-password", userController.passwordVerifyPost);
 router.post("/resend-otpPass", userController.resendOtpPassPost);
 router.get("/reset-password", userController.resetPassGet);
 router.post("/reset-password", userController.resetPassPost);
-router.get("/account/password", userController.changePassGet);
-router.post("/account/password", userController.changePassPost);
-router.get("/account", userController.accoutGet);
-router.get("/account/edit", userController.accountEditGet);
-router.get("/emailVerify", userController.emailVerifyGet);
-router.post("/emailVerify", userController.emailVerifyPost);
-router.get("/emailOtp", userController.emailOtpGet);
-router.post("/emailOtp", userController.emailOtpPost);
-router.get("/reset-email", userController.resetEmailGet);
-router.post("/resendOtp", userController.resendEmailPost);
-router.post("/reset-email", userController.resetEmailPost);
-router.post("/account/edit", userController.accountEditPost);
+router.get("/account/password", accountController.changePassGet);
+router.post("/account/password", accountController.changePassPost);
+router.get("/account", accountController.accoutGet);
+router.get("/account/edit", accountController.accountEditGet);
+router.get("/emailVerify", accountController.emailVerifyGet);
+router.post("/emailVerify", accountController.emailVerifyPost);
+router.get("/emailOtp", accountController.emailOtpGet);
+router.post("/emailOtp", accountController.emailOtpPost);
+router.get("/reset-email", accountController.resetEmailGet);
+router.post("/resendOtp", accountController.resendEmailPost);
+router.post("/reset-email", accountController.resetEmailPost);
+router.post("/account/edit", accountController.accountEditPost);
 
 // ProfilePhoto Upload
 router.post(
   "/account/upload-avatar",
   upload.single("avatar"),
-  userController.uploadAvatar,
+  accountController.uploadAvatar,
 );
-router.delete("/account/delete-avatar", userController.deleteAvatar);
+router.delete("/account/delete-avatar", accountController.deleteAvatar);
 
 // Address Management
-router.get("/account/address", userController.addressGet);
-router.get("/account/address/add", userController.addressAddGet);
-router.post("/account/address/add", userController.addressAddPost);
-router.get("/account/address/edit/:id", userController.addressEditGet);
-router.post("/account/address/edit/:id", userController.addressEditPost);
-router.post("/account/address/delete/:id", userController.addressDeletePost);
+router.get("/account/address", addressController.addressGet);
+router.get("/account/address/add", addressController.addressAddGet);
+router.post("/account/address/add", addressController.addressAddPost);
+router.get("/account/address/edit/:id", addressController.addressEditGet);
+router.post("/account/address/edit/:id", addressController.addressEditPost);
+router.post("/account/address/delete/:id", addressController.addressDeletePost);
 
 export default router;

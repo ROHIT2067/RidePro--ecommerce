@@ -1,9 +1,12 @@
 import express from "express";
 const router = express.Router();
-import adminController from "../Controller/admin/AdminController.js";
+import adminController from "../Controller/admin/adminController.js";
 import customerController from "../Controller/admin/customerController.js";
 import { blockIfLoggedIn } from "../middlewares/authMiddleware.js";
 import categoryController from "../Controller/admin/categoryController.js"
+import productController from "../Controller/admin/productController.js";
+import  upload  from '../middlewares/multer.js';
+
 
 // login Management
 router.get("/login",blockIfLoggedIn, adminController.adminLoginGet);
@@ -22,4 +25,11 @@ router.post('/category/add',categoryController.addCategoryPost)
 router.post("/category/toggle/:catId", categoryController.categoryDelete);
 router.get("/category/edit/:catId", categoryController.categoryEditGet);
 router.post("/category/edit/:catId", categoryController.categoryEditPost);
+
+// Product Management
+router.get('/products',blockIfLoggedIn,productController.productsGet)
+router.post('/products/toggle/:id',productController.toggleProductPost)
+router.get('/addProduct',blockIfLoggedIn,productController.addProductGet)
+router.post('/addProduct', upload.any(), productController.addProductPost);
+router.get('/editProduct/:id',blockIfLoggedIn,productController.editProductGet)
 export default router;

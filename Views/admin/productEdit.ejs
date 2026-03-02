@@ -1,0 +1,543 @@
+<%- include('partials/admin_sidebar') %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Product — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #f0f2f8; --card-bg: #ffffff; --border: #e8eaf0; --text: #1a1d23;
+      --muted: #8a8f9e; --accent: #1a1d23; --accent-hover: #2d3142;
+      --danger: #e8411a; --success: #16a34a; --font: 'DM Sans', sans-serif;
+      --radius: 12px; --sidebar-width: 220px;
+    }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+    .sidebar { width: 250px; background-color: #ffffff; border-right: 1px solid #e5e7eb; padding: 20px 0; position: fixed; height: 100vh; overflow-y: auto; }
+    .logo { padding: 0 20px 30px; display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; color: #1a1a1a; }
+    .logo i { font-size: 24px; }
+    .nav-menu { list-style: none; }
+    .nav-item { margin-bottom: 5px; }
+    .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: #6b7280; text-decoration: none; transition: all 0.3s ease; font-size: 14px; }
+    .nav-link:hover { background-color: #f9fafb; color: #1a1a1a; }
+    .nav-link.active { background-color: #f3f4f6; color: #1a1a1a; font-weight: 500; border-left: 3px solid #3b82f6; }
+    .nav-link i { width: 20px; text-align: center; font-size: 16px; }
+    .main { margin-left: var(--sidebar-width); flex: 1; padding: 2rem 2.5rem; min-height: 100vh; }
+    .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--muted); margin-bottom: 1.75rem; }
+    .breadcrumb a { color: var(--muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--text); }
+    .breadcrumb-sep { opacity: 0.4; }
+    .breadcrumb-current { color: var(--text); font-weight: 500; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; }
+    .page-title { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }
+    .page-subtitle { font-size: 0.82rem; color: var(--muted); margin-top: 0.2rem; }
+    .form-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; align-items: start; }
+    .card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+    .card-header { padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; }
+    .card-header-icon { width: 28px; height: 28px; border-radius: 7px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--muted); }
+    .card-title { font-size: 0.9rem; font-weight: 600; letter-spacing: -0.01em; }
+    .card-body { padding: 1.5rem; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text); margin-bottom: 0.45rem; letter-spacing: 0.01em; }
+    .label-required::after { content: ' *'; color: var(--danger); }
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%; padding: 0.6rem 0.85rem; border: 1px solid var(--border); border-radius: 8px;
+      font-family: var(--font); font-size: 0.85rem; color: var(--text); background: var(--bg);
+      outline: none; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(26,29,35,0.07); }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+    select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8f9e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.85rem center; padding-right: 2.2rem; }
+    .variants-list { display: flex; flex-direction: column; gap: 1rem; }
+    .variant-card { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); }
+    .variant-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: #f7f8fc; border-bottom: 1px solid var(--border); }
+    .variant-title { font-size: 0.82rem; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 0.4rem; }
+    .variant-num { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.7rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+    .variant-remove { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.9rem; padding: 0.2rem 0.4rem; border-radius: 5px; transition: color 0.15s, background 0.15s; }
+    .variant-remove:hover { color: var(--danger); background: #fef2f0; }
+    .variant-body { padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+    .variant-body .form-group { margin-bottom: 0; }
+    .variant-body .full { grid-column: 1 / -1; }
+    .image-upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 1.25rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: var(--bg); position: relative; }
+    .image-upload-area:hover { border-color: var(--accent); background: #f7f8fc; }
+    .image-upload-area.has-error { border-color: var(--danger); }
+    .image-upload-area.has-success { border-color: var(--success); }
+    .image-upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-icon { font-size: 1.4rem; color: var(--muted); margin-bottom: 0.4rem; }
+    .upload-text { font-size: 0.8rem; color: var(--muted); }
+    .upload-text strong { color: var(--text); }
+    .existing-images { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .existing-img-wrap { position: relative; display: inline-block; }
+    .existing-img { width: 56px; height: 56px; border-radius: 7px; object-fit: cover; border: 2px solid var(--success); }
+    .existing-img-badge { position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); background: var(--success); color: #fff; font-size: 0.45rem; font-weight: 700; padding: 1px 4px; border-radius: 4px; white-space: nowrap; }
+    .existing-remove { position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 0.55rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .image-counter { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; font-weight: 500; margin-top: 0.5rem; padding: 0.2rem 0.6rem; border-radius: 20px; background: var(--bg); border: 1px solid var(--border); color: var(--muted); }
+    .image-counter.valid { background: #dcfce7; border-color: #86efac; color: var(--success); }
+    .image-counter.invalid { background: #fee2e2; border-color: #fca5a5; color: var(--danger); }
+    .image-previews { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+    .preview-thumb { width: 56px; height: 56px; border-radius: 7px; object-fit: cover; border: 1px solid var(--border); }
+    .preview-wrap { position: relative; display: inline-block; }
+    .preview-remove { position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 0.55rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .btn-add-variant { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.7rem; border: 2px dashed var(--border); border-radius: 10px; background: none; color: var(--muted); font-family: var(--font); font-size: 0.83rem; font-weight: 500; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; margin-top: 0.5rem; }
+    .btn-add-variant:hover { border-color: var(--accent); color: var(--accent); background: #f7f8fc; }
+    .side-cards { display: flex; flex-direction: column; gap: 1.25rem; }
+    .form-actions { display: flex; flex-direction: column; gap: 0.6rem; }
+    .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 0.7rem 1.2rem; font-family: var(--font); font-size: 0.875rem; font-weight: 600; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: background 0.15s, transform 0.15s; letter-spacing: 0.01em; }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-secondary { background: none; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem 1.2rem; font-family: var(--font); font-size: 0.875rem; font-weight: 500; cursor: pointer; width: 100%; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; }
+    .btn-secondary:hover { background: var(--bg); color: var(--text); }
+    .info-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+    .info-item:last-child { border-bottom: none; }
+    .info-label { color: var(--muted); }
+    .info-value { font-weight: 500; color: var(--text); }
+    #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; padding: 0.75rem 1.25rem; border-radius: 10px; font-family: var(--font); font-size: 0.85rem; font-weight: 500; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 9999; opacity: 0; transform: translateY(10px); transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
+    .field-error { font-size: 0.75rem; color: var(--danger); margin-top: 0.35rem; display: none; }
+    .field-error.show { display: block; }
+    input.error, select.error, textarea.error { border-color: var(--danger); }
+    @media (max-width: 1024px) { .form-layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<main class="main">
+
+  <nav class="breadcrumb">
+    <a href="/admin/adminHome">Admin</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="/admin/products">Products</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="breadcrumb-current">Edit Product</span>
+  </nav>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Edit Product</h1>
+      <p class="page-subtitle">Update the details for <strong><%= product.productName %></strong></p>
+    </div>
+  </div>
+
+  <form id="editProductForm" enctype="multipart/form-data">
+    <div class="form-layout">
+
+      <!-- LEFT COLUMN -->
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+
+        <!-- Basic Info -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-icon"><i class="fa fa-tag"></i></div>
+            <span class="card-title">Basic Information</span>
+          </div>
+          <div class="card-body">
+
+            <div class="form-group">
+              <label class="label-required">Product Name</label>
+              <input type="text" id="productName" name="productName" placeholder="Enter product name" value="<%= product.productName %>" />
+              <div class="field-error" id="err-productName">Product name is required.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="label-required">Description</label>
+              <textarea id="description" name="description" placeholder="Describe the product in detail"><%= product.description %></textarea>
+              <div class="field-error" id="err-description">Description is required.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="label-required">Category</label>
+              <select id="category" name="category">
+                <option value="">— Select a category —</option>
+                <% if (typeof categories !== 'undefined') { %>
+                  <% categories.forEach(cat => { %>
+                    <option value="<%= cat._id %>" <%= product.category && product.category._id && product.category._id.toString() === cat._id.toString() ? 'selected' : '' %>>
+                      <%= cat.name %>
+                    </option>
+                  <% }) %>
+                <% } %>
+              </select>
+              <div class="field-error" id="err-category">Please select a category.</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Variants -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-icon"><i class="fa fa-layer-group"></i></div>
+            <span class="card-title">Product Variants</span>
+          </div>
+          <div class="card-body">
+            <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1rem;">
+              Edit existing variants or add new ones below.
+            </p>
+            <div class="variants-list" id="variantsList"></div>
+            <button type="button" class="btn-add-variant" onclick="addVariant()">
+              <i class="fa fa-plus"></i> Add Variant
+            </button>
+            <div class="field-error" id="err-variants" style="margin-top:0.5rem;">At least one variant is required.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="side-cards">
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-icon"><i class="fa fa-floppy-disk"></i></div>
+            <span class="card-title">Actions</span>
+          </div>
+          <div class="card-body">
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">
+                <i class="fa fa-check"></i> Update Product
+              </button>
+              <a href="/admin/products" class="btn-secondary">Cancel</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-icon"><i class="fa fa-circle-info"></i></div>
+            <span class="card-title">Product Info</span>
+          </div>
+          <div class="card-body">
+            <div class="info-item">
+              <span class="info-label">Product ID</span>
+              <span class="info-value" style="font-size:0.72rem; color:var(--muted);">
+                <%= product._id.toString().slice(-8).toUpperCase() %>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Created</span>
+              <span class="info-value">
+                <%= new Date(product.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Updated</span>
+              <span class="info-value">
+                <%= new Date(product.updatedAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Rating</span>
+              <span class="info-value">⭐ <%= product.rating %> (<%= product.review_count %> reviews)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </form>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  const existingProduct  = <%- JSON.stringify(product) %>;
+  const existingVariants = <%- JSON.stringify(variants) %>;
+</script>
+
+<script>
+  let variantCount = 0;
+
+  window.addEventListener('DOMContentLoaded', () => {
+    if (existingVariants && existingVariants.length > 0) {
+      existingVariants.forEach((variant, index) => {
+        addVariant(variant, index);
+      });
+    } else {
+      addVariant();
+    }
+  });
+
+  function addVariant(existingData = null, existingIndex = null) {
+    variantCount++;
+    const list = document.getElementById('variantsList');
+    const id   = `variant-${variantCount}`;
+    const num  = variantCount;
+
+    const sizeOptions = ['Small', 'Medium', 'Large', 'XLarge'].map(s =>
+      `<option value="${s}" ${existingData && existingData.size === s ? 'selected' : ''}>${s}</option>`
+    ).join('');
+
+    const variantIdAttr = existingData && existingData._id
+      ? `data-variant-id="${existingData._id}"`
+      : '';
+
+    const existingImagesHtml = existingData && existingData.images && existingData.images.length > 0
+      ? `<p style="font-size:0.75rem; color:var(--muted); margin-bottom:0.5rem;">
+           Current images — upload new ones below to replace them:
+         </p>
+         <div class="existing-images" id="existing-${id}">
+           ${existingData.images.map((img, i) => `
+             <div class="existing-img-wrap" id="existing-img-${id}-${i}">
+               <img src="${img}" class="existing-img" />
+               <span class="existing-img-badge">saved</span>
+               <button type="button" class="existing-remove" onclick="removeExistingImage('${id}', ${i})" title="Remove">
+                 <i class="fa fa-xmark"></i>
+               </button>
+               <input type="hidden" name="variants[${num}][existingImages][]" value="${img}" id="hidden-img-${id}-${i}" />
+             </div>
+           `).join('')}
+         </div>`
+      : '';
+
+    const card = document.createElement('div');
+    card.className = 'variant-card';
+    card.id = id;
+    card.innerHTML = `
+      <div class="variant-header">
+        <div class="variant-title">
+          <span class="variant-num">${num}</span>
+          Variant ${num}
+        </div>
+        <button type="button" class="variant-remove" onclick="removeVariant('${id}')" title="Remove variant">
+          <i class="fa fa-xmark"></i>
+        </button>
+      </div>
+      <div class="variant-body" ${variantIdAttr}>
+        <div class="form-group">
+          <label>Size</label>
+          <select name="variants[${num}][size]">
+            <option value="">— Select size —</option>
+            ${sizeOptions}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Color</label>
+          <input type="text" name="variants[${num}][color]" placeholder="e.g. Black, Red"
+            value="${existingData ? existingData.color || '' : ''}" />
+        </div>
+        <div class="form-group">
+          <label class="label-required">Price (₹)</label>
+          <input type="number" name="variants[${num}][price]" placeholder="0.00" min="0" step="0.01"
+            value="${existingData ? existingData.price || '' : ''}" />
+        </div>
+        <div class="form-group">
+          <label class="label-required">Stock</label>
+          <input type="number" name="variants[${num}][stock_quantity]" placeholder="0" min="0"
+            value="${existingData ? existingData.stock_quantity || '' : ''}" />
+        </div>
+        <div class="form-group full">
+          <label>
+            Images
+            <span style="color:var(--muted);font-weight:400;">(Min 3, Max 5)</span>
+          </label>
+          ${existingImagesHtml}
+          <div class="image-upload-area" id="uploadArea-${id}">
+            <input type="file" name="variants[${num}][newImages]" accept="image/*" multiple onchange="handleImages(event, '${id}')" />
+            <div class="upload-icon"><i class="fa fa-cloud-arrow-up"></i></div>
+            <div class="upload-text"><strong>Click to upload new images</strong> or drag & drop</div>
+            <div class="upload-text" style="font-size:0.72rem; margin-top:0.2rem;">PNG, JPG, WEBP · Max 5MB each</div>
+          </div>
+          <div id="counter-${id}" class="image-counter" style="display:none;"></div>
+          <div class="image-previews" id="previews-${id}"></div>
+          <div class="field-error" id="img-err-${id}"></div>
+        </div>
+      </div>
+    `;
+
+    list.appendChild(card);
+    document.getElementById('err-variants').classList.remove('show');
+  }
+
+  function removeExistingImage(variantId, index) {
+    const wrap   = document.getElementById(`existing-img-${variantId}-${index}`);
+    const hidden = document.getElementById(`hidden-img-${variantId}-${index}`);
+    if (wrap)   wrap.remove();
+    if (hidden) hidden.remove();
+  }
+
+  function removeVariant(id) {
+    const card = document.getElementById(id);
+    if (card) card.remove();
+  }
+
+  function handleImages(event, variantId) {
+    const files      = Array.from(event.target.files);
+    const errEl      = document.getElementById(`img-err-${variantId}`);
+    const preview    = document.getElementById(`previews-${variantId}`);
+    const counter    = document.getElementById(`counter-${variantId}`);
+    const uploadArea = document.getElementById(`uploadArea-${variantId}`);
+
+    errEl.style.display   = 'none';
+    errEl.textContent     = '';
+    preview.innerHTML     = '';
+    counter.style.display = 'none';
+    uploadArea.classList.remove('has-error', 'has-success');
+
+    if (files.length < 3) {
+      errEl.style.display   = 'block';
+      errEl.textContent     = `Please select at least 3 images (you selected ${files.length}).`;
+      uploadArea.classList.add('has-error');
+      counter.style.display = 'inline-flex';
+      counter.className     = 'image-counter invalid';
+      counter.textContent   = `${files.length} / 5 images`;
+      event.target.value    = '';
+      return;
+    }
+
+    if (files.length > 5) {
+      errEl.style.display = 'block';
+      errEl.textContent   = `Maximum 5 images allowed. First 5 will be used.`;
+      uploadArea.classList.add('has-error');
+    }
+
+    const validFiles = files.slice(0, 5);
+    counter.style.display = 'inline-flex';
+    counter.className     = `image-counter ${validFiles.length >= 3 ? 'valid' : 'invalid'}`;
+    counter.textContent   = `${validFiles.length} / 5 images selected`;
+    if (validFiles.length >= 3) uploadArea.classList.add('has-success');
+
+    validFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'preview-wrap';
+        wrap.innerHTML = `
+          <img src="${e.target.result}" class="preview-thumb" title="${file.name}" />
+          <button type="button" class="preview-remove" title="Remove">
+            <i class="fa fa-xmark"></i>
+          </button>
+        `;
+        wrap.querySelector('.preview-remove').addEventListener('click', () => {
+          wrap.remove();
+          const remaining = document.getElementById(`previews-${variantId}`).querySelectorAll('.preview-wrap').length;
+          const c = document.getElementById(`counter-${variantId}`);
+          c.textContent = `${remaining} / 5 images selected`;
+          c.className   = `image-counter ${remaining >= 3 ? 'valid' : 'invalid'}`;
+          if (remaining < 3) {
+            document.getElementById(`uploadArea-${variantId}`).classList.remove('has-success');
+            document.getElementById(`uploadArea-${variantId}`).classList.add('has-error');
+            const err = document.getElementById(`img-err-${variantId}`);
+            err.style.display = 'block';
+            err.textContent   = 'You need at least 3 images.';
+          }
+        });
+        preview.appendChild(wrap);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent      = message;
+    toast.style.background = type === 'success' ? '#16a34a' : '#e8411a';
+    toast.style.opacity    = '1';
+    toast.style.transform  = 'translateY(0)';
+    setTimeout(() => {
+      toast.style.opacity   = '0';
+      toast.style.transform = 'translateY(10px)';
+    }, 3000);
+  }
+
+  function setError(fieldId, errId, show) {
+    const field = document.getElementById(fieldId);
+    const err   = document.getElementById(errId);
+    if (show) {
+      field && field.classList.add('error');
+      err   && err.classList.add('show');
+    } else {
+      field && field.classList.remove('error');
+      err   && err.classList.remove('show');
+    }
+    return show;
+  }
+
+  document.getElementById('editProductForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    let hasError = false;
+
+    if (!document.getElementById('productName').value.trim())
+      hasError = setError('productName', 'err-productName', true) || true;
+    else setError('productName', 'err-productName', false);
+
+    if (!document.getElementById('description').value.trim())
+      hasError = setError('description', 'err-description', true) || true;
+    else setError('description', 'err-description', false);
+
+    if (!document.getElementById('category').value)
+      hasError = setError('category', 'err-category', true) || true;
+    else setError('category', 'err-category', false);
+
+    const variantCards = document.querySelectorAll('.variant-card');
+    if (variantCards.length === 0) {
+      document.getElementById('err-variants').classList.add('show');
+      hasError = true;
+    } else {
+      document.getElementById('err-variants').classList.remove('show');
+    }
+
+    variantCards.forEach(card => {
+      const variantId    = card.id;
+      const fileInput    = card.querySelector('input[type="file"]');
+      const errEl        = document.getElementById(`img-err-${variantId}`);
+      const uploadArea   = document.getElementById(`uploadArea-${variantId}`);
+      const existingImgs = card.querySelectorAll('.existing-img-wrap').length;
+      const previewCount = document.getElementById(`previews-${variantId}`).querySelectorAll('.preview-wrap').length;
+      const newCount     = previewCount > 0 ? previewCount : fileInput.files.length;
+      const totalCount   = existingImgs + newCount;
+
+      if (totalCount < 3 || totalCount > 5) {
+        errEl.style.display = 'block';
+        errEl.textContent   = totalCount < 3
+          ? `Please have at least 3 images (currently ${totalCount}).`
+          : `Maximum 5 images allowed (currently ${totalCount}).`;
+        uploadArea.classList.add('has-error');
+        uploadArea.classList.remove('has-success');
+        hasError = true;
+      }
+    });
+
+    if (hasError) {
+      showToast('Please fix the errors before saving.', 'error');
+      return;
+    }
+
+    const submitBtn = document.querySelector('.btn-primary[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Updating...';
+
+    const formData = new FormData(this);
+
+    try {
+      const res  = await fetch(`/admin/editProduct/<%- product._id %>`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        submitBtn.innerHTML        = '<i class="fa fa-check"></i> Updated!';
+        submitBtn.style.background = 'var(--success)';
+        showToast('Product updated successfully!', 'success');
+        setTimeout(() => window.location.href = '/admin/products', 1200);
+      } else {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa fa-check"></i> Update Product';
+        showToast(data.message || 'Something went wrong.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa fa-check"></i> Update Product';
+      showToast('Server error. Please try again.', 'error');
+    }
+  });
+</script>
+
+</body>
+</html>

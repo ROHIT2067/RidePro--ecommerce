@@ -1,0 +1,899 @@
+<%- include('partials/admin_sidebar') %>
+
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Products — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg: #f0f2f8;
+        --card-bg: #ffffff;
+        --border: #e8eaf0;
+        --text: #1a1d23;
+        --muted: #8a8f9e;
+        --accent: #1a1d23;
+        --accent-hover: #2d3142;
+        --danger: #e8411a;
+        --success: #16a34a;
+        --font: 'DM Sans', sans-serif;
+        --radius: 12px;
+        --sidebar-width: 220px;
+      }
+
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .main {
+        margin-left: var(--sidebar-width);
+        flex: 1;
+        padding: 2rem 2.5rem;
+        min-height: 100vh;
+      }
+
+      .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 1.75rem;
+      }
+
+      .breadcrumb a {
+        color: var(--muted);
+        text-decoration: none;
+      }
+
+      .breadcrumb a:hover {
+        color: var(--text);
+      }
+
+      .breadcrumb-sep {
+        opacity: 0.4;
+      }
+
+      .breadcrumb-current {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        overflow: hidden;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+
+      .card-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .sidebar {
+        width: 250px;
+        background-color: #ffffff;
+        border-right: 1px solid #e5e7eb;
+        padding: 20px 0;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+      }
+
+      .logo {
+        padding: 0 20px 30px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 20px;
+        font-weight: 700;
+        color: #1a1a1a;
+      }
+
+      .logo i {
+        font-size: 24px;
+      }
+
+      .nav-menu {
+        list-style: none;
+      }
+
+      .nav-item {
+        margin-bottom: 5px;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px;
+        color: #6b7280;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 14px;
+      }
+
+      .nav-link:hover {
+        background-color: #f9fafb;
+        color: #1a1a1a;
+      }
+
+      .nav-link.active {
+        background-color: #f3f4f6;
+        color: #1a1a1a;
+        font-weight: 500;
+        border-left: 3px solid #3b82f6;
+      }
+
+      .nav-link i {
+        width: 20px;
+        text-align: center;
+        font-size: 16px;
+      }
+
+      .search-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+        pointer-events: none;
+      }
+
+      .search-input {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.5rem 2rem 0.5rem 2.1rem;
+        font-family: var(--font);
+        font-size: 0.825rem;
+        color: var(--text);
+        width: 200px;
+        outline: none;
+        transition: border-color 0.15s, width 0.3s;
+      }
+
+      .search-input::placeholder {
+        color: var(--muted);
+      }
+
+      .search-input:focus {
+        border-color: var(--accent);
+        width: 240px;
+      }
+
+      .search-clear {
+        position: absolute;
+        right: 0.75rem;
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-decoration: none;
+        padding: 0.2rem 0.3rem;
+        border-radius: 4px;
+        transition: color 0.15s, background 0.15s;
+        line-height: 1;
+      }
+
+      .search-clear:hover {
+        color: var(--danger);
+        background: #fef2f0;
+      }
+
+      .btn-add {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.1rem;
+        font-family: var(--font);
+        font-size: 0.825rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.15s, transform 0.15s;
+        white-space: nowrap;
+      }
+
+      .btn-add:hover {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+
+      thead tr {
+        border-bottom: 1px solid var(--border);
+      }
+
+      th {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--muted);
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background 0.12s;
+      }
+
+      tbody tr:last-child {
+        border-bottom: none;
+      }
+
+      tbody tr:hover {
+        background: #fafbfc;
+      }
+
+      td {
+        padding: 0.85rem 1rem;
+        vertical-align: middle;
+      }
+
+      .product-thumb {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        flex-shrink: 0;
+        display: block;
+      }
+
+      .product-name {
+        font-weight: 500;
+        font-size: 0.85rem;
+        font-style: italic;
+        color: var(--text);
+      }
+
+      .price-text {
+        font-weight: 500;
+        font-size: 0.85rem;
+      }
+
+      .category-pill {
+        display: inline-flex;
+        align-items: center;
+        background: #f0f2f8;
+        color: var(--text);
+        font-size: 0.76rem;
+        font-weight: 500;
+        padding: 0.28rem 0.7rem;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        white-space: nowrap;
+      }
+
+      .btn-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.42rem 0.9rem;
+        border-radius: 7px;
+        border: 1px solid var(--border);
+        background: var(--card-bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.15s, border-color 0.15s, transform 0.15s;
+        white-space: nowrap;
+      }
+
+      .btn-edit:hover {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+        transform: translateY(-1px);
+      }
+
+      .btn-edit i {
+        font-size: 0.75rem;
+      }
+
+      .toggle-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .toggle-track {
+        width: 38px;
+        height: 22px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        position: relative;
+        transition: background 0.25s;
+        flex-shrink: 0;
+      }
+
+      .toggle-track.on {
+        background: #22c55e;
+      }
+
+      .toggle-thumb {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+        transition: transform 0.25s;
+      }
+
+      .toggle-track.on .toggle-thumb {
+        transform: translateX(16px);
+      }
+
+      .toggle-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--muted);
+        min-width: 44px;
+      }
+
+      .toggle-label.on {
+        color: #16a34a;
+      }
+
+      .action-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.3rem;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+
+      .page-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--card-bg);
+        color: var(--text);
+        font-size: 0.8rem;
+        font-family: var(--font);
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.15s, border-color 0.15s;
+      }
+
+      .page-btn:hover {
+        background: var(--bg);
+      }
+
+      .page-btn.active {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+      }
+
+      .page-btn.disabled {
+        opacity: 0.4;
+        pointer-events: none;
+      }
+
+      .page-ellipsis {
+        color: var(--muted);
+        font-size: 0.8rem;
+        padding: 0 0.2rem;
+      }
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(3px);
+        z-index: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+      }
+
+      .modal-overlay.open {
+        opacity: 1;
+        pointer-events: all;
+      }
+
+      .modal {
+        background: var(--card-bg);
+        border-radius: 14px;
+        padding: 2rem;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        transform: scale(0.95) translateY(10px);
+        transition: transform 0.2s;
+      }
+
+      .modal-overlay.open .modal {
+        transform: scale(1) translateY(0);
+      }
+
+      .modal-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 1.2rem;
+      }
+
+      .modal-icon.warn {
+        background: #fff7ed;
+      }
+
+      .modal-icon.block {
+        background: #fee2e2;
+      }
+
+      .modal-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.01em;
+      }
+
+      .modal-desc {
+        font-size: 0.85rem;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+      }
+
+      .modal-desc strong {
+        color: var(--text);
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+      }
+
+      .btn-cancel {
+        padding: 0.55rem 1.2rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--card-bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .btn-cancel:hover {
+        background: var(--bg);
+      }
+
+      .btn-confirm {
+        padding: 0.55rem 1.2rem;
+        border-radius: 8px;
+        border: none;
+        font-family: var(--font);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.15s, transform 0.15s;
+      }
+
+      .btn-confirm:hover {
+        opacity: 0.88;
+        transform: translateY(-1px);
+      }
+
+      .btn-confirm.danger-btn {
+        background: var(--danger);
+        color: #fff;
+      }
+
+      .btn-confirm.success-btn {
+        background: var(--success);
+        color: #fff;
+      }
+
+      tr.unlisted td {
+        opacity: 0.5;
+      }
+
+      tr.unlisted .product-name {
+        text-decoration: line-through;
+        color: var(--danger);
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <main class="main">
+
+      <div class="topbar">
+        <nav class="breadcrumb">
+          <a href="/admin/adminHome">Admin</a>
+          <span class="breadcrumb-sep">›</span>
+          <span class="breadcrumb-current">Products</span>
+        </nav>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h1 class="card-title">Products</h1>
+          <div class="card-actions">
+            <a href="/admin/addProduct" class="btn-add">+ Add product</a>
+            <form method="GET" action="/admin/products" class="search-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" name="search" id="searchInput" class="search-input" placeholder="Search products"
+                value="<%= searchQuery %>" />
+              <% if (searchQuery) { %>
+                <a href="/admin/products" class="search-clear" title="Clear search">✕</a>
+                <% } %>
+            </form>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Rating</th>
+                <th>Category</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (productTable && productTable.length> 0) { %>
+                <% productTable.forEach(product=> { %>
+                  <tr id="row-<%= product._id %>" class="<%= product.status !== 'Available' ? 'unlisted' : '' %>">
+
+                    <td>
+                      <img class="product-thumb" src="https://placehold.co/44x44/f0f2f8/8a8f9e?text=?"
+                        alt="<%= product.productName %>" />
+                    </td>
+
+                    <td>
+                      <span class="product-name">
+                        <%= product.productName %>
+                      </span>
+                    </td>
+
+                    <td>
+                      <span class="price-text">⭐ <%= product.rating %> (<%= product.review_count %>)</span>
+                    </td>
+
+                    <td>
+                      <span class="category-pill">
+                        <%= product.category ? product.category.name : '—' %>
+                      </span>
+                    </td>
+
+                    <td>
+                      <div class="action-cell">
+
+                        <!-- Edit -->
+                        <div id="edit-<%= product._id %>">
+                          <% if (product.status==='Available' ) { %>
+                            <a href="/admin/editProduct/<%= product._id %>" class="btn-edit">
+                              <i class="fa fa-pencil"></i> Edit
+                            </a>
+                            <% } else { %>
+                              <span class="btn-edit" style="opacity:0.4; cursor:not-allowed; pointer-events:none;">
+                                <i class="fa fa-pencil"></i> Edit
+                              </span>
+                              <% } %>
+                        </div>
+
+                        <!-- List / Unlist toggle -->
+                        <div class="toggle-wrap" data-id="<%= product._id %>" data-name="<%= product.productName %>"
+                          data-status="<%= product.status %>"
+                          title="<%= product.status === 'Available' ? 'Click to unlist' : 'Click to list' %>">
+                          <div class="toggle-track <%= product.status === 'Available' ? 'on' : '' %>"
+                            id="track-<%= product._id %>">
+                            <div class="toggle-thumb"></div>
+                          </div>
+                          <span class="toggle-label <%= product.status === 'Available' ? 'on' : '' %>"
+                            id="label-<%= product._id %>">
+                            <%= product.status==='Available' ? 'Listed' : 'Unlisted' %>
+                          </span>
+                        </div>
+
+                      </div>
+                    </td>
+
+                  </tr>
+                  <% }) %>
+                    <% } else { %>
+                      <tr>
+                        <td colspan="5"
+                          style="text-align:center; padding: 3rem; color: var(--muted); font-size: 0.875rem;">
+                          No products found.
+                        </td>
+                      </tr>
+                      <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <% if (currentPage> 1) { %>
+            <a href="/admin/products?page=<%= currentPage - 1 %>&search=<%= searchQuery %>" class="page-btn">‹</a>
+            <% } else { %>
+              <span class="page-btn disabled">‹</span>
+              <% } %>
+
+                <a href="/admin/products?page=1&search=<%= searchQuery %>"
+                  class="page-btn <%= currentPage === 1 ? 'active' : '' %>">1</a>
+
+                <% if (totalPages> 1) { %>
+                  <a href="/admin/products?page=2&search=<%= searchQuery %>"
+                    class="page-btn <%= currentPage === 2 ? 'active' : '' %>">2</a>
+                  <% } %>
+
+                    <% if (totalPages> 4) { %>
+                      <span class="page-ellipsis">…</span>
+                      <% } %>
+
+                        <% if (totalPages> 4) { %>
+                          <a href="/admin/products?page=<%= totalPages - 1 %>&search=<%= searchQuery %>"
+                            class="page-btn <%= currentPage === totalPages - 1 ? 'active' : '' %>">
+                            <%= totalPages - 1 %>
+                          </a>
+                          <% } %>
+
+                            <% if (totalPages> 2) { %>
+                              <a href="/admin/products?page=<%= totalPages %>&search=<%= searchQuery %>"
+                                class="page-btn <%= currentPage === totalPages ? 'active' : '' %>">
+                                <%= totalPages %>
+                              </a>
+                              <% } %>
+
+                                <% if (currentPage < totalPages) { %>
+                                  <a href="/admin/products?page=<%= currentPage + 1 %>&search=<%= searchQuery %>"
+                                    class="page-btn">›</a>
+                                  <% } else { %>
+                                    <span class="page-btn disabled">›</span>
+                                    <% } %>
+        </div>
+      </div>
+    </main>
+
+    <!-- List / Unlist Confirm Modal -->
+    <div class="modal-overlay" id="toggleModal">
+      <div class="modal">
+        <div class="modal-icon" id="toggleModalIcon">📦</div>
+        <div class="modal-title" id="toggleModalTitle">Unlist Product?</div>
+        <div class="modal-desc" id="toggleModalDesc"></div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal('toggleModal')">Cancel</button>
+          <button class="btn-confirm" id="toggleConfirmBtn" onclick="confirmToggle()">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" style="
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  "></div>
+
+    <script>
+      let activeProductId = null;
+      let activeIsListed = true;
+
+      function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.background = type === 'success' ? '#16a34a' : '#e8411a';
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(10px)';
+        }, 3000);
+      }
+
+      function openToggleModal(productId, productName, status) {
+        activeProductId = productId;
+        activeIsListed = status === 'Available';
+
+        const icon = document.getElementById('toggleModalIcon');
+        const title = document.getElementById('toggleModalTitle');
+        const desc = document.getElementById('toggleModalDesc');
+        const confirmBtn = document.getElementById('toggleConfirmBtn');
+
+        if (activeIsListed) {
+          icon.textContent = '🚫';
+          icon.className = 'modal-icon block';
+          title.textContent = 'Unlist Product?';
+          desc.innerHTML = `<strong>${productName}</strong> will be hidden from the storefront. You can re-list it anytime.`;
+          confirmBtn.textContent = 'Unlist';
+          confirmBtn.className = 'btn-confirm danger-btn';
+        } else {
+          icon.textContent = '✅';
+          icon.className = 'modal-icon warn';
+          title.textContent = 'List Product?';
+          desc.innerHTML = `<strong>${productName}</strong> will become visible on the storefront again.`;
+          confirmBtn.textContent = 'List';
+          confirmBtn.className = 'btn-confirm success-btn';
+        }
+
+        document.getElementById('toggleModal').classList.add('open');
+      }
+
+      async function confirmToggle() {
+        if (!activeProductId) return;
+
+        try {
+          const res = await fetch(`/admin/products/toggle/${activeProductId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const data = await res.json();
+
+          if (data.success) {
+            const isNowAvailable = data.newStatus === 'Available';
+
+            const track = document.getElementById('track-' + activeProductId);
+            const label = document.getElementById('label-' + activeProductId);
+            const row = document.getElementById('row-' + activeProductId);
+            const editDiv = document.getElementById('edit-' + activeProductId);
+
+            // Update toggle
+            track.classList.toggle('on', isNowAvailable);
+            label.classList.toggle('on', isNowAvailable);
+            label.textContent = isNowAvailable ? 'Listed' : 'Unlisted';
+
+            // Update row style
+            row.classList.toggle('unlisted', !isNowAvailable);
+
+            // Inside confirmToggle, after row.classList.toggle(...)  add:
+            const toggleWrap = document.querySelector(`.toggle-wrap[data-id="${activeProductId}"]`);
+            if (toggleWrap) toggleWrap.dataset.status = isNowAvailable ? 'Available' : 'Out Of Stock';
+
+            // Swap edit button
+            if (isNowAvailable) {
+              editDiv.innerHTML = `<a href="/admin/editProduct/${activeProductId}" class="btn-edit"><i class="fa fa-pencil"></i> Edit</a>`;
+            } else {
+              editDiv.innerHTML = `<span class="btn-edit" style="opacity:0.4; cursor:not-allowed; pointer-events:none;"><i class="fa fa-pencil"></i> Edit</span>`;
+            }
+
+            closeModal('toggleModal');
+            showToast(isNowAvailable ? 'Product listed successfully' : 'Product unlisted successfully', 'success');
+          } else {
+            closeModal('toggleModal');
+            showToast(data.message || 'Something went wrong.', 'error');
+          }
+        } catch (err) {
+          console.error(err);
+          closeModal('toggleModal');
+          showToast('Server error. Please try again.', 'error');
+        }
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.remove('open');
+      }
+
+      // Replace the old toggleModal click listener with this
+      document.addEventListener('click', function (e) {
+        const toggleWrap = e.target.closest('.toggle-wrap');
+        if (toggleWrap) {
+          const id = toggleWrap.dataset.id;
+          const name = toggleWrap.dataset.name;
+          const status = toggleWrap.dataset.status;
+          openToggleModal(id, name, status);
+        }
+      });
+
+      document.getElementById('toggleModal').addEventListener('click', function (e) {
+        if (e.target === this) closeModal('toggleModal');
+      });
+    </script>
+
+  </body>
+
+  </html>

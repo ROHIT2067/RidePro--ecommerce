@@ -88,7 +88,7 @@ const categoryDelete = async (req, res) => {
 
     await Category.findByIdAndUpdate(catId, { status: newStatus });
 
-    return res.status(200).json({ success: true });
+    return res.redirect('/admin/category');
   } catch (error) {
     console.log("Error in updating status ", error);
     return res.status(500).json({ success: false, message: "Server error" });

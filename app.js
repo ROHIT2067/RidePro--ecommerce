@@ -51,7 +51,7 @@ app.use('/Images', express.static(path.join(process.cwd(), 'Images')));
 
 app.use(nocache());
 
-app.get('/',(req,res)=>res.redirect('/login'))
+// app.get('/',(req,res)=>res.redirect('/'))
 app.use('/',userRouter)
 app.use('/admin',adminRouter)
 

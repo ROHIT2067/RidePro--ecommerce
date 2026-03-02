@@ -1,0 +1,836 @@
+<%- include('partials/admin_sidebar') %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Product — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #f0f2f8;
+      --card-bg: #ffffff;
+      --border: #e8eaf0;
+      --text: #1a1d23;
+      --muted: #8a8f9e;
+      --accent: #1a1d23;
+      --accent-hover: #2d3142;
+      --danger: #e8411a;
+      --success: #16a34a;
+      --font: 'DM Sans', sans-serif;
+      --radius: 12px;
+      --sidebar-width: 220px;
+    }
+
+    body { font-family: var(--font); background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+    .sidebar { width: 250px; background-color: #ffffff; border-right: 1px solid #e5e7eb; padding: 20px 0; position: fixed; height: 100vh; overflow-y: auto; }
+    .logo { padding: 0 20px 30px; display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; color: #1a1a1a; }
+    .logo i { font-size: 24px; }
+    .nav-menu { list-style: none; }
+    .nav-item { margin-bottom: 5px; }
+    .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: #6b7280; text-decoration: none; transition: all 0.3s ease; font-size: 14px; }
+    .nav-link:hover { background-color: #f9fafb; color: #1a1a1a; }
+    .nav-link.active { background-color: #f3f4f6; color: #1a1a1a; font-weight: 500; border-left: 3px solid #3b82f6; }
+    .nav-link i { width: 20px; text-align: center; font-size: 16px; }
+
+    .main { margin-left: var(--sidebar-width); flex: 1; padding: 2rem 2.5rem; min-height: 100vh; }
+
+    .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--muted); margin-bottom: 1.75rem; }
+    .breadcrumb a { color: var(--muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--text); }
+    .breadcrumb-sep { opacity: 0.4; }
+    .breadcrumb-current { color: var(--text); font-weight: 500; }
+
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; }
+    .page-title { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }
+    .page-subtitle { font-size: 0.82rem; color: var(--muted); margin-top: 0.2rem; }
+
+    .form-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; align-items: start; }
+
+    .card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+    .card-header { padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; }
+    .card-header-icon { width: 28px; height: 28px; border-radius: 7px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--muted); }
+    .card-title { font-size: 0.9rem; font-weight: 600; letter-spacing: -0.01em; }
+    .card-body { padding: 1.5rem; }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group:last-child { margin-bottom: 0; }
+
+    label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text); margin-bottom: 0.45rem; letter-spacing: 0.01em; }
+    .label-required::after { content: ' *'; color: var(--danger); }
+
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%; padding: 0.6rem 0.85rem; border: 1px solid var(--border); border-radius: 8px;
+      font-family: var(--font); font-size: 0.85rem; color: var(--text); background: var(--bg);
+      outline: none; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(26,29,35,0.07); }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+    select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8f9e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.85rem center; padding-right: 2.2rem; }
+
+    .variants-list { display: flex; flex-direction: column; gap: 1rem; }
+    .variant-card { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); }
+    .variant-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: #f7f8fc; border-bottom: 1px solid var(--border); }
+    .variant-title { font-size: 0.82rem; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 0.4rem; }
+    .variant-num { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.7rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+    .variant-remove { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.9rem; padding: 0.2rem 0.4rem; border-radius: 5px; transition: color 0.15s, background 0.15s; }
+    .variant-remove:hover { color: var(--danger); background: #fef2f0; }
+    .variant-body { padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+    .variant-body .form-group { margin-bottom: 0; }
+    .variant-body .full { grid-column: 1 / -1; }
+
+    .image-upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 1.25rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: var(--card-bg); position: relative; }
+    .image-upload-area:hover { border-color: var(--accent); background: #f7f8fc; }
+    .image-upload-area.has-error { border-color: var(--danger); }
+    .image-upload-area.has-success { border-color: var(--success); }
+    .image-upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-icon { font-size: 1.4rem; color: var(--muted); margin-bottom: 0.4rem; }
+    .upload-text { font-size: 0.8rem; color: var(--muted); }
+    .upload-text strong { color: var(--text); }
+
+    .image-counter { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; font-weight: 500; margin-top: 0.5rem; padding: 0.2rem 0.6rem; border-radius: 20px; background: var(--bg); border: 1px solid var(--border); color: var(--muted); }
+    .image-counter.valid { background: #dcfce7; border-color: #86efac; color: var(--success); }
+    .image-counter.invalid { background: #fee2e2; border-color: #fca5a5; color: var(--danger); }
+
+    .image-previews { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+    .preview-thumb { width: 56px; height: 56px; border-radius: 7px; object-fit: cover; border: 1px solid var(--border); display: block; }
+    .preview-wrap { position: relative; display: inline-block; }
+    .preview-remove { position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 0.55rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .preview-edit { position: absolute; bottom: -5px; right: -5px; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.55rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+    .preview-edit:hover { background: var(--accent-hover); }
+
+    .btn-add-variant { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.7rem; border: 2px dashed var(--border); border-radius: 10px; background: none; color: var(--muted); font-family: var(--font); font-size: 0.83rem; font-weight: 500; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; margin-top: 0.5rem; }
+    .btn-add-variant:hover { border-color: var(--accent); color: var(--accent); background: #f7f8fc; }
+
+    .side-cards { display: flex; flex-direction: column; gap: 1.25rem; }
+    .form-actions { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 0.7rem 1.2rem; font-family: var(--font); font-size: 0.875rem; font-weight: 600; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: background 0.15s, transform 0.15s; letter-spacing: 0.01em; }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+    .btn-secondary { background: none; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem 1.2rem; font-family: var(--font); font-size: 0.875rem; font-weight: 500; cursor: pointer; width: 100%; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; }
+    .btn-secondary:hover { background: var(--bg); color: var(--text); }
+
+    #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; padding: 0.75rem 1.25rem; border-radius: 10px; font-family: var(--font); font-size: 0.85rem; font-weight: 500; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 9999; opacity: 0; transform: translateY(10px); transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
+
+    .field-error { font-size: 0.75rem; color: var(--danger); margin-top: 0.35rem; display: none; }
+    .field-error.show { display: block; }
+    input.error, select.error, textarea.error { border-color: var(--danger); }
+
+    @media (max-width: 1024px) { .form-layout { grid-template-columns: 1fr; } }
+
+    /* ═══════ CROP MODAL ═══════ */
+    #cropModal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65); z-index: 10000;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    #cropModal.open { display: flex; }
+
+    .crop-dialog { background: #fff; border-radius: 16px; width: min(680px, 96vw); max-height: 92vh; display: flex; flex-direction: column; box-shadow: 0 24px 64px rgba(0,0,0,0.25); overflow: hidden; }
+
+    .crop-dialog-header { padding: 1rem 1.4rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .crop-dialog-title { font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .crop-dialog-close { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 1.1rem; padding: 0.25rem 0.5rem; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+    .crop-dialog-close:hover { color: var(--danger); background: #fef2f0; }
+
+    .crop-toolbar { padding: 0.75rem 1.4rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; flex-shrink: 0; background: var(--bg); }
+    .crop-tool-group { display: flex; align-items: center; gap: 0.4rem; padding-right: 0.8rem; border-right: 1px solid var(--border); }
+    .crop-tool-group:last-child { border-right: none; padding-right: 0; }
+    .crop-tool-label { font-size: 0.72rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
+
+    .tool-btn { background: #fff; border: 1px solid var(--border); border-radius: 7px; padding: 0.35rem 0.6rem; font-family: var(--font); font-size: 0.75rem; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 0.3rem; transition: background 0.15s, border-color 0.15s, color 0.15s; white-space: nowrap; }
+    .tool-btn:hover { background: var(--bg); border-color: var(--accent); }
+    .tool-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .tool-btn i { font-size: 0.8rem; }
+    .ratio-btn { min-width: 52px; justify-content: center; }
+
+    .crop-canvas-wrap { flex: 1; overflow: auto; padding: 1.25rem; display: flex; align-items: center; justify-content: center; background: #2a2a2a; position: relative; min-height: 300px; }
+
+    .crop-stage { position: relative; display: inline-block; user-select: none; cursor: crosshair; line-height: 0; }
+
+    #cropSourceImg { display: block; max-width: 560px; max-height: 400px; object-fit: contain; }
+
+    .crop-selection { position: absolute; border: 2px solid #fff; cursor: move; z-index: 3; }
+
+    .crop-dim { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
+
+    .crop-handle { position: absolute; width: 12px; height: 12px; background: #fff; border-radius: 2px; border: 1px solid rgba(0,0,0,0.4); z-index: 4; }
+    .crop-handle.nw { top: -6px; left: -6px; cursor: nw-resize; }
+    .crop-handle.ne { top: -6px; right: -6px; cursor: ne-resize; }
+    .crop-handle.sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+    .crop-handle.se { bottom: -6px; right: -6px; cursor: se-resize; }
+    .crop-handle.n  { top: -6px; left: calc(50% - 6px); cursor: n-resize; }
+    .crop-handle.s  { bottom: -6px; left: calc(50% - 6px); cursor: s-resize; }
+    .crop-handle.w  { left: -6px; top: calc(50% - 6px); cursor: w-resize; }
+    .crop-handle.e  { right: -6px; top: calc(50% - 6px); cursor: e-resize; }
+
+    .crop-info { position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; pointer-events: none; white-space: nowrap; }
+
+    .crop-grid-line { position: absolute; background: rgba(255,255,255,0.3); pointer-events: none; }
+
+    .crop-dialog-footer { padding: 1rem 1.4rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-shrink: 0; }
+    .crop-output-info { font-size: 0.75rem; color: var(--muted); }
+    .crop-footer-actions { display: flex; gap: 0.6rem; }
+
+    .btn-crop-cancel { padding: 0.55rem 1.1rem; border: 1px solid var(--border); border-radius: 8px; background: none; font-family: var(--font); font-size: 0.83rem; color: var(--muted); cursor: pointer; transition: background 0.15s; }
+    .btn-crop-cancel:hover { background: var(--bg); }
+
+    .btn-crop-apply { padding: 0.55rem 1.2rem; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-family: var(--font); font-size: 0.83rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; transition: background 0.15s; }
+    .btn-crop-apply:hover { background: var(--accent-hover); }
+
+    .size-select { padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-family: var(--font); font-size: 0.75rem; color: var(--text); background: #fff; cursor: pointer; outline: none; }
+  </style>
+</head>
+<body>
+
+  <main class="main">
+    <nav class="breadcrumb">
+      <a href="/admin/adminHome">Admin</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="/admin/products">Products</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-current">Add Product</span>
+    </nav>
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Add New Product</h1>
+        <p class="page-subtitle">Fill in the details and add variants below</p>
+      </div>
+    </div>
+
+    <form id="addProductForm" enctype="multipart/form-data">
+      <div class="form-layout">
+
+        <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-header-icon"><i class="fa fa-tag"></i></div>
+              <span class="card-title">Basic Information</span>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="label-required">Product Name</label>
+                <input type="text" id="productName" name="productName" placeholder="Enter product name" />
+                <div class="field-error" id="err-productName">Product name is required.</div>
+              </div>
+              <div class="form-group">
+                <label class="label-required">Description</label>
+                <textarea id="description" name="description" placeholder="Describe the product in detail"></textarea>
+                <div class="field-error" id="err-description">Description is required.</div>
+              </div>
+              <div class="form-group">
+                <label class="label-required">Category</label>
+                <select id="category" name="category">
+                  <option value="">— Select a category —</option>
+                  <% if (typeof categories !== 'undefined') { %>
+                    <% categories.forEach(cat => { %>
+                      <option value="<%= cat._id %>"><%= cat.name %></option>
+                    <% }) %>
+                  <% } %>
+                </select>
+                <div class="field-error" id="err-category">Please select a category.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-header-icon"><i class="fa fa-layer-group"></i></div>
+              <span class="card-title">Product Variants</span>
+            </div>
+            <div class="card-body">
+              <p style="font-size:0.8rem;color:var(--muted);margin-bottom:1rem;">Add at least one variant with size, color, price and stock.</p>
+              <div class="variants-list" id="variantsList"></div>
+              <button type="button" class="btn-add-variant" onclick="addVariant()">
+                <i class="fa fa-plus"></i> Add Variant
+              </button>
+              <div class="field-error" id="err-variants" style="margin-top:0.5rem;">At least one variant is required.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="side-cards">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-header-icon"><i class="fa fa-floppy-disk"></i></div>
+              <span class="card-title">Actions</span>
+            </div>
+            <div class="card-body">
+              <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                  <i class="fa fa-check"></i> Save Product
+                </button>
+                <a href="/admin/products" class="btn-secondary">Cancel</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </form>
+  </main>
+
+  <div id="toast"></div>
+
+  <!-- CROP MODAL -->
+  <div id="cropModal">
+    <div class="crop-dialog">
+      <div class="crop-dialog-header">
+        <div class="crop-dialog-title"><i class="fa fa-crop-simple"></i> Crop & Resize Image</div>
+        <button class="crop-dialog-close" onclick="closeCropModal()"><i class="fa fa-xmark"></i></button>
+      </div>
+      <div class="crop-toolbar">
+        <div class="crop-tool-group">
+          <span class="crop-tool-label">Ratio</span>
+          <button class="tool-btn ratio-btn active" data-ratio="free"  onclick="setRatio('free',this)">Free</button>
+          <button class="tool-btn ratio-btn"         data-ratio="1"     onclick="setRatio('1',this)">1:1</button>
+          <button class="tool-btn ratio-btn"         data-ratio="1.333" onclick="setRatio('1.333',this)">4:3</button>
+          <button class="tool-btn ratio-btn"         data-ratio="1.778" onclick="setRatio('1.778',this)">16:9</button>
+          <button class="tool-btn ratio-btn"         data-ratio="0.75"  onclick="setRatio('0.75',this)">3:4</button>
+        </div>
+        <div class="crop-tool-group">
+          <span class="crop-tool-label">Flip</span>
+          <button class="tool-btn" onclick="flipImage('h')"><i class="fa fa-left-right"></i></button>
+          <button class="tool-btn" onclick="flipImage('v')"><i class="fa fa-up-down"></i></button>
+        </div>
+        <div class="crop-tool-group">
+          <span class="crop-tool-label">Rotate</span>
+          <button class="tool-btn" onclick="rotateImage(-90)"><i class="fa fa-rotate-left"></i></button>
+          <button class="tool-btn" onclick="rotateImage(90)"><i class="fa fa-rotate-right"></i></button>
+        </div>
+        <div class="crop-tool-group">
+          <button class="tool-btn" onclick="resetCrop()"><i class="fa fa-arrows-rotate"></i> Reset</button>
+        </div>
+      </div>
+      <div class="crop-canvas-wrap">
+        <div class="crop-stage" id="cropStage">
+          <img id="cropSourceImg" draggable="false" alt="" />
+        </div>
+      </div>
+      <div class="crop-dialog-footer">
+        <div class="crop-output-info">
+          Output:
+          <select class="size-select" id="outputSizeSelect">
+            <option value="800">800px</option>
+            <option value="1000" selected>1000px</option>
+            <option value="1200">1200px</option>
+            <option value="original">Original</option>
+          </select>
+        </div>
+        <div class="crop-footer-actions">
+          <button class="btn-crop-cancel" onclick="closeCropModal()">Cancel</button>
+          <button class="btn-crop-apply" onclick="applyCrop()"><i class="fa fa-check"></i> Apply Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /* ═══════════════════════════════════════════
+     VARIANT MANAGEMENT
+  ═══════════════════════════════════════════ */
+  let variantCount = 0;
+  const variantImages = {};
+
+  function addVariant() {
+    variantCount++;
+    const id  = `variant-${variantCount}`;
+    const num = variantCount;
+    const card = document.createElement('div');
+    card.className = 'variant-card';
+    card.id = id;
+    card.innerHTML = `
+      <div class="variant-header">
+        <div class="variant-title">
+          <span class="variant-num">${num}</span> Variant ${num}
+        </div>
+        <button type="button" class="variant-remove" onclick="removeVariant('${id}')">
+          <i class="fa fa-xmark"></i>
+        </button>
+      </div>
+      <div class="variant-body">
+        <div class="form-group">
+          <label>Size</label>
+          <select name="variants[${num}][size]">
+            <option value="">— Select —</option>
+            <option>Small</option><option>Medium</option><option>Large</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Color</label>
+          <input type="text" name="variants[${num}][color]" placeholder="e.g. Black" />
+        </div>
+        <div class="form-group">
+          <label class="label-required">Price (₹)</label>
+          <input type="number" name="variants[${num}][price]" placeholder="0.00" min="0" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label class="label-required">Stock</label>
+          <input type="number" name="variants[${num}][stock]" placeholder="0" min="0" />
+        </div>
+        <div class="form-group full">
+          <label>Images <span style="color:var(--muted);font-weight:400;">(Min 3, Max 5)</span></label>
+          <div class="image-upload-area" id="uploadArea-${id}">
+            <input type="file" accept="image/*" multiple onchange="handleRawImages(event,'${id}')" />
+            <div class="upload-icon"><i class="fa fa-cloud-arrow-up"></i></div>
+            <div class="upload-text"><strong>Click to upload</strong> or drag & drop</div>
+            <div class="upload-text" style="font-size:0.72rem;margin-top:0.2rem;">PNG, JPG, WEBP — crop after selecting</div>
+          </div>
+          <div id="counter-${id}" class="image-counter" style="display:none;"></div>
+          <div class="image-previews" id="previews-${id}"></div>
+          <div class="field-error" id="img-err-${id}"></div>
+        </div>
+      </div>`;
+    document.getElementById('variantsList').appendChild(card);
+    variantImages[id] = [];
+    document.getElementById('err-variants').classList.remove('show');
+  }
+
+  function removeVariant(id) {
+    document.getElementById(id)?.remove();
+    delete variantImages[id];
+  }
+
+  /* ═══════════════════════════════════════════
+     CROP QUEUE
+  ═══════════════════════════════════════════ */
+  let cropQueue = [], cropQueueIdx = 0, currentVid = null;
+
+  function handleRawImages(event, vid) {
+    const files = Array.from(event.target.files);
+    event.target.value = '';
+    const errEl = document.getElementById(`img-err-${vid}`);
+    const area  = document.getElementById(`uploadArea-${vid}`);
+    errEl.style.display = 'none';
+    area.classList.remove('has-error','has-success');
+    const allowed = 5 - (variantImages[vid]||[]).length;
+    if (allowed <= 0) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Already at 5 images. Remove one first.';
+      area.classList.add('has-error');
+      return;
+    }
+    cropQueue    = files.slice(0, allowed);
+    cropQueueIdx = 0;
+    currentVid   = vid;
+    nextCrop();
+  }
+
+  function nextCrop() {
+    if (cropQueueIdx >= cropQueue.length) { refreshCounter(currentVid); return; }
+    const item = cropQueue[cropQueueIdx];
+    if (item._dataUrl) { openCrop(item._dataUrl, item.name); return; }
+    const r = new FileReader();
+    r.onload = e => openCrop(e.target.result, item.name);
+    r.readAsDataURL(item);
+  }
+
+  /* ═══════════════════════════════════════════
+     CROP STATE
+  ═══════════════════════════════════════════ */
+  const C = { flipH:false, flipV:false, rot:0, ratio:'free', sel:null, drag:null, file:'' };
+  let selEl = null;
+
+  function openCrop(dataUrl, name) {
+    C.flipH=false; C.flipV=false; C.rot=0; C.ratio='free'; C.sel=null; C.drag=null;
+    C.file = name || 'img.jpg';
+    removeSel();
+    document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-ratio="free"]').classList.add('active');
+    const modal = document.getElementById('cropModal');
+    const img   = document.getElementById('cropSourceImg');
+    img.style.transform = '';
+    modal.classList.add('open');
+    img.onload = () => {
+      img.style.transform = '';
+      requestAnimationFrame(() => requestAnimationFrame(initSel));
+    };
+    if (img.src === dataUrl) { img.onload(); } else { img.src = dataUrl; }
+  }
+
+  function closeCropModal() {
+    document.getElementById('cropModal').classList.remove('open');
+    removeSel();
+  }
+
+  function applyTransform() {
+    document.getElementById('cropSourceImg').style.transform =
+      `rotate(${C.rot}deg) scale(${C.flipH?-1:1},${C.flipV?-1:1})`;
+  }
+
+  function flipImage(d) { d==='h' ? C.flipH=!C.flipH : C.flipV=!C.flipV; applyTransform(); }
+
+  function rotateImage(deg) {
+    C.rot = (C.rot + deg + 360) % 360;
+    applyTransform();
+    requestAnimationFrame(() => requestAnimationFrame(initSel));
+  }
+
+  function resetCrop() {
+    C.flipH=false; C.flipV=false; C.rot=0;
+    applyTransform();
+    requestAnimationFrame(() => requestAnimationFrame(initSel));
+  }
+
+  function initSel() {
+    const img   = document.getElementById('cropSourceImg');
+    const stage = document.getElementById('cropStage');
+    const ir    = img.getBoundingClientRect();
+    const sr    = stage.getBoundingClientRect();
+    if (ir.width === 0) { requestAnimationFrame(initSel); return; }
+    const m = 0.1;
+    C.sel = {
+      x: (ir.left - sr.left) + ir.width  * m,
+      y: (ir.top  - sr.top)  + ir.height * m,
+      w: ir.width  * (1 - 2*m),
+      h: ir.height * (1 - 2*m)
+    };
+    drawSel();
+  }
+
+  function removeSel() {
+    selEl?.remove(); selEl = null;
+    document.getElementById('cropDim')?.remove();
+  }
+
+  function drawSel() {
+    removeSel();
+    if (!C.sel) return;
+    const stage = document.getElementById('cropStage');
+    const img   = document.getElementById('cropSourceImg');
+    const ir    = img.getBoundingClientRect();
+    const sr    = stage.getBoundingClientRect();
+    const ix = ir.left - sr.left, iy = ir.top - sr.top;
+    const {x, y, w, h} = C.sel;
+
+    const dim = document.createElement('div');
+    dim.className = 'crop-dim'; dim.id = 'cropDim';
+    dim.innerHTML = `<svg style="position:absolute;left:${ix}px;top:${iy}px;" width="${ir.width}" height="${ir.height}">
+      <defs><mask id="hm">
+        <rect width="100%" height="100%" fill="white"/>
+        <rect id="holeRect" x="${x-ix}" y="${y-iy}" width="${w}" height="${h}" fill="black"/>
+      </mask></defs>
+      <rect width="100%" height="100%" fill="rgba(0,0,0,0.55)" mask="url(#hm)"/>
+    </svg>`;
+    stage.appendChild(dim);
+
+    selEl = document.createElement('div');
+    selEl.className = 'crop-selection';
+    selEl.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px;`;
+    selEl.innerHTML = `
+      <div class="crop-grid-line" style="left:33.33%;top:0;bottom:0;width:1px;"></div>
+      <div class="crop-grid-line" style="left:66.66%;top:0;bottom:0;width:1px;"></div>
+      <div class="crop-grid-line" style="top:33.33%;left:0;right:0;height:1px;"></div>
+      <div class="crop-grid-line" style="top:66.66%;left:0;right:0;height:1px;"></div>
+      <div class="crop-handle nw" data-h="nw"></div>
+      <div class="crop-handle n"  data-h="n"></div>
+      <div class="crop-handle ne" data-h="ne"></div>
+      <div class="crop-handle e"  data-h="e"></div>
+      <div class="crop-handle se" data-h="se"></div>
+      <div class="crop-handle s"  data-h="s"></div>
+      <div class="crop-handle sw" data-h="sw"></div>
+      <div class="crop-handle w"  data-h="w"></div>
+      <div class="crop-info" id="cropInfo"></div>`;
+    stage.appendChild(selEl);
+    refreshInfo();
+    bindDrag();
+  }
+
+  function moveSel(x, y, w, h) {
+    C.sel = {x, y, w, h};
+    if (selEl) {
+      selEl.style.left=x+'px'; selEl.style.top=y+'px';
+      selEl.style.width=w+'px'; selEl.style.height=h+'px';
+    }
+    const hr = document.getElementById('holeRect');
+    if (hr) {
+      const img = document.getElementById('cropSourceImg');
+      const ir  = img.getBoundingClientRect();
+      const sr  = document.getElementById('cropStage').getBoundingClientRect();
+      hr.setAttribute('x', x-(ir.left-sr.left));
+      hr.setAttribute('y', y-(ir.top-sr.top));
+      hr.setAttribute('width', w);
+      hr.setAttribute('height', h);
+    }
+    refreshInfo();
+  }
+
+  function refreshInfo() {
+    const el = document.getElementById('cropInfo');
+    if (!el || !C.sel) return;
+    const img = document.getElementById('cropSourceImg');
+    const ir  = img.getBoundingClientRect();
+    el.textContent = `${Math.round(C.sel.w*(img.naturalWidth/ir.width))} × ${Math.round(C.sel.h*(img.naturalHeight/ir.height))} px`;
+  }
+
+  function bindDrag() {
+    if (!selEl) return;
+    selEl.addEventListener('mousedown', e => {
+      if (e.target.dataset.h) return;
+      e.preventDefault(); e.stopPropagation();
+      C.drag = {type:'move', sx:e.clientX, sy:e.clientY, orig:{...C.sel}};
+    });
+    selEl.querySelectorAll('.crop-handle').forEach(h => {
+      h.addEventListener('mousedown', e => {
+        e.preventDefault(); e.stopPropagation();
+        C.drag = {type:'resize', hd:h.dataset.h, sx:e.clientX, sy:e.clientY, orig:{...C.sel}};
+      });
+    });
+  }
+
+  document.getElementById('cropStage').addEventListener('mousedown', e => {
+    if (e.target.closest('.crop-selection')) return;
+    e.preventDefault();
+    const sr = document.getElementById('cropStage').getBoundingClientRect();
+    C.drag = {type:'new', sx:e.clientX, sy:e.clientY, ox:e.clientX-sr.left, oy:e.clientY-sr.top};
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!C.drag) return;
+    const stage = document.getElementById('cropStage');
+    const img   = document.getElementById('cropSourceImg');
+    const sr    = stage.getBoundingClientRect();
+    const ir    = img.getBoundingClientRect();
+    const minX=ir.left-sr.left, minY=ir.top-sr.top;
+    const maxX=minX+ir.width,   maxY=minY+ir.height;
+    const clamp = (v,lo,hi) => Math.max(lo, Math.min(hi, v));
+    const dx = e.clientX - C.drag.sx;
+    const dy = e.clientY - C.drag.sy;
+
+    if (C.drag.type === 'new') {
+      const cx = clamp(e.clientX-sr.left, minX, maxX);
+      const cy = clamp(e.clientY-sr.top,  minY, maxY);
+      let x=Math.min(C.drag.ox,cx), y=Math.min(C.drag.oy,cy);
+      let w=Math.abs(cx-C.drag.ox), h=Math.abs(cy-C.drag.oy);
+      if (C.ratio !== 'free') h = w / parseFloat(C.ratio);
+      w=clamp(w,10,maxX-x); h=clamp(h,10,maxY-y);
+      if (!selEl) { C.sel={x,y,w,h}; drawSel(); } else moveSel(x,y,w,h);
+    }
+    else if (C.drag.type === 'move') {
+      const o = C.drag.orig;
+      moveSel(clamp(o.x+dx,minX,maxX-o.w), clamp(o.y+dy,minY,maxY-o.h), o.w, o.h);
+    }
+    else if (C.drag.type === 'resize') {
+      let {x,y,w,h} = C.drag.orig;
+      const hd = C.drag.hd;
+      if (hd.includes('e')) w = Math.max(20, C.drag.orig.w+dx);
+      if (hd.includes('s')) h = Math.max(20, C.drag.orig.h+dy);
+      if (hd.includes('w')) { w=Math.max(20,C.drag.orig.w-dx); x=C.drag.orig.x+C.drag.orig.w-w; }
+      if (hd.includes('n')) { h=Math.max(20,C.drag.orig.h-dy); y=C.drag.orig.y+C.drag.orig.h-h; }
+      if (C.ratio !== 'free') {
+        const r = parseFloat(C.ratio);
+        if (hd.includes('e')||hd.includes('w')) h=w/r; else w=h*r;
+      }
+      x=clamp(x,minX,maxX-20); y=clamp(y,minY,maxY-20);
+      w=clamp(w,20,maxX-x);    h=clamp(h,20,maxY-y);
+      moveSel(x,y,w,h);
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!C.drag) return;
+    if (C.drag.type === 'new') {
+      if (!C.sel || C.sel.w<10 || C.sel.h<10) initSel(); else drawSel();
+    }
+    C.drag = null;
+  });
+
+  function setRatio(ratio, btn) {
+    C.ratio = ratio;
+    document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (ratio !== 'free' && C.sel) { C.sel.h = C.sel.w/parseFloat(ratio); drawSel(); }
+  }
+
+  /* ═══════════════════════════════════════════
+     APPLY CROP
+  ═══════════════════════════════════════════ */
+  function applyCrop() {
+    const img   = document.getElementById('cropSourceImg');
+    const stage = document.getElementById('cropStage');
+    const ir    = img.getBoundingClientRect();
+    const sr    = stage.getBoundingClientRect();
+    const sel   = C.sel;
+    if (!sel || sel.w<5 || sel.h<5) { showToast('Draw a crop area first.','error'); return; }
+
+    const ox = ir.left-sr.left, oy = ir.top-sr.top;
+    const scaleX = img.naturalWidth/ir.width, scaleY = img.naturalHeight/ir.height;
+    const cropX = Math.max(0,(sel.x-ox)) * scaleX;
+    const cropY = Math.max(0,(sel.y-oy)) * scaleY;
+    const cropW = Math.min(sel.w*scaleX, img.naturalWidth-cropX);
+    const cropH = Math.min(sel.h*scaleY, img.naturalHeight-cropY);
+
+    const s = document.getElementById('outputSizeSelect').value;
+    let outW, outH;
+    if (s === 'original') { outW=Math.round(cropW); outH=Math.round(cropH); }
+    else {
+      const n=parseInt(s), a=cropW/cropH;
+      if (a>=1) { outW=n; outH=Math.round(n/a); } else { outH=n; outW=Math.round(n*a); }
+    }
+
+    const cv = document.createElement('canvas');
+    cv.width=outW; cv.height=outH;
+    const ctx = cv.getContext('2d');
+    ctx.save();
+    ctx.translate(outW/2, outH/2);
+    ctx.rotate(C.rot * Math.PI/180);
+    ctx.scale(C.flipH?-1:1, C.flipV?-1:1);
+    if (C.rot===90||C.rot===270) ctx.drawImage(img,cropX,cropY,cropW,cropH,-outH/2,-outW/2,outH,outW);
+    else ctx.drawImage(img,cropX,cropY,cropW,cropH,-outW/2,-outH/2,outW,outH);
+    ctx.restore();
+
+    cv.toBlob(blob => {
+      if (!blob) { showToast('Crop failed.','error'); return; }
+      const dataUrl = cv.toDataURL('image/jpeg', 0.92);
+      variantImages[currentVid].push({blob, dataUrl, name:C.file});
+      addThumb(currentVid, dataUrl, variantImages[currentVid].length-1);
+      refreshCounter(currentVid);
+      closeCropModal();
+      cropQueueIdx++;
+      setTimeout(nextCrop, 200);
+    }, 'image/jpeg', 0.92);
+  }
+
+  /* ═══════════════════════════════════════════
+     THUMBNAILS
+  ═══════════════════════════════════════════ */
+  function addThumb(vid, dataUrl, idx) {
+    const preview = document.getElementById(`previews-${vid}`);
+    const wrap = document.createElement('div');
+    wrap.className = 'preview-wrap'; wrap.dataset.idx = idx;
+    wrap.innerHTML = `
+      <img src="${dataUrl}" class="preview-thumb"/>
+      <button type="button" class="preview-edit" onclick="reCrop('${vid}',${idx})"><i class="fa fa-crop-simple"></i></button>
+      <button type="button" class="preview-remove"><i class="fa fa-xmark"></i></button>`;
+    wrap.querySelector('.preview-remove').addEventListener('click', () => {
+      variantImages[vid].splice(parseInt(wrap.dataset.idx), 1);
+      wrap.remove();
+      document.getElementById(`previews-${vid}`).querySelectorAll('.preview-wrap').forEach((w,i) => w.dataset.idx=i);
+      refreshCounter(vid);
+    });
+    preview.appendChild(wrap);
+  }
+
+  function reCrop(vid, idx) {
+    const o = variantImages[vid][idx]; if (!o) return;
+    variantImages[vid].splice(idx, 1);
+    const wraps = document.getElementById(`previews-${vid}`).querySelectorAll('.preview-wrap');
+    wraps[idx]?.remove();
+    document.getElementById(`previews-${vid}`).querySelectorAll('.preview-wrap').forEach((w,i) => w.dataset.idx=i);
+    cropQueue=[{_dataUrl:o.dataUrl, name:o.name}]; cropQueueIdx=0; currentVid=vid;
+    nextCrop();
+  }
+
+  function refreshCounter(vid) {
+    const count = (variantImages[vid]||[]).length;
+    const counter = document.getElementById(`counter-${vid}`);
+    const area    = document.getElementById(`uploadArea-${vid}`);
+    const errEl   = document.getElementById(`img-err-${vid}`);
+    counter.style.display = 'inline-flex';
+    counter.textContent   = `${count} / 5 images`;
+    counter.className     = `image-counter ${count>=3?'valid':'invalid'}`;
+    area.classList.remove('has-error','has-success');
+    errEl.style.display = 'none';
+    if (count >= 3) area.classList.add('has-success');
+    else if (count > 0) {
+      area.classList.add('has-error');
+      errEl.style.display='block';
+      errEl.textContent=`Need at least 3 (${count} added).`;
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     TOAST
+  ═══════════════════════════════════════════ */
+  function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent=msg; t.style.background=type==='success'?'#16a34a':'#e8411a';
+    t.style.opacity='1'; t.style.transform='translateY(0)';
+    setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateY(10px)'; }, 3000);
+  }
+
+  /* ═══════════════════════════════════════════
+     FORM SUBMIT
+  ═══════════════════════════════════════════ */
+  function fieldErr(fid, eid, show) {
+    document.getElementById(fid)?.classList[show?'add':'remove']('error');
+    document.getElementById(eid)?.classList[show?'add':'remove']('show');
+    return show;
+  }
+
+  document.getElementById('addProductForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    let err = false;
+
+    if (!document.getElementById('productName').value.trim()) err=fieldErr('productName','err-productName',true)||true;
+    else fieldErr('productName','err-productName',false);
+
+    if (!document.getElementById('description').value.trim()) err=fieldErr('description','err-description',true)||true;
+    else fieldErr('description','err-description',false);
+
+    if (!document.getElementById('category').value) err=fieldErr('category','err-category',true)||true;
+    else fieldErr('category','err-category',false);
+
+    const cards = document.querySelectorAll('.variant-card');
+    if (!cards.length) { document.getElementById('err-variants').classList.add('show'); err=true; }
+    else document.getElementById('err-variants').classList.remove('show');
+
+    cards.forEach(card => {
+      const vid   = card.id;
+      const count = (variantImages[vid]||[]).length;
+      const errEl = document.getElementById(`img-err-${vid}`);
+      const area  = document.getElementById(`uploadArea-${vid}`);
+      if (count<3||count>5) {
+        errEl.style.display='block';
+        errEl.textContent = count<3 ? `Need at least 3 images (${count} added).` : `Max 5 images (${count} added).`;
+        area.classList.add('has-error'); area.classList.remove('has-success');
+        err=true;
+      }
+    });
+
+    if (err) { showToast('Please fix errors before saving.','error'); return; }
+
+    const btn = document.querySelector('.btn-primary[type="submit"]');
+    btn.disabled=true; btn.innerHTML='<i class="fa fa-spinner fa-spin"></i> Saving...';
+
+    const fd = new FormData(this);
+    cards.forEach(card => {
+      const m = card.id.match(/variant-(\d+)/); if (!m) return;
+      const num = m[1];
+      (variantImages[card.id]||[]).forEach((o,i) => fd.append(`variants[${num}][images]`, o.blob, `v${num}_${i}.jpg`));
+    });
+
+    try {
+      const res  = await fetch('/admin/addProduct', {method:'POST', body:fd});
+      const data = await res.json();
+      if (res.ok && data.success) {
+        btn.innerHTML='<i class="fa fa-check"></i> Saved!'; btn.style.background='var(--success)';
+        showToast('Product added!','success');
+        setTimeout(()=>window.location.href='/admin/products', 1200);
+      } else {
+        btn.disabled=false; btn.innerHTML='<i class="fa fa-check"></i> Save Product';
+        showToast(data.message||'Something went wrong.','error');
+      }
+    } catch(e) {
+      btn.disabled=false; btn.innerHTML='<i class="fa fa-check"></i> Save Product';
+      showToast('Server error.','error');
+    }
+  });
+
+  addVariant();
+  </script>
+
+</body>
+</html>
