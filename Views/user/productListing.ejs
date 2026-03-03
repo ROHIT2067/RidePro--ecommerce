@@ -251,6 +251,20 @@
       width: 200px;
     }
     .search-bar input::placeholder { color: #555; }
+    .search-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding: 0;
+  line-height: 1;
+  display: none;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.search-clear:hover { color: var(--accent); }
+.search-clear.visible { display: block; }
 
     .sort-select {
       background: var(--surface);
@@ -526,30 +540,7 @@
         </div>
       </div>
 
-      <!-- Status -->
-      <div class="filter-card">
-        <div class="filter-card-header open" onclick="toggleFilter(this)">
-          <span class="filter-card-title">Availability</span>
-          <i class="fa fa-chevron-down filter-card-icon"></i>
-        </div>
-        <div class="filter-card-body">
-          <label class="filter-option">
-            <input type="radio" name="status" value="" onchange="submitFilter()" checked />
-            <span class="filter-dot"></span>
-            <span>All</span>
-          </label>
-          <label class="filter-option">
-            <input type="radio" name="status" value="Available" onchange="submitFilter()" />
-            <span class="filter-dot"></span>
-            <span>In Stock</span>
-          </label>
-          <label class="filter-option">
-            <input type="radio" name="status" value="Out Of Stock" onchange="submitFilter()" />
-            <span class="filter-dot"></span>
-            <span>Out of Stock</span>
-          </label>
-        </div>
-      </div>
+      
 
       <button type="button" class="btn-clear-filters" onclick="clearFilters()">
         <i class="fa fa-xmark"></i> Clear All Filters
@@ -565,15 +556,25 @@
     <div class="toolbar">
       <div class="toolbar-left">
         <div class="search-bar">
-          <i class="fa fa-search"></i>
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Search products..."
-            value="<%= searchQuery %>"
-            onkeydown="if(event.key==='Enter') doSearch()"
-          />
-        </div>
+  <i class="fa fa-search"></i>
+  <input
+    type="text"
+    id="searchInput"
+    placeholder="Search products..."
+    value="<%= searchQuery %>"
+    oninput="toggleSearchClear()"
+    onkeydown="if(event.key==='Enter') doSearch()"
+  />
+  <button
+    type="button"
+    class="search-clear <%= searchQuery ? 'visible' : '' %>"
+    id="searchClearBtn"
+    onclick="clearSearch()"
+    title="Clear search"
+  >
+    <i class="fa fa-xmark"></i>
+  </button>
+</div>
         <span class="results-count">
           <strong><%= totalProducts %></strong> result<%= totalProducts !== 1 ? 's' : '' %>
         </span>
@@ -630,7 +631,7 @@
               <% } else { %>
                 <div class="product-img-placeholder"><i class="fa fa-image"></i></div>
               <% } %>
-              <% if (product.createdAt && (Date.now() - new Date(product.createdAt)) < 7 * 24 * 60 * 60 * 1000) { %>
+              <% if (product.createdAt && (Date.now() - new Date(product.createdAt)) < 3 * 24 * 60 * 60 * 1000) { %>
                 <span class="product-badge">New</span>
               <% } %>
               <span class="product-status-badge <%= product.status === 'Available' ? 'available' : 'out' %>">
@@ -737,10 +738,20 @@
   // ── Clear all ──
   function clearFilters() {
     const url = new URL(window.location.href);
-    ['search','category','minPrice','maxPrice','status'].forEach(k => url.searchParams.delete(k));
+    ['search','minPrice','maxPrice','status'].forEach(k => url.searchParams.delete(k));
     url.searchParams.set('page', '1');
     window.location.href = url.toString();
   }
+
+  function toggleSearchClear() {
+  const input = document.getElementById('searchInput');
+  const btn = document.getElementById('searchClearBtn');
+  btn.classList.toggle('visible', input.value.length > 0);
+}
+
+function clearSearch() {
+  removeFilter('search');
+}
 </script>
 
 </body>

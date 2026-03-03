@@ -3,7 +3,6 @@ import Variant from "../../Models/VariantModel.js";
 import Category from "../../Models/CategoryModel.js";
 import cloudinary from "../../Config/cloudinary.js";
 import mongoose from "mongoose";
-import { success } from "zod";
 
 const productsGet = async (req, res) => {
   try {

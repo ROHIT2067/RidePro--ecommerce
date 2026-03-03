@@ -381,7 +381,7 @@
           <input type="number" name="variants[${num}][stock]" placeholder="0" min="0" />
         </div>
         <div class="form-group full">
-          <label>Images <span style="color:var(--muted);font-weight:400;">(Min 3, Max 5)</span></label>
+          <label>Images <span style="color:var(--muted);font-weight:400;">(Min 2, Max 5)</span></label>
           <div class="image-upload-area" id="uploadArea-${id}">
             <input type="file" accept="image/*" multiple onchange="handleRawImages(event,'${id}')" />
             <div class="upload-icon"><i class="fa fa-cloud-arrow-up"></i></div>
@@ -740,14 +740,14 @@
     const errEl   = document.getElementById(`img-err-${vid}`);
     counter.style.display = 'inline-flex';
     counter.textContent   = `${count} / 5 images`;
-    counter.className     = `image-counter ${count>=3?'valid':'invalid'}`;
+    counter.className     = `image-counter ${count>=2?'valid':'invalid'}`;
     area.classList.remove('has-error','has-success');
     errEl.style.display = 'none';
-    if (count >= 3) area.classList.add('has-success');
+    if (count >= 2) area.classList.add('has-success');
     else if (count > 0) {
       area.classList.add('has-error');
       errEl.style.display='block';
-      errEl.textContent=`Need at least 3 (${count} added).`;
+      errEl.textContent=`Need at least 2 (${count} added).`;
     }
   }
 
@@ -792,9 +792,9 @@
       const count = (variantImages[vid]||[]).length;
       const errEl = document.getElementById(`img-err-${vid}`);
       const area  = document.getElementById(`uploadArea-${vid}`);
-      if (count<3||count>5) {
+      if (count<2||count>5) {
         errEl.style.display='block';
-        errEl.textContent = count<3 ? `Need at least 3 images (${count} added).` : `Max 5 images (${count} added).`;
+        errEl.textContent = count<2 ? `Need at least 2 images (${count} added).` : `Max 5 images (${count} added).`;
         area.classList.add('has-error'); area.classList.remove('has-success');
         err=true;
       }

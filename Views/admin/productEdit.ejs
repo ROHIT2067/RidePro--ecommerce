@@ -104,7 +104,7 @@
     input.error, select.error, textarea.error { border-color: var(--danger); }
     @media (max-width: 1024px) { .form-layout { grid-template-columns: 1fr; } }
 
-    /* ═══════ CROP MODAL — identical to addProduct ═══════ */
+    /* ═══════ CROP MODAL ═══════ */
     #cropModal {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.65); z-index: 10000;
@@ -274,7 +274,7 @@
 
 <div id="toast"></div>
 
-<!-- ═══════ CROP MODAL — identical to addProduct ═══════ -->
+<!-- CROP MODAL -->
 <div id="cropModal">
   <div class="crop-dialog">
     <div class="crop-dialog-header">
@@ -337,7 +337,7 @@
    VARIANT MANAGEMENT
 ═══════════════════════════════════════════ */
 let variantCount = 0;
-const variantImages = {}; // variantId → [{blob, dataUrl, name}]
+const variantImages = {};
 
 window.addEventListener('DOMContentLoaded', () => {
   if (existingVariants && existingVariants.length > 0) {
@@ -410,7 +410,7 @@ function addVariant(existingData = null) {
           value="${existingData ? existingData.stock_quantity || '' : ''}" />
       </div>
       <div class="form-group full">
-        <label>Images <span style="color:var(--muted);font-weight:400;">(Min 3, Max 5)</span></label>
+        <label>Images <span style="color:var(--muted);font-weight:400;">(Min 2, Max 5)</span></label>
         ${existingImagesHtml}
         <div class="image-upload-area" id="uploadArea-${id}">
           <input type="file" accept="image/*" multiple onchange="handleRawImages(event,'${id}')" />
@@ -754,13 +754,13 @@ function refreshCounter(vid) {
   const errEl     = document.getElementById(`img-err-${vid}`);
   counter.style.display='inline-flex';
   counter.textContent=`${count} / 5 images`;
-  counter.className=`image-counter ${count>=3?'valid':'invalid'}`;
+  counter.className=`image-counter ${count>=2?'valid':'invalid'}`;
   area.classList.remove('has-error','has-success');
   errEl.style.display='none';
   if (count===0) { counter.style.display='none'; return; }
-  if (count>=3&&count<=5) area.classList.add('has-success');
+  if (count>=2&&count<=5) area.classList.add('has-success');
   else if (count>5) { area.classList.add('has-error'); errEl.style.display='block'; errEl.textContent=`Max 5 images (${count} total).`; }
-  else { area.classList.add('has-error'); errEl.style.display='block'; errEl.textContent=`Need at least 3 images (${count} total).`; }
+  else { area.classList.add('has-error'); errEl.style.display='block'; errEl.textContent=`Need at least 2 images (${count} total).`; }
 }
 
 /* ═══════════════════════════════════════════
@@ -806,9 +806,9 @@ document.getElementById('editProductForm').addEventListener('submit', async func
     const total = existingCount + (variantImages[vid]||[]).length;
     const errEl=document.getElementById(`img-err-${vid}`);
     const area=document.getElementById(`uploadArea-${vid}`);
-    if (total<3||total>5) {
+    if (total<2||total>5) {
       errEl.style.display='block';
-      errEl.textContent=total<3?`Need at least 3 images (${total} total).`:`Max 5 images (${total} total).`;
+      errEl.textContent=total<2?`Need at least 2 images (${total} total).`:`Max 5 images (${total} total).`;
       area.classList.add('has-error'); area.classList.remove('has-success');
       err=true;
     }
@@ -821,7 +821,6 @@ document.getElementById('editProductForm').addEventListener('submit', async func
 
   const fd=new FormData(this);
 
-  // Append new cropped blobs
   cards.forEach(card => {
     const m=card.id.match(/variant-(\d+)/); if (!m) return;
     const num=m[1];

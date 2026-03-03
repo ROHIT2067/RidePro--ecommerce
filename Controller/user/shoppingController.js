@@ -21,7 +21,15 @@ const productsGet = async (req, res) => {
     let maxPrice = Number(req.query.maxPrice) || 999999;
     const limit = 8;
 
-    const productFilter = {};
+    // Get only active category IDs
+    const activeCategories = await Category.find({ status: "Active" });
+    const activeCategoryIds = activeCategories.map((c) => c._id);
+
+    const productFilter = {
+      status: "Available",                          // hide unlisted products
+      category: { $in: activeCategoryIds },         // hide unlisted categories
+    };
+
     if (search)
       productFilter.productName = { $regex: "^" + search, $options: "i" };
     if (category) productFilter.category = category;
@@ -66,9 +74,6 @@ const productsGet = async (req, res) => {
     const totalPages = Math.ceil(totalProducts / limit);
     const paginated = priceFiltered.slice((page - 1) * limit, page * limit);
 
-    // Fetch categories for filter dropdown
-    const categories = await Category.find({ status: "Active" });
-
     return res.render("productListing", {
       productsData: paginated,
       currentPage: page,
@@ -79,7 +84,7 @@ const productsGet = async (req, res) => {
       categoryQuery: category,
       minPriceQuery: minPrice || "",
       maxPriceQuery: maxPrice === 999999 ? "" : maxPrice,
-      categories,
+      categories: activeCategories,   // reuse already-fetched active categories
     });
   } catch (error) {
     console.log("Error in loading products:", error);
