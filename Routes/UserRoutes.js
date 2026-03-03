@@ -6,6 +6,7 @@ import passport from "../Config/passport.js";
 import upload from "../middlewares/multer.js";
 import accountController from "../Controller/user/accountController.js";
 import addressController from "../Controller/user/addressController.js";
+import shoppingController from "../Controller/user/shoppingController.js";
 
 router.get("/", blockIfLoggedIn, userController.landingPageGet);
 router.get("/home", userController.homeGet);
@@ -73,5 +74,8 @@ router.post("/account/address/add", addressController.addressAddPost);
 router.get("/account/address/edit/:id", addressController.addressEditGet);
 router.post("/account/address/edit/:id", addressController.addressEditPost);
 router.post("/account/address/delete/:id", addressController.addressDeletePost);
+
+// ListingPage
+router.get('/products',shoppingController.productsGet)
 
 export default router;

@@ -623,7 +623,6 @@
           <table>
             <thead>
               <tr>
-                <th>Image</th>
                 <th>Name</th>
                 <th>Rating</th>
                 <th>Category</th>
@@ -635,10 +634,7 @@
                 <% productTable.forEach(product=> { %>
                   <tr id="row-<%= product._id %>" class="<%= product.status !== 'Available' ? 'unlisted' : '' %>">
 
-                    <td>
-                      <img class="product-thumb" src="https://placehold.co/44x44/f0f2f8/8a8f9e?text=?"
-                        alt="<%= product.productName %>" />
-                    </td>
+                    
 
                     <td>
                       <span class="product-name">

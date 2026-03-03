@@ -51,17 +51,17 @@
        background-position: center;
     ── */
     .carousel-slide:nth-child(1) {
-      background-image: url('/Images/acf.Rynox-Dune-Neo-Offroad-Pants-Banner_02.jpg');
+      background-image: url('/Images/LandingPage/Landingpagephoto1.jpg');
          background-size: cover;
          background-position: center;
     }
     .carousel-slide:nth-child(2) {
-      background-image: url('/Images/Landingpagephoto1.jpg');
+      background-image: url('/Images/LandingPage/Landingpagephoto2.jpg');
          background-size: cover;
          background-position: center;
     }
     .carousel-slide:nth-child(3) {
-      background-image: url('/Images/Landingpagephoto2.jpg');
+      background-image: url('/Images/LandingPage/BannerPhoto1.jpg');
          background-size: cover;
          background-position: center;
     }

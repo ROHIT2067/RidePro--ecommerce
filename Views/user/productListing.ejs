@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shop — RidePro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/styles/header.css" />
+  <link rel="stylesheet" href="/styles/footer.css" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:         #0d0d0d;
+      --surface:    #141414;
+      --surface2:   #1c1c1c;
+      --border:     #2a2a2a;
+      --text:       #f0f0f0;
+      --muted:      #888;
+      --accent:     #e8411a;
+      --accent2:    #ff5733;
+      --success:    #16a34a;
+      --font:       'DM Sans', sans-serif;
+      --display:    'Bebas Neue', sans-serif;
+      --radius:     10px;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Page Hero ── */
+    .page-hero {
+      background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+    }
+    .page-hero-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .page-hero h1 {
+      font-family: var(--display);
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      letter-spacing: 0.04em;
+      line-height: 1;
+      color: var(--text);
+    }
+    .page-hero h1 em {
+      color: var(--accent);
+      font-style: normal;
+    }
+    .page-hero-sub {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 0.6rem;
+    }
+
+    /* ── Layout ── */
+    .shop-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: sticky;
+      top: 1.5rem;
+      align-self: start;
+    }
+
+    .filter-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .filter-card-header {
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .filter-card-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .filter-card-icon { color: var(--muted); font-size: 0.75rem; transition: transform 0.2s; }
+    .filter-card-header.open .filter-card-icon { transform: rotate(180deg); }
+    .filter-card-body { padding: 1rem 1.1rem; }
+
+    /* Category filter */
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--muted);
+      transition: color 0.15s;
+      border-radius: 5px;
+    }
+    .filter-option:hover { color: var(--text); }
+    .filter-option input[type="radio"] { display: none; }
+    .filter-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid #444;
+      flex-shrink: 0;
+      transition: border-color 0.15s, background 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .filter-dot::after {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .filter-option input:checked ~ .filter-dot { border-color: var(--accent); }
+    .filter-option input:checked ~ .filter-dot::after { opacity: 1; }
+    .filter-option input:checked ~ span { color: var(--text); font-weight: 500; }
+
+    /* Price filter */
+    .price-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .price-input-wrap {
+      position: relative;
+    }
+    .price-input-wrap span {
+      position: absolute;
+      left: 0.6rem; top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .price-input-wrap input {
+      width: 100%;
+      padding: 0.5rem 0.5rem 0.5rem 1.4rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--font);
+      font-size: 0.82rem;
+      color: var(--text);
+      outline: none;
+    }
+    .price-input-wrap input:focus { border-color: var(--accent); }
+    .price-input-wrap input::placeholder { color: #555; }
+
+    .btn-apply-filter {
+      width: 100%;
+      padding: 0.6rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--font);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-apply-filter:hover { background: var(--accent2); }
+
+    .btn-clear-filters {
+      width: 100%;
+      padding: 0.55rem;
+      background: none;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--font);
+      font-size: 0.78rem;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .btn-clear-filters:hover { color: var(--text); border-color: #555; }
+
+    /* ── Main content ── */
+    .products-main {}
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .results-count {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .results-count strong { color: var(--text); }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0 0.75rem;
+      gap: 0.5rem;
+      transition: border-color 0.15s;
+    }
+    .search-bar:focus-within { border-color: #555; }
+    .search-bar i { color: var(--muted); font-size: 0.8rem; }
+    .search-bar input {
+      background: none;
+      border: none;
+      outline: none;
+      font-family: var(--font);
+      font-size: 0.85rem;
+      color: var(--text);
+      padding: 0.55rem 0;
+      width: 200px;
+    }
+    .search-bar input::placeholder { color: #555; }
+
+    .sort-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 2rem 0.55rem 0.85rem;
+      font-family: var(--font);
+      font-size: 0.82rem;
+      color: var(--text);
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.7rem center;
+      transition: border-color 0.15s;
+    }
+    .sort-select:focus { border-color: #555; }
+    .sort-select option { background: #1c1c1c; }
+
+    /* Active filters */
+    .active-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+    .filter-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.28rem 0.65rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .filter-tag button {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 0.65rem; padding: 0;
+      line-height: 1;
+    }
+    .filter-tag button:hover { color: var(--accent); }
+
+    /* Product grid */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      text-decoration: none;
+      color: var(--text);
+      display: block;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .product-card:hover {
+      border-color: #444;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    }
+
+    .product-img-wrap {
+      position: relative;
+      aspect-ratio: 1;
+      background: var(--surface2);
+      overflow: hidden;
+    }
+    .product-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s;
+    }
+    .product-card:hover .product-img { transform: scale(1.05); }
+
+    .product-img-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      color: #333; font-size: 2.5rem;
+    }
+
+    .product-badge {
+      position: absolute;
+      top: 0.6rem; left: 0.6rem;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+    }
+
+    .product-status-badge {
+      position: absolute;
+      top: 0.6rem; right: 0.6rem;
+      font-size: 0.62rem;
+      font-weight: 600;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+    .product-status-badge.available { background: rgba(22,163,74,0.2); color: #4ade80; border: 1px solid rgba(22,163,74,0.3); }
+    .product-status-badge.out        { background: rgba(232,65,26,0.15); color: #f87171; border: 1px solid rgba(232,65,26,0.3); }
+
+    .product-info {
+      padding: 0.9rem 1rem 1rem;
+    }
+    .product-cat {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.3rem;
+    }
+    .product-name {
+      font-size: 0.88rem;
+      font-weight: 500;
+      line-height: 1.35;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .product-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .product-price {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .product-price-range {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+    .product-rating {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.72rem;
+      color: #f59e0b;
+    }
+    .product-rating span { color: var(--muted); }
+
+    /* Empty state */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 5rem 2rem;
+      color: var(--muted);
+    }
+    .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; display: block; }
+    .empty-state h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 0.4rem; }
+    .empty-state p { font-size: 0.85rem; }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-top: 2.5rem;
+      flex-wrap: wrap;
+    }
+    .page-btn {
+      min-width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+      padding: 0 0.6rem;
+    }
+    .page-btn:hover { border-color: #555; color: var(--text); }
+    .page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+    .page-btn.disabled { opacity: 0.3; pointer-events: none; }
+    .page-ellipsis { color: var(--muted); font-size: 0.82rem; padding: 0 0.25rem; }
+
+    @media (max-width: 900px) {
+      .shop-layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+    }
+    @media (max-width: 600px) {
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar-left { flex-wrap: wrap; }
+      .search-bar input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<%- include('partials/header') %>
+
+<!-- Page Hero -->
+<div class="page-hero">
+  <p class="page-hero-eyebrow">Gear Up.Ride Hard</p>
+  <h1>Engineered for Strength,<em>Designed for Protection.</em></h1>
+  <p class="page-hero-sub"><%= totalProducts %> product<%= totalProducts !== 1 ? 's' : '' %> available</p>
+</div>
+
+<div class="shop-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <!-- Search (mobile) -->
+    <form id="filterForm" method="GET" action="/products">
+      <input type="hidden" name="sort"     value="<%= sortQuery %>" id="hiddenSort" />
+      <input type="hidden" name="page"     value="1" />
+
+      <!-- Category -->
+      <div class="filter-card">
+        <div class="filter-card-header open" onclick="toggleFilter(this)">
+          <span class="filter-card-title">Category</span>
+          <i class="fa fa-chevron-down filter-card-icon"></i>
+        </div>
+        <div class="filter-card-body">
+          <label class="filter-option">
+            <input type="radio" name="category" value="" <%= categoryQuery === '' ? 'checked' : '' %> onchange="submitFilter()" />
+            <span class="filter-dot"></span>
+            <span>All Categories</span>
+          </label>
+          <% categories.forEach(cat => { %>
+            <label class="filter-option">
+              <input type="radio" name="category" value="<%= cat._id %>" <%= categoryQuery === cat._id.toString() ? 'checked' : '' %> onchange="submitFilter()" />
+              <span class="filter-dot"></span>
+              <span><%= cat.name %></span>
+            </label>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Price Range -->
+      <div class="filter-card">
+        <div class="filter-card-header open" onclick="toggleFilter(this)">
+          <span class="filter-card-title">Price Range</span>
+          <i class="fa fa-chevron-down filter-card-icon"></i>
+        </div>
+        <div class="filter-card-body">
+          <div class="price-inputs">
+            <div class="price-input-wrap">
+              <span>₹</span>
+              <input type="number" name="minPrice" placeholder="Min" value="<%= minPriceQuery %>" min="0" />
+            </div>
+            <div class="price-input-wrap">
+              <span>₹</span>
+              <input type="number" name="maxPrice" placeholder="Max" value="<%= maxPriceQuery %>" min="0" />
+            </div>
+          </div>
+          <button type="submit" class="btn-apply-filter">Apply Price</button>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="filter-card">
+        <div class="filter-card-header open" onclick="toggleFilter(this)">
+          <span class="filter-card-title">Availability</span>
+          <i class="fa fa-chevron-down filter-card-icon"></i>
+        </div>
+        <div class="filter-card-body">
+          <label class="filter-option">
+            <input type="radio" name="status" value="" onchange="submitFilter()" checked />
+            <span class="filter-dot"></span>
+            <span>All</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="status" value="Available" onchange="submitFilter()" />
+            <span class="filter-dot"></span>
+            <span>In Stock</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="status" value="Out Of Stock" onchange="submitFilter()" />
+            <span class="filter-dot"></span>
+            <span>Out of Stock</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="button" class="btn-clear-filters" onclick="clearFilters()">
+        <i class="fa fa-xmark"></i> Clear All Filters
+      </button>
+
+    </form>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="products-main">
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="search-bar">
+          <i class="fa fa-search"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search products..."
+            value="<%= searchQuery %>"
+            onkeydown="if(event.key==='Enter') doSearch()"
+          />
+        </div>
+        <span class="results-count">
+          <strong><%= totalProducts %></strong> result<%= totalProducts !== 1 ? 's' : '' %>
+        </span>
+      </div>
+      <select class="sort-select" id="sortSelect" onchange="doSort(this.value)">
+        <option value="newest"    <%= sortQuery === 'newest'    ? 'selected' : '' %>>Newest First</option>
+        <option value="oldest"    <%= sortQuery === 'oldest'    ? 'selected' : '' %>>Oldest First</option>
+        <option value="nameAZ"    <%= sortQuery === 'nameAZ'    ? 'selected' : '' %>>Name: A → Z</option>
+        <option value="nameZA"    <%= sortQuery === 'nameZA'    ? 'selected' : '' %>>Name: Z → A</option>
+        <option value="priceLow"  <%= sortQuery === 'priceLow'  ? 'selected' : '' %>>Price: Low → High</option>
+        <option value="priceHigh" <%= sortQuery === 'priceHigh' ? 'selected' : '' %>>Price: High → Low</option>
+      </select>
+    </div>
+
+    <!-- Active filter tags -->
+    <% if (searchQuery || categoryQuery || minPriceQuery || maxPriceQuery) { %>
+    <div class="active-filters">
+      <% if (searchQuery) { %>
+        <div class="filter-tag">
+          Search: "<%= searchQuery %>"
+          <button onclick="removeFilter('search')"><i class="fa fa-xmark"></i></button>
+        </div>
+      <% } %>
+      <% if (categoryQuery) { %>
+        <% const activeCat = categories.find(c => c._id.toString() === categoryQuery); %>
+        <div class="filter-tag">
+          Category: <%= activeCat ? activeCat.name : categoryQuery %>
+          <button onclick="removeFilter('category')"><i class="fa fa-xmark"></i></button>
+        </div>
+      <% } %>
+      <% if (minPriceQuery || maxPriceQuery) { %>
+        <div class="filter-tag">
+          Price: ₹<%= minPriceQuery || '0' %> – ₹<%= maxPriceQuery || '∞' %>
+          <button onclick="removeFilter('price')"><i class="fa fa-xmark"></i></button>
+        </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Product Grid -->
+    <div class="products-grid">
+      <% if (productsData.length === 0) { %>
+        <div class="empty-state">
+          <i class="fa fa-box-open"></i>
+          <h3>No products found</h3>
+          <p>Try adjusting your filters or search query.</p>
+        </div>
+      <% } else { %>
+        <% productsData.forEach(({ product, minVarPrice, maxVarPrice, firstImage }) => { %>
+          <a href="/product/<%= product._id %>" class="product-card">
+            <div class="product-img-wrap">
+              <% if (firstImage) { %>
+                <img class="product-img" src="<%= firstImage %>" alt="<%= product.productName %>" loading="lazy" />
+              <% } else { %>
+                <div class="product-img-placeholder"><i class="fa fa-image"></i></div>
+              <% } %>
+              <% if (product.createdAt && (Date.now() - new Date(product.createdAt)) < 7 * 24 * 60 * 60 * 1000) { %>
+                <span class="product-badge">New</span>
+              <% } %>
+              <span class="product-status-badge <%= product.status === 'Available' ? 'available' : 'out' %>">
+                <%= product.status === 'Available' ? 'In Stock' : 'Out of Stock' %>
+              </span>
+            </div>
+            <div class="product-info">
+              <div class="product-cat"><%= product.category ? product.category.name : '' %></div>
+              <div class="product-name"><%= product.productName %></div>
+              <div class="product-footer">
+                <div>
+                  <div class="product-price">
+                    ₹<%= minVarPrice.toLocaleString('en-IN') %>
+                  </div>
+                  <% if (maxVarPrice > minVarPrice) { %>
+                    <div class="product-price-range">up to ₹<%= maxVarPrice.toLocaleString('en-IN') %></div>
+                  <% } %>
+                </div>
+                <div class="product-rating">
+                  <i class="fa fa-star"></i>
+                  <%= product.rating %>
+                  <span>(<%= product.review_count %>)</span>
+                </div>
+              </div>
+            </div>
+          </a>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <!-- Pagination -->
+    <% if (totalPages > 1) { %>
+    <div class="pagination">
+
+      <a class="page-btn <%= currentPage <= 1 ? 'disabled' : '' %>"
+        href="?page=<%= currentPage - 1 %>&search=<%= searchQuery %>&sort=<%= sortQuery %>&category=<%= categoryQuery %>&minPrice=<%= minPriceQuery %>&maxPrice=<%= maxPriceQuery %>">
+        <i class="fa fa-chevron-left"></i>
+      </a>
+
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <% if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) { %>
+          <a class="page-btn <%= i === currentPage ? 'active' : '' %>"
+            href="?page=<%= i %>&search=<%= searchQuery %>&sort=<%= sortQuery %>&category=<%= categoryQuery %>&minPrice=<%= minPriceQuery %>&maxPrice=<%= maxPriceQuery %>">
+            <%= i %>
+          </a>
+        <% } else if (i === currentPage - 3 || i === currentPage + 3) { %>
+          <span class="page-ellipsis">…</span>
+        <% } %>
+      <% } %>
+
+      <a class="page-btn <%= currentPage >= totalPages ? 'disabled' : '' %>"
+        href="?page=<%= currentPage + 1 %>&search=<%= searchQuery %>&sort=<%= sortQuery %>&category=<%= categoryQuery %>&minPrice=<%= minPriceQuery %>&maxPrice=<%= maxPriceQuery %>">
+        <i class="fa fa-chevron-right"></i>
+      </a>
+
+    </div>
+    <% } %>
+
+  </div><!-- /products-main -->
+</div><!-- /shop-layout -->
+
+<%- include('partials/footer') %>
+
+<script>
+  // ── Filter collapse toggle ──
+  function toggleFilter(header) {
+    header.classList.toggle('open');
+    const body = header.nextElementSibling;
+    body.style.display = body.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // ── Submit filter form ──
+  function submitFilter() {
+    document.getElementById('filterForm').submit();
+  }
+
+  // ── Sort changed ──
+  function doSort(val) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', val);
+    url.searchParams.set('page', '1');
+    window.location.href = url.toString();
+  }
+
+  // ── Search ──
+  function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    const url = new URL(window.location.href);
+    url.searchParams.set('search', q);
+    url.searchParams.set('page', '1');
+    window.location.href = url.toString();
+  }
+
+  // ── Remove individual filter tag ──
+  function removeFilter(type) {
+    const url = new URL(window.location.href);
+    if (type === 'search')   { url.searchParams.delete('search'); }
+    if (type === 'category') { url.searchParams.delete('category'); }
+    if (type === 'price')    { url.searchParams.delete('minPrice'); url.searchParams.delete('maxPrice'); }
+    url.searchParams.set('page', '1');
+    window.location.href = url.toString();
+  }
+
+  // ── Clear all ──
+  function clearFilters() {
+    const url = new URL(window.location.href);
+    ['search','category','minPrice','maxPrice','status'].forEach(k => url.searchParams.delete(k));
+    url.searchParams.set('page', '1');
+    window.location.href = url.toString();
+  }
+</script>
+
+</body>
+</html>
