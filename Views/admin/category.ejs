@@ -154,61 +154,65 @@
             <th>S.No</th>
             <th>Name</th>
             <th>Status</th>
+            <th>Products</th>
             <th>List / Unlist</th>
           </tr>
         </thead>
         <tbody>
-          <% if (categoryData && categoryData.length > 0) { %>
-            <% categoryData.forEach((cat, index) => { %>
-              <tr>
-                <td><%= (currentPage - 1) * 4 + index + 1 %></td>
-                <td><%= cat.name %></td>
-                <td>
-                  <span style="
-                    display: inline-block;
-                    padding: 4px 10px;
-                    border-radius: 20px;
-                    font-size: 12px;
-                    font-weight: 600;
-                    background-color: <%= cat.status === 'Active' ? '#dcfce7' : '#fee2e2' %>;
-                    color: <%= cat.status === 'Active' ? '#15803d' : '#b91c1c' %>;
-                  "><%= cat.status %></span>
-                </td>
-                <td>
-                  <div class="toggle-cell">
-                    <form action="/admin/category/toggle/<%= cat._id %>" method="POST" style="display:inline;">
-                      <label class="toggle">
-                        <input
-                          type="checkbox"
-                          <%= cat.status === 'Active' ? 'checked' : '' %>
-                          onchange="this.form.submit()"
-                        />
-                        <span class="slider"></span>
-                      </label>
-                    </form>
-
-                   <% if (cat.status === 'Active') { %>
-  <a href="/admin/category/edit/<%= cat._id %>" class="action-btn edit" title="Edit">
-    <i class="fa-regular fa-pen-to-square"></i>
-  </a>
-<% } else { %>
-  <span class="action-btn edit" style="opacity:0.3; cursor:not-allowed;" title="Cannot edit inactive category">
-    <i class="fa-regular fa-pen-to-square"></i>
-  </span>
-<% } %>
-
-
-                </td>
-              </tr>
-            <% }) %>
-          <% } else { %>
-            <tr>
-              <td colspan="4" style="text-align:center; color:#9ca3af; padding: 40px;">
-                No categories found.
-              </td>
-            </tr>
-          <% } %>
-        </tbody>
+  <% if (categoryData && categoryData.length > 0) { %>
+    <% categoryData.forEach((cat, index) => { %>
+      <tr>
+        <td><%= (currentPage - 1) * 4 + index + 1 %></td>
+        <td><%= cat.name %></td>
+        <td>
+          <span style="
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background-color: <%= cat.status === 'Active' ? '#dcfce7' : '#fee2e2' %>;
+            color: <%= cat.status === 'Active' ? '#15803d' : '#b91c1c' %>;
+          "><%= cat.status %></span>
+        </td>
+        <td>
+          <span style="font-size:13px; font-weight:500; color:#374151;">
+            <%= productCountMap[cat._id.toString()] || 0 %> products
+          </span>
+        </td>
+        <td>
+          <div class="toggle-cell">
+            <form action="/admin/category/toggle/<%= cat._id %>" method="POST" style="display:inline;">
+              <label class="toggle">
+                <input
+                  type="checkbox"
+                  <%= cat.status === 'Active' ? 'checked' : '' %>
+                  onchange="this.form.submit()"
+                />
+                <span class="slider"></span>
+              </label>
+            </form>
+            <% if (cat.status === 'Active') { %>
+              <a href="/admin/category/edit/<%= cat._id %>" class="action-btn edit" title="Edit">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </a>
+            <% } else { %>
+              <span class="action-btn edit" style="opacity:0.3; cursor:not-allowed;" title="Cannot edit inactive category">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </span>
+            <% } %>
+          </div>
+        </td>
+      </tr>
+    <% }) %>
+  <% } else { %>
+    <tr>
+      <td colspan="5" style="text-align:center; color:#9ca3af; padding: 40px;">
+        No categories found.
+      </td>
+    </tr>
+  <% } %>
+</tbody>
       </table>
 
       <% if (totalPages > 1) { %>

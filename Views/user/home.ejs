@@ -77,7 +77,7 @@
 
   <!-- ── STATS ── -->
   <div class="stats-bar">
-    <div class="stat"><div class="stat-value">50+</div><div class="stat-label">Products</div></div>
+    <div class="stat"><div class="stat-value">12+</div><div class="stat-label">Products</div></div>
     <div class="stat"><div class="stat-value">18K+</div><div class="stat-label">Happy Riders</div></div>
     <div class="stat"><div class="stat-value">4.9★</div><div class="stat-label">Avg Rating</div></div>
   </div>
@@ -93,68 +93,27 @@
       <h2 class="section-title">Shop by <em>Category</em></h2>
     </div>
     <div class="categories">
-
-      <a href="/products?category=helmets" class="category-card">
-        <!-- TODO: Replace src with → src="/images/categories/helmets.jpg" -->
-        <img class="cat-img" src="/Images/LandingPage/helmet.jpg" alt="Helmets" />
-        <div class="cat-body">
-          <div class="cat-name">Helmets</div>
-          <div class="cat-count">120+ Products</div>
-          <span class="cat-arrow">→</span>
-        </div>
-      </a>
-
-      <a href="/products?category=jackets" class="category-card">
-        <!-- TODO: Replace src with → src="/images/categories/jackets.jpg" -->
-        <img class="cat-img" src="/Images/LandingPage/Jacket.heic" alt="Jackets" />
-        <div class="cat-body">
-          <div class="cat-name">Jackets</div>
-          <div class="cat-count">85+ Products</div>
-          <span class="cat-arrow">→</span>
-        </div>
-      </a>
-
-      <a href="/products?category=gloves" class="category-card">
-        <!-- TODO: Replace src with → src="/images/categories/gloves.jpg" -->
-        <img class="cat-img" src="/Images/LandingPage/Gloves1.jpg" alt="Gloves" />
-        <div class="cat-body">
-          <div class="cat-name">Gloves</div>
-          <div class="cat-count">60+ Products</div>
-          <span class="cat-arrow">→</span>
-        </div>
-      </a>
-
-      <a href="/products?category=boots" class="category-card">
-        <!-- TODO: Replace src with → src="/images/categories/boots.jpg" -->
-        <img class="cat-img" src="/Images/LandingPage/boots.jpg" alt="Boots" />
-        <div class="cat-body">
-          <div class="cat-name">Boots</div>
-          <div class="cat-count">75+ Products</div>
-          <span class="cat-arrow">→</span>
-        </div>
-      </a>
-
-      <a href="/products?category=pants" class="category-card">
-        <!-- TODO: Replace src with → src="/images/categories/pants.jpg" -->
-        <img class="cat-img" src="/Images/LandingPage/pants.heic" alt="Pants" />
-        <div class="cat-body">
-          <div class="cat-name">Pants</div>
-          <div class="cat-count">50+ Products</div>
-          <span class="cat-arrow">→</span>
-        </div>
-      </a>
-
-      <a href="/products?category=lifestyle" class="category-card">
-        <!-- TODO: Replace src with → src="/images/categories/lifestyle.jpg" -->
-        <img class="cat-img" src="/Images/LandingPage/lifestyle.jpg" alt="Lifestyle Merch" />
-        <div class="cat-body">
-          <div class="cat-name">Lifestyle Merch</div>
-          <div class="cat-count">40+ Products</div>
-          <span class="cat-arrow">→</span>
-        </div>
-      </a>
-
-    </div>
+  <%
+    const catImages = {
+  Helmets:   '/Images/LandingPage/helmet.jpg',
+  Jackets:   '/Images/LandingPage/Jacket.heic',
+  Gloves:    '/Images/LandingPage/Gloves1.jpg',
+  Boots:     '/Images/LandingPage/boots.jpg',
+  Pants:     '/Images/LandingPage/pants.heic',
+  LifeStyle: '/Images/LandingPage/lifestyle.jpg'
+};
+  %>
+  <% categories.forEach(cat => { %>
+    <a href="/products?category=<%= cat._id %>" class="category-card">
+      <img class="cat-img" src="<%= catImages[cat.name] || '/images/categories/default.jpg' %>" alt="<%= cat.name %>" />
+      <div class="cat-body">
+        <div class="cat-name"><%= cat.name %></div>
+        <div class="cat-count">Browse Products</div>
+        <span class="cat-arrow">→</span>
+      </div>
+    </a>
+  <% }) %>
+</div>
   </section>
 
   <!-- ══════════════════════════════════════════════════════════════
@@ -169,63 +128,29 @@
       <a href="/products" class="section-link">View All →</a>
     </div>
     <div class="products-grid">
-
-      <a href="/product/1" class="product-card">
-        <!-- TODO: Replace src with → src="/images/products/helmet1.jpg" -->
-        <img class="product-img" src="https://placehold.co/600x600/161616/555555?text=Product+Photo" alt="AeroShield Pro Helmet" />
-        <div class="product-badge">New</div>
-        <div class="product-info">
-          <div class="product-category">Helmet</div>
-          <div class="product-name">AeroShield Pro Full-Face Helmet</div>
-          <div class="product-footer">
-            <div class="product-price">₹14,999</div>
-            <button class="btn-cart" onclick="event.preventDefault()">🛒</button>
+  <% featuredProducts.forEach(({ product, minPrice, maxPrice, firstImage, isNew }) => { %>
+    <a href="/product/<%= product._id %>" class="product-card">
+      <% if (firstImage) { %>
+        <img class="product-img" src="<%= firstImage %>" alt="<%= product.productName %>" loading="lazy" />
+      <% } else { %>
+        <img class="product-img" src="https://placehold.co/600x600/161616/555555?text=No+Image" alt="<%= product.productName %>" />
+      <% } %>
+      <% if (isNew) { %><div class="product-badge">New</div><% } %>
+      <div class="product-info">
+        <div class="product-category"><%= product.category ? product.category.name : '' %></div>
+        <div class="product-name"><%= product.productName %></div>
+        <div class="product-footer">
+          <div class="product-price">
+            ₹<%= minPrice.toLocaleString('en-IN') %>
+            <% if (maxPrice > minPrice) { %>
+              <span style="font-size:0.75rem;color:#888;font-weight:400"> – ₹<%= maxPrice.toLocaleString('en-IN') %></span>
+            <% } %>
           </div>
         </div>
-      </a>
-
-      <a href="/product/2" class="product-card">
-        <!-- TODO: Replace src with → src="/images/products/jacket1.jpg" -->
-        <img class="product-img" src="https://placehold.co/600x600/161616/555555?text=Product+Photo" alt="TitanWear Jacket" />
-        <div class="product-badge">Bestseller</div>
-        <div class="product-info">
-          <div class="product-category">Jacket</div>
-          <div class="product-name">TitanWear CE-Certified Riding Jacket</div>
-          <div class="product-footer">
-            <div class="product-price"><span class="old-price">₹9,500</span>₹7,499</div>
-            <button class="btn-cart" onclick="event.preventDefault()">🛒</button>
-          </div>
-        </div>
-      </a>
-
-      <a href="/product/3" class="product-card">
-        <!-- TODO: Replace src with → src="/images/products/gloves1.jpg" -->
-        <img class="product-img" src="https://placehold.co/600x600/161616/555555?text=Product+Photo" alt="GripForce Gloves" />
-        <div class="product-info">
-          <div class="product-category">Gloves</div>
-          <div class="product-name">GripForce Pro Leather Gloves</div>
-          <div class="product-footer">
-            <div class="product-price">₹2,299</div>
-            <button class="btn-cart" onclick="event.preventDefault()">🛒</button>
-          </div>
-        </div>
-      </a>
-
-      <a href="/product/4" class="product-card">
-        <!-- TODO: Replace src with → src="/images/products/boots1.jpg" -->
-        <img class="product-img" src="https://placehold.co/600x600/161616/555555?text=Product+Photo" alt="IronStep Boots" />
-        <div class="product-badge">Sale</div>
-        <div class="product-info">
-          <div class="product-category">Boots</div>
-          <div class="product-name">IronStep Waterproof Riding Boots</div>
-          <div class="product-footer">
-            <div class="product-price"><span class="old-price">₹6,000</span>₹4,799</div>
-            <button class="btn-cart" onclick="event.preventDefault()">🛒</button>
-          </div>
-        </div>
-      </a>
-
-    </div>
+      </div>
+    </a>
+  <% }) %>
+</div>
   </section>
 
   <!-- ── TRUST FEATURES ── -->

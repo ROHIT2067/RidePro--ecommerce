@@ -78,4 +78,7 @@ router.post("/account/address/delete/:id", addressController.addressDeletePost);
 // ListingPage
 router.get('/products',shoppingController.productsGet)
 
+// ProductPage
+router.get('/product/:id', shoppingController.productDetailGet)
+
 export default router;

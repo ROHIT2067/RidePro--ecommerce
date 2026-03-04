@@ -31,6 +31,14 @@ const productsGet = async (req, res) => {
       .limit(limit)
       .populate("category"); //replaces with actual category document it references.
 
+    const productIds = productTable.map((p) => p._id);
+    const variantCounts = await Variant.aggregate([
+      { $match: { product_id: { $in: productIds } } },
+      { $group: { _id: "$product_id", count: { $sum: 1 } } },
+    ]);
+    const variantCountMap = {};
+    variantCounts.forEach((v) => (variantCountMap[v._id.toString()] = v.count));
+
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
     const currentPage = page;
@@ -41,6 +49,7 @@ const productsGet = async (req, res) => {
       searchQuery: search,
       totalPages,
       totalProducts: totalProducts,
+      variantCountMap
     });
   } catch (error) {
     console.log("Error in loading prodycts,", error);

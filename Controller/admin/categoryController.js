@@ -1,5 +1,6 @@
 import Category from "../../Models/CategoryModel.js";
 import mongoose from "mongoose";
+import Product from "../../Models/ProductModel.js";
 
 const categoryInfoGet = async (req, res) => {
   try {
@@ -28,6 +29,14 @@ const categoryInfoGet = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
+      const categoryIds = categoryTable.map(c => c._id);
+const productCounts = await Product.aggregate([
+  { $match: { category: { $in: categoryIds } } },
+  { $group: { _id: "$category", count: { $sum: 1 } } }
+]);
+const productCountMap = {};
+productCounts.forEach(p => productCountMap[p._id.toString()] = p.count);
+
     const totalCategories = await Category.countDocuments(filter);
     const totalPages = Math.ceil(totalCategories / limit);
     const currentPage = page;
@@ -38,6 +47,7 @@ const categoryInfoGet = async (req, res) => {
       searchQuery: search,
       totalPages,
       totalCategories: totalCategories,
+      productCountMap
     });
   } catch (error) {
     console.log("Error in loading category,", error);

@@ -3,16 +3,39 @@ import bcrypt from "bcrypt";
 import { generateOtp } from "../../utils/otp.js";
 import { sendVerificationEmail } from "../../service/mailService.js";
 import { securePassword } from "../../utils/passwordHash.js";
+import Category from "../../Models/CategoryModel.js";
+import Product from "../../Models/ProductModel.js";
+import Variant from "../../Models/VariantModel.js";
 
-const landingPageGet = (req, res) => {
+const landingPageGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-    return res.render("home");
+    if (req.session.admin) return res.redirect("/admin/dashboard");
+    
+    // Active categories for the "Shop by Category" section
+    const categories = await Category.find({ status: "Active" });
+
+    // Featured gear — 4 newest available products with variant prices
+    const featuredRaw = await Product.find({ status: "Available" })
+      .populate("category")
+      .sort({ createdAt: -1 })
+      .limit(4);
+
+    const featuredProducts = await Promise.all(
+      featuredRaw.map(async (product) => {
+        const variants   = await Variant.find({ product_id: product._id });
+        const prices     = variants.map((v) => v.price).filter(Boolean);
+        const minPrice   = prices.length ? Math.min(...prices) : 0;
+        const maxPrice   = prices.length ? Math.max(...prices) : 0;
+        const firstImage = variants[0]?.images?.[0] || null;
+        const isNew      = product.createdAt && (Date.now() - new Date(product.createdAt)) < 7 * 24 * 60 * 60 * 1000;
+        return { product, minPrice, maxPrice, firstImage, isNew };
+      })
+    );
+
+    return res.render("home", { categories, featuredProducts });
   } catch (error) {
-    console.log("error in rendering landinPage", error);
-    return res.redirect("/login");
+    console.log("Error loading landingPage:", error);
+    return res.redirect("/pageNotFound");
   }
 };
 
@@ -56,16 +79,39 @@ const signupGet = (req, res) => {
   res.render("signup", { serverError: serverError });
 };
 
-const homeGet = (req, res) => {
-  if (!req.session.admin) {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    } else {
-      return res.render("home");
-    }
+const homeGet = async (req, res) => {
+  try {
+    if (req.session.admin) return res.redirect("/admin/dashboard");
+    if (!req.session.user)  return res.redirect("/login");
+
+    // Active categories for the "Shop by Category" section
+    const categories = await Category.find({ status: "Active" });
+
+    // Featured gear — 4 newest available products with variant prices
+    const featuredRaw = await Product.find({ status: "Available" })
+      .populate("category")
+      .sort({ createdAt: -1 })
+      .limit(4);
+
+    const featuredProducts = await Promise.all(
+      featuredRaw.map(async (product) => {
+        const variants   = await Variant.find({ product_id: product._id });
+        const prices     = variants.map((v) => v.price).filter(Boolean);
+        const minPrice   = prices.length ? Math.min(...prices) : 0;
+        const maxPrice   = prices.length ? Math.max(...prices) : 0;
+        const firstImage = variants[0]?.images?.[0] || null;
+        const isNew      = product.createdAt && (Date.now() - new Date(product.createdAt)) < 7 * 24 * 60 * 60 * 1000;
+        return { product, minPrice, maxPrice, firstImage, isNew };
+      })
+    );
+
+    return res.render("home", { categories, featuredProducts });
+  } catch (error) {
+    console.log("Error loading home:", error);
+    return res.redirect("/");
   }
-  return res.redirect("/admin/adminHome");
 };
+
 
 const signUppost = async (req, res) => {
   try {

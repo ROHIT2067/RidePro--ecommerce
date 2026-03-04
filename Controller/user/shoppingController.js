@@ -26,8 +26,8 @@ const productsGet = async (req, res) => {
     const activeCategoryIds = activeCategories.map((c) => c._id);
 
     const productFilter = {
-      status: "Available",                          // hide unlisted products
-      category: { $in: activeCategoryIds },         // hide unlisted categories
+      status: "Available", // hide unlisted products
+      category: { $in: activeCategoryIds }, // hide unlisted categories
     };
 
     if (search)
@@ -84,7 +84,7 @@ const productsGet = async (req, res) => {
       categoryQuery: category,
       minPriceQuery: minPrice || "",
       maxPriceQuery: maxPrice === 999999 ? "" : maxPrice,
-      categories: activeCategories,   // reuse already-fetched active categories
+      categories: activeCategories, // reuse already-fetched active categories
     });
   } catch (error) {
     console.log("Error in loading products:", error);
@@ -92,4 +92,64 @@ const productsGet = async (req, res) => {
   }
 };
 
-export default { productsGet };
+const productDetailGet = async (req, res) => {
+  try {
+    if (req.session.admin){ 
+      return res.redirect("/admin/dashboard");
+      }
+    if (!req.session.user){
+       return res.redirect("/login");
+    }
+
+    const { id } = req.params;
+    const product = await Product.findById(id).populate("category");
+
+    if (!product) return res.redirect("/products");
+    if (product.status !== "Available") return res.redirect("/products");
+    if (!product.category || product.category.status !== "Active")
+      return res.redirect("/products");
+
+    const variants = await Variant.find({ product_id: id });
+    const selectedVariant =
+      variants.find((v) => v.stock_quantity > 0) || variants[0] || null;
+    const isAvailable =
+      product.status === "Available" &&
+      variants.some((v) => v.stock_quantity > 0);
+
+    const relatedRaw = await Product.find({
+      _id: { $ne: id },
+      category: product.category._id,
+      status: "Available",
+    })
+      .populate("category")
+      .limit(8);
+    const relatedProducts = await Promise.all(
+      relatedRaw.map(async (rp) => {
+        const vars = await Variant.find({ product_id: rp._id });
+        const prices = vars.map((v) => v.price).filter(Boolean);
+        return {
+          product: rp,
+          minVarPrice: prices.length ? Math.min(...prices) : 0,
+          firstImage: vars[0]?.images?.[0] || null,
+        };
+      }),
+    );
+
+    // Replace with real Review 
+    const reviews = [];
+
+    return res.render("productDetail", {
+      product,
+      variants,
+      selectedVariant,
+      isAvailable,
+      relatedProducts,
+      reviews,
+    });
+  } catch (error) {
+    console.log("Error loading product detail:", error);
+    return res.redirect("/products");
+  }
+};
+
+export default { productsGet, productDetailGet };
