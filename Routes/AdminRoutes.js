@@ -33,4 +33,5 @@ router.get('/addProduct',blockIfLoggedIn,productController.addProductGet)
 router.post('/addProduct', upload.any(), productController.addProductPost);
 router.get('/editProduct/:id',blockIfLoggedIn,productController.editProductGet)
 router.post('/editProduct/:id',upload.any(),productController.editProductPost)
+
 export default router;

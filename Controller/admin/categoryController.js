@@ -15,27 +15,27 @@ const categoryInfoGet = async (req, res) => {
 
     let page = 1;
     if (req.query.page) {
-      page = Number(req.query.page);
+      page = parseInt(req.query.page, 10) || 1;
     }
 
     let limit = 4;
 
     const filter = search
       ? { name: { $regex: "^" + search, $options: "i" } }
-      : {}; // If search exists,it apply regex filter else fetch all categories
+      : {}; 
 
     const categoryTable = await Category.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
-      const categoryIds = categoryTable.map(c => c._id);
-const productCounts = await Product.aggregate([
-  { $match: { category: { $in: categoryIds } } },
-  { $group: { _id: "$category", count: { $sum: 1 } } }
-]);
-const productCountMap = {};
-productCounts.forEach(p => productCountMap[p._id.toString()] = p.count);
+    const categoryIds = categoryTable.map((c) => c._id);
+    const productCounts = await Product.aggregate([
+      { $match: { category: { $in: categoryIds } } },
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+    ]);
+    const productCountMap = {};
+    productCounts.forEach((p) => (productCountMap[p._id.toString()] = p.count));
 
     const totalCategories = await Category.countDocuments(filter);
     const totalPages = Math.ceil(totalCategories / limit);
@@ -47,7 +47,7 @@ productCounts.forEach(p => productCountMap[p._id.toString()] = p.count);
       searchQuery: search,
       totalPages,
       totalCategories: totalCategories,
-      productCountMap
+      productCountMap,
     });
   } catch (error) {
     console.log("Error in loading category,", error);
@@ -56,8 +56,8 @@ productCounts.forEach(p => productCountMap[p._id.toString()] = p.count);
 };
 
 const addCategoryPost = async (req, res) => {
-  const { name, description } = req.body;
   try {
+    const { name, description } = req.body;
     const exist = await Category.findOne({
       name: { $regex: "^" + name + "$", $options: "i" },
     });
@@ -94,11 +94,12 @@ const categoryDelete = async (req, res) => {
         .json({ success: false, message: "Category not Found" });
     }
 
-    const newStatus = updateCategory.status === "Active" ? "Inactive" : "Active";
+    const newStatus =
+      updateCategory.status === "Active" ? "Inactive" : "Active";
 
     await Category.findByIdAndUpdate(catId, { status: newStatus });
 
-    return res.redirect('/admin/category');
+    return res.redirect("/admin/category");
   } catch (error) {
     console.log("Error in updating status ", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -106,9 +107,8 @@ const categoryDelete = async (req, res) => {
 };
 
 const categoryEditGet = async (req, res) => {
-  const { catId } = req.params;
-
   try {
+    const { catId } = req.params;
     if (!req.session.admin) {
       return res.redirect("/admin/login");
     }
@@ -143,8 +143,8 @@ const categoryEditPost = async (req, res) => {
     }
 
     const exist = await Category.findOne({
-      name: { $regex: new RegExp(`^${name}$`, "i") },
-      _id: { $ne: new mongoose.Types.ObjectId(catId) }, // ✅ convert to ObjectId
+      name: { $regex: "^" + name + "$", $options: "i" },
+      _id: { $ne: catId },
     });
 
     if (exist) {

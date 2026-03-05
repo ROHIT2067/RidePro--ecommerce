@@ -17,27 +17,27 @@ const productsGet = async (req, res) => {
 
     let page = 1;
     if (req.query.page) {
-      page = Number(req.query.page);
+      page = parseInt(req.query.page, 10) || 1;
     }
     let limit = 3;
 
     const filter = search
       ? { productName: { $regex: "^" + search, $options: "i" } }
-      : {}; // If search exists,it apply regex filter else fetch all categories
+      : {}; 
 
     const productTable = await Product.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
-      .populate("category"); //replaces with actual category document it references.
+      .populate("category"); // Replaces category ID with full category data
 
-    const productIds = productTable.map((p) => p._id);
+    const productIds = productTable.map((p) => p._id);  // Extracts an array of id values productTable
     const variantCounts = await Variant.aggregate([
       { $match: { product_id: { $in: productIds } } },
       { $group: { _id: "$product_id", count: { $sum: 1 } } },
     ]);
     const variantCountMap = {};
-    variantCounts.forEach((v) => (variantCountMap[v._id.toString()] = v.count));
+    variantCounts.forEach((v) => (variantCountMap[v._id.toString()] = v.count));  //_id are objects and not plain strings. converting make sure that key matches correctly
 
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
@@ -116,8 +116,8 @@ const uploadToCloudinary = (buffer) => {
 const addProductPost = async (req, res) => {
   try {
     const { productName, description, category } = req.body;
-    const variants = req.body.variants;
-    if (!productName || !description || !category) {
+    const variants = req.body.variants;  //Variants are nested object 
+    if (!productName.trim() || !description.trim() || !category.trim()) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
@@ -129,7 +129,7 @@ const addProductPost = async (req, res) => {
         .json({ success: false, message: "At least one variant is required" });
     }
 
-    const exists = await Product.findOne({ productName });
+    const exists = await Product.findOne({ productName: { $regex: "^" + productName + "$", $options: "i" } });
     if (exists) {
       return res.status(400).json({
         success: false,
@@ -141,7 +141,7 @@ const addProductPost = async (req, res) => {
       description,
       category,
     });
-    const savedProduct = await newProduct.save();
+    const savedProduct = await newProduct.save();  //stores the returned document
 
     // Group uploaded images by variant index
     // req.files is an array of all uploaded files
@@ -159,13 +159,11 @@ const addProductPost = async (req, res) => {
       }
     }
 
-    // ── Save each variant
     const variantDocs = [];
     for (const key of Object.keys(variants)) {
       const v = variants[key];
 
       if (!v.price || !v.size || !v.color) {
-        // rollback product if variant data is bad
         await Product.findByIdAndDelete(savedProduct._id);
         return res.status(400).json({
           success: false,
@@ -204,7 +202,8 @@ const editProductGet = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    const updateProduct = await Product.findById(id).populate("category"); // current category's full details
+    const updateProduct = await Product.findById(id).populate("category"); //with category's full details
+    // console.log(updateProduct)
     const categories = await Category.find({});
     const variants = await Variant.find({ product_id: id });
     //     console.log('Variants ', variants);
@@ -242,7 +241,7 @@ const editProductPost = async (req, res) => {
     }
 
     const exist = await Product.findOne({
-      productName: { $regex: new RegExp(`^${productName}$`, "i") },
+      productName: { $regex: "^" + productName + "$", $options: "i" },
       _id: { $ne: id },
     });
 
@@ -252,10 +251,6 @@ const editProductPost = async (req, res) => {
         message: "Prouduct with the same name already exists",
       });
     }
-
-    await Product.findByIdAndUpdate(id, {
-      $set: { productName, description, category },
-    });
 
     const imagesByVariant = {};
 
@@ -272,16 +267,13 @@ const editProductPost = async (req, res) => {
       }
     }
 
-    // Fetch existing variants from Db
     const existingVariants = await Variant.find({ product_id: id });
 
-    // Extract incoming variants
-    const incoming = Object.values(variants || {});
+    const incoming = Object.values(variants || {});  //converts the variants object into an array
     const incomingIds = incoming
       .filter((v) => v._id)
-      .map((v) => v._id.toString());
+      .map((v) => v._id.toString());  //extracts IDs of variants that already existed 
 
-    // Loop through incoming variants
     for (const key of Object.keys(variants)) {
       const v = variants[key];
 
@@ -290,6 +282,10 @@ const editProductPost = async (req, res) => {
           .status(400)
           .json({ success: false, message: `Variant ${key} is missing` });
       }
+
+       await Product.findByIdAndUpdate(id, {
+      $set: { productName, description, category },
+    });
 
       const uploadedImages = imagesByVariant[key] || [];
       const existingImages = v.existingImages || [];
@@ -330,7 +326,7 @@ const editProductPost = async (req, res) => {
       if (!incomingIds.includes(dbVar._id.toString())) {
         await Variant.findByIdAndDelete(dbVar._id);
       }
-    }
+    }   //Deletes any variants that were in the database but are not in the submitted form 
 
     return res
       .status(200)

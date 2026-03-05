@@ -11,7 +11,7 @@ const customerGet = async (req, res) => {
     }
     let page = 1;
     if (req.query.page) {
-      page = Number(req.query.page);
+      page = parseInt(req.query.page, 10) || 1;
     }
 
     let limit = 4;

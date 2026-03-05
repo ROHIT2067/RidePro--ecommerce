@@ -14,7 +14,7 @@ const productsGet = async (req, res) => {
     }
 
     let search = req.query.search || "";
-    let page = Number(req.query.page) || 1;
+    let page = parseInt(req.query.page, 10) || 1;
     let sort = req.query.sort || "newest";
     let category = req.query.category || "";
     let minPrice = Number(req.query.minPrice) || 0;
@@ -135,7 +135,7 @@ const productDetailGet = async (req, res) => {
       }),
     );
 
-    // Replace with real Review 
+    // Replace with real Review model 
     const reviews = [];
 
     return res.render("productDetail", {
