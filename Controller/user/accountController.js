@@ -17,10 +17,11 @@ const changePassGet = (req, res) => {
 
   const oldPassErr = req.session.flash?.oldPassErr || null;
   const newPassErr = req.session.flash?.newPassErr || null;
+  const success = req.session.flash?.success || null;
 
   delete req.session.flash;
 
-  return res.render("change-password", { oldPassErr, newPassErr });
+  return res.render("change-password", { oldPassErr, newPassErr, success});
 };
 
 const accoutGet = async (req, res) => {
@@ -94,7 +95,8 @@ const changePassPost = async (req, res) => {
       $set: { password: hashedPassword },
     });
 
-    return res.redirect("/account");
+    req.session.flash = { success: "Password changed successfully!" }
+    return res.redirect("/account/password");
   } catch (error) {
     console.error("Change password error:", error);
     req.session.flash = { oldPassErr: "An error occurred" };

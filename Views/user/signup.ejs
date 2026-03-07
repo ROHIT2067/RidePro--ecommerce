@@ -181,7 +181,7 @@
                         err4.innerHTML = 'Enter phone number'
                     } else if (!phonepattern.test(phoneval)) {
                         err4.style.display = 'block'
-                        err4.innerHTML = 'Phone number must be exactly 10 digits or can only contain numbers'
+                        err4.innerHTML = 'Phone number must be exactly 10 digits and can only contain numbers'
                     } else {
                         err4.style.display = 'none'
                         err4.innerHTML = ''
@@ -189,20 +189,23 @@
                 }
 
                 function passValidation(e) {
-                    const passval = passid.value
-                    const passpattern = /^[a-zA-Z0-9_]+$/
+    const passval = passid.value
+    const passpattern = /^[a-zA-Z0-9_@#$%^&*!]+$/
 
-                    if (passval.length < 8) {
-                        err3.style.display = 'block'
-                        err3.innerHTML = "Should contain atleast 8 characters"
-                    } else if (!passpattern.test(passval)) {
-                        err3.style.display = 'block'
-                        err3.innerHTML = 'Should only contain numbers or alphabets'
-                    } else {
-                        err3.style.display = 'none'
-                        err3.innerHTML = ''
-                    }
-                }
+    if (passval.trim() === '') {
+        err3.style.display = 'block'
+        err3.innerHTML = 'Please enter a password'
+    } else if (passval.length < 8) {
+        err3.style.display = 'block'
+        err3.innerHTML = 'Should contain at least 8 characters'
+    } else if (!passpattern.test(passval)) {
+        err3.style.display = 'block'
+        err3.innerHTML = 'Password contains unsupported characters'
+    } else {
+        err3.style.display = 'none'
+        err3.innerHTML = ''
+    }
+}
 
                 document.addEventListener('DOMContentLoaded', function () {
 

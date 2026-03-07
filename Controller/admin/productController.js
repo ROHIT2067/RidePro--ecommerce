@@ -116,7 +116,7 @@ const uploadToCloudinary = (buffer) => {
 const addProductPost = async (req, res) => {
   try {
     const { productName, description, category } = req.body;
-    const variants = req.body.variants;  //Variants are nested object 
+    const variants = req.body.variants;  //Variants are nested object
     if (!productName.trim() || !description.trim() || !category.trim()) {
       return res
         .status(400)

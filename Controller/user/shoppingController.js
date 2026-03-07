@@ -19,14 +19,14 @@ const productsGet = async (req, res) => {
     let category = req.query.category || "";
     let minPrice = Number(req.query.minPrice) || 0;
     let maxPrice = Number(req.query.maxPrice) || 999999;
-    const limit = 8;
+    let limit = 8;
 
-    // Get only active category IDs
+    //Hides inActive products
     const activeCategories = await Category.find({ status: "Active" });
     const activeCategoryIds = activeCategories.map((c) => c._id);
 
     const productFilter = {
-      status: "Available", // hide unlisted products
+      status: "Available", 
       category: { $in: activeCategoryIds }, // hide unlisted categories
     };
 
@@ -42,16 +42,14 @@ const productsGet = async (req, res) => {
     };
     const sortObj = sortMap[sort] || sortMap.newest;
 
-    // Fetch products
     const allProducts = await Product.find(productFilter)
       .populate("category")
       .sort(sortObj);
 
-    // Attach lowest variant price to each product
     const productsWithPrice = await Promise.all(
       allProducts.map(async (product) => {
         const variants = await Variant.find({ product_id: product._id });
-        const prices = variants.map((v) => v.price).filter(Boolean);
+        const prices = variants.map((v) => v.price).filter((price) => price != null);
         const minVarPrice = prices.length ? Math.min(...prices) : 0;
         const maxVarPrice = prices.length ? Math.max(...prices) : 0;
         const firstImage = variants[0]?.images?.[0] || null;
@@ -59,13 +57,11 @@ const productsGet = async (req, res) => {
       }),
     );
 
-    // Filter by price on variant price
     const priceFiltered = productsWithPrice.filter(
       ({ minVarPrice }) => minVarPrice >= minPrice && minVarPrice <= maxPrice,
-    );
+    );  //get products that only comes between min/max
 
-    // Sort by price if needed
-    if (sort === "priceLow")
+    if (sort === "priceLow")     //price isnt in the product So it cant be done in sortObj
       priceFiltered.sort((a, b) => a.minVarPrice - b.minVarPrice);
     if (sort === "priceHigh")
       priceFiltered.sort((a, b) => b.minVarPrice - a.minVarPrice);
@@ -122,7 +118,7 @@ const productDetailGet = async (req, res) => {
       status: "Available",
     })
       .populate("category")
-      .limit(8);
+      .limit(4);
     const relatedProducts = await Promise.all(
       relatedRaw.map(async (rp) => {
         const vars = await Variant.find({ product_id: rp._id });
@@ -135,7 +131,7 @@ const productDetailGet = async (req, res) => {
       }),
     );
 
-    // Replace with real Review model 
+    // Replace with real Review  
     const reviews = [];
 
     return res.render("productDetail", {
