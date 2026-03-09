@@ -1,6 +1,4 @@
-import userCollection from "../../Models/UserModel.js";
-import address from "../../Models/AddressModel.js";
-import bcrypt from "bcrypt";
+import adminService from "../../service/adminService.js";
 
 const adminLoginGet = (req, res) => {
   if (!req.session.admin) {
@@ -26,44 +24,35 @@ const adminLoginGet = (req, res) => {
 const adminLoginPost = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const admin = await adminService.authenticateAdmin(email, password);
 
-    const findUser = await userCollection.findOne({ email });
-
-    if (!findUser) {
-      req.session.loginErr = "You are not authorized to access the admin panel.";
-      return res.redirect("/admin/login");
-    }
-
-    const passwordMatch = await bcrypt.compare(password, findUser.password);
-
-    if (passwordMatch) {
-      req.session.role = findUser.role;
-      if(req.session.role==="admin"){
-        req.session.admin=findUser._id
-        return res.redirect("/admin/dashboard");
-      }else{
-       req.session.loginErr = "You are not authorized to access the admin panel.";
-      return res.redirect("/admin/login");
-      }
-    } else {
-      req.session.loginErr = "Invalid Credentials";
-      return res.redirect("/admin/login");
-    }
+    req.session.role = admin.role;
+    req.session.admin = admin._id;
+    return res.redirect("/admin/dashboard");
   } catch (error) {
     console.error("login error ", error);
-    req.session.loginErr = "Server Error";
+    if (
+      error.message === "You are not authorized to access the admin panel." ||
+      error.message === "Invalid Credentials"
+    ) {
+      req.session.loginErr = error.message;
+    } else {
+      req.session.loginErr = "Server Error";
+    }
     return res.redirect("/admin/login");
   }
 };
 
-const adminDashboardGet=(req,res)=>{
-    if(!req.session.admin){
-        return res.redirect('/login')
-    }
+const adminDashboardGet = (req, res) => {
+  if (!req.session.admin) {
+    return res.redirect("/login");
+  }
 
-    return res.render('adminDashboard',{ success_msg: req.session.success_msg || '',
-        error_msg: req.session.error_msg || '',})
-}
+  return res.render("adminDashboard", {
+    success_msg: req.session.success_msg || "",
+    error_msg: req.session.error_msg || "",
+  });
+};
 
 const logOut = async (req, res) => {
   try {
@@ -83,4 +72,4 @@ const logOut = async (req, res) => {
   }
 };
 
-export default {adminDashboardGet,logOut,adminLoginGet,adminLoginPost}
+export default { adminDashboardGet, logOut, adminLoginGet, adminLoginPost };

@@ -1,9 +1,4 @@
-import userCollection from "../../Models/UserModel.js";
-import bcrypt from "bcrypt";
-import { generateOtp } from "../../utils/otp.js";
-import { sendVerificationEmail } from "../../service/mailService.js";
-import { securePassword } from "../../utils/passwordHash.js";
-import cloudinary from "../../Config/cloudinary.js";
+import accountService from "../../service/accountService.js";
 
 const changePassGet = (req, res) => {
   if (req.session.admin) {
@@ -13,7 +8,6 @@ const changePassGet = (req, res) => {
   if (!req.session.user) {
     return res.redirect("/login");
   }
-  // console.log(req.session.flash);
 
   const oldPassErr = req.session.flash?.oldPassErr || null;
   const newPassErr = req.session.flash?.newPassErr || null;
@@ -21,112 +15,66 @@ const changePassGet = (req, res) => {
 
   delete req.session.flash;
 
-  return res.render("change-password", { oldPassErr, newPassErr, success});
+  return res.render("change-password", { oldPassErr, newPassErr, success });
 };
 
 const accoutGet = async (req, res) => {
-  if (req.session.admin) {
-    return res.redirect("/admin/dashboard");
-  }
+  try {
+    if (req.session.admin) {
+      return res.redirect("/admin/dashboard");
+    }
 
-  if (!req.session.user) {
+    if (!req.session.user) {
+      return res.redirect("/login");
+    }
+
+    const userData = await accountService.getProfileData(req.session.user);
+    return res.render("userprofile", { user: userData });
+  } catch (error) {
+    console.error("Account Get Error:", error);
     return res.redirect("/login");
   }
-
-  const findUser = await userCollection.findById(req.session.user).lean();
-
-  if (!findUser) {
-    return res.redirect("/login");
-  }
-
-  const initials = findUser.username
-    ? findUser.username.substring(0, 2).toUpperCase()
-    : ":)";
-
-  const userData = {
-    username: findUser.username || "",
-    email: findUser.email || "",
-    mobile: findUser.phoneNumber || "",
-    initials: initials,
-    avatar: findUser.avatar || { url: null, publicId: null },
-  };
-
-  return res.render("userprofile", { user: userData });
 };
 
 const changePassPost = async (req, res) => {
   try {
-    const { currentPassword, newPassword, confirmPassword } = req.body;
-
-    if (newPassword !== confirmPassword) {
-      req.session.flash = { newPassErr: "Passwords do not match" };
-      // console.log("password dont match");
-      return res.redirect("/account/password");
-    }
-
-    const findUser = await userCollection.findById(req.session.user);
-
-    if (!findUser) {
-      return res.redirect("/login");
-    }
-
-    if (!findUser.password) {
-      req.session.flash = {
-        oldPassErr: "Cannot change password for Google accounts",
-      };
-      // console.log("Google");
-      return res.redirect("/account/password");
-    }
-
-    const passwordMatch = await bcrypt.compare(
-      currentPassword,
-      findUser.password,
-    );
-
-    if (!passwordMatch) {
-      req.session.flash = { oldPassErr: "Current password is incorrect" };
-      // console.log("password Incorrect");
-      return res.redirect("/account/password");
-    }
-
-    const hashedPassword = await securePassword(newPassword);
-
-    await userCollection.findByIdAndUpdate(req.session.user, {
-      $set: { password: hashedPassword },
-    });
-
-    req.session.flash = { success: "Password changed successfully!" }
+    await accountService.updatePassword(req.session.user, req.body);
+    req.session.flash = { success: "Password changed successfully!" };
     return res.redirect("/account/password");
   } catch (error) {
     console.error("Change password error:", error);
-    req.session.flash = { oldPassErr: "An error occurred" };
+    if (error.message === "Passwords do not match") {
+      req.session.flash = { newPassErr: error.message };
+    } else if (
+      error.message === "Cannot change password for Google accounts" ||
+      error.message === "Current password is incorrect"
+    ) {
+      req.session.flash = { oldPassErr: error.message };
+    } else if (error.message === "User not found") {
+      return res.redirect("/login");
+    } else {
+      req.session.flash = { oldPassErr: "An error occurred" };
+    }
     return res.redirect("/account/password");
   }
 };
 
 const accountEditGet = async (req, res) => {
-  if (req.session.admin) {
-    return res.redirect("/admin/dashboard");
-  }
+  try {
+    if (req.session.admin) {
+      return res.redirect("/admin/dashboard");
+    }
 
-  if (!req.session.user) {
+    if (!req.session.user) {
+      return res.redirect("/login");
+    }
+
+    const userData = await accountService.getProfileData(req.session.user);
+    return res.render("edit-profile", { user: userData });
+  } catch (error) {
+    console.error("Account Edit Get Error:", error);
     return res.redirect("/login");
   }
-
-  const findUser = await userCollection.findById(req.session.user).lean();
-
-  if (!findUser) {
-    return res.redirect("/login");
-  }
-  const userData = {
-    username: findUser.username || "",
-    email: findUser.email || "",
-    mobile: findUser.phoneNumber || "Not Provided",
-    name: findUser.username || "",
-    avatar: findUser.avatar || { url: null, publicId: null },
-  };
-
-  return res.render("edit-profile", { user: userData });
 };
 
 const emailVerifyGet = async (req, res) => {
@@ -137,46 +85,30 @@ const emailVerifyGet = async (req, res) => {
   if (!req.session.user) {
     return res.redirect("/login");
   }
-  const emailErr = null || req.session.emailErr;
+  const emailErr = req.session.emailErr || null;
+  delete req.session.emailErr;
   return res.render("emailChange", { emailErr: emailErr });
 };
 
 const emailVerifyPost = async (req, res) => {
   try {
     const { email } = req.body;
-
-    const findUser = await userCollection.findById(req.session.user);
-    // console.log(findUser)
-
-    const noUser = await userCollection.findOne({ email });
-
-    if (!noUser) {
-      req.session.emailErr = "Incorrect Email";
-      return res.redirect("/emailVerify");
-    }
-    if (email !== findUser.email) {
-      req.session.emailErr = "Enter your current Email";
-      return res.redirect("/emailVerify");
-    }
-
-    if (findUser.google_ID) {
-      req.session.emailErr = "This account uses Google login";
-      return res.redirect("/emailVerify");
-    }
-
-    const otp = generateOtp();
-    const emailSent = await sendVerificationEmail(email, otp);
-
-    if (!emailSent) {
-      return res.redirect("/account");
-    }
+    const otp = await accountService.initiateEmailChange(req.session.user, email);
 
     req.session.userOtp = otp;
     req.session.email = email;
     console.log("Otp is ", otp);
     return res.redirect("/emailOtp");
   } catch (error) {
-    console.log("Error : ", error);
+    console.error("Email verify post error:", error);
+    if (
+      error.message === "Incorrect Email" ||
+      error.message === "Enter your current Email" ||
+      error.message === "This account uses Google login"
+    ) {
+      req.session.emailErr = error.message;
+      return res.redirect("/emailVerify");
+    }
     return res.render("edit-profile");
   }
 };
@@ -195,198 +127,108 @@ const emailOtpGet = (req, res) => {
 const emailOtpPost = async (req, res) => {
   try {
     const { otp } = req.body;
+    await accountService.verifyEmailOtp(otp, req.session.userOtp);
 
-    if (otp === req.session.userOtp) {
-      req.session.isverified = true;
-      delete req.session.userOtp;
+    req.session.isverified = true;
+    delete req.session.userOtp;
 
-      // console.log("YES")
-      return res.json({ success: true, redirectUrl: "/reset-email" });
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid OTP, Please try again" });
-    }
+    return res.json({ success: true, redirectUrl: "/reset-email" });
   } catch (error) {
-    console.error("error verifying Otp ", error);
+    console.error("Error verifying email OTP:", error);
+    if (error.message === "Invalid OTP, Please try again") {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
 const resetEmailGet = async (req, res) => {
-  if (req.session.admin) {
-    return res.redirect("/admin/dashboard");
-  }
+  try {
+    if (req.session.admin) {
+      return res.redirect("/admin/dashboard");
+    }
 
-  if (!req.session.user) {
+    if (!req.session.user) {
+      return res.redirect("/login");
+    }
+
+    const userData = await accountService.getProfileData(req.session.user);
+    const resetErr = req.session.resetErr || null;
+    delete req.session.resetErr;
+
+    return res.render("resetEmail", { resetErr: resetErr, user: userData });
+  } catch (error) {
+    console.error("Reset Email Get Error:", error);
     return res.redirect("/login");
   }
-  const findUser = await userCollection.findById(req.session.user).lean();
-
-  if (!findUser) {
-    return res.redirect("/login");
-  }
-
-  const userData = {
-    username: findUser.username || "",
-  };
-
-  const resetErr = null || req.session.resetErr;
-  return res.render("resetEmail", { resetErr: resetErr, user: userData });
 };
 
 const resendEmailPost = async (req, res) => {
   try {
-    const email = req.session.email;
-
-    if (!email) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email Not Found!" });
-    }
-
-    const otp = generateOtp();
+    const otp = await accountService.resendEmailOtp(req.session.email);
     req.session.userOtp = otp;
 
-    const emailSent = await sendVerificationEmail(email, otp);
-
-    if (!emailSent) {
-      return res
-        .status(500)
-        .json({ success: false, message: "Failed to resend OTP" });
-    } else {
-      console.log("New Otp : ", otp);
-      res.status(200).json({ success: true, message: "OTP Send Successfully" });
-    }
+    console.log("New Otp : ", otp);
+    res.status(200).json({ success: true, message: "OTP Send Successfully" });
   } catch (error) {
-    console.log("Error in sending otp ", error);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    console.error("Error resending email OTP:", error);
+    const status = error.message === "Email Not Found!" ? 400 : 500;
+    return res.status(status).json({ success: false, message: error.message });
   }
 };
 
 const resetEmailPost = async (req, res) => {
   try {
     const { newEmail, confirmEmail } = req.body;
-
-    if (newEmail !== confirmEmail) {
-      req.session.flash = { newPassErr: "Email do not match" };
-      // console.log("password dont match");
-      return res.redirect("/reset-email");
-    }
-
-    const findUser = await userCollection.findById(req.session.user);
-
-    if (!findUser) {
-      return res.redirect("/login");
-    }
-
-    await userCollection.findByIdAndUpdate(req.session.user, {
-      $set: { email: newEmail },
-    });
+    await accountService.updateEmail(req.session.user, newEmail, confirmEmail);
 
     return res.redirect("/account");
   } catch (error) {
-    console.error("Change password error:", error);
-    req.session.error = "Error in changing Email";
+    console.error("Reset Email Post Error:", error);
+    if (error.message === "Email do not match") {
+      req.session.flash = { newPassErr: error.message };
+      return res.redirect("/reset-email");
+    }
+    if (error.message === "User not found") {
+      return res.redirect("/login");
+    }
+    req.session.resetErr = "Error in changing Email";
     return res.redirect("/reset-email");
   }
 };
 
 const accountEditPost = async (req, res) => {
-  const { username, email, phone } = req.body;
-
   try {
-    await userCollection.findByIdAndUpdate(req.session.user, {
-      username,
-      email,
-      phoneNumber: phone,
-    });
-
+    await accountService.updateProfile(req.session.user, req.body);
     return res.redirect("/account");
   } catch (error) {
-    console.log("Account Edit Error : ", error);
+    console.error("Account Edit Post Error:", error);
     return res.redirect("/account");
   }
 };
 
 const uploadAvatar = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        error: "No file uploaded",
-      });
-    }
-
-    const uploadToCloudinary = (fileBuffer) => {
-      return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          {
-            folder: "user-avatars",
-            transformation: [
-              { width: 300, height: 300, crop: "fill" },
-              { quality: "auto", fetch_format: "auto" },
-            ],
-          },
-          (error, result) => {
-            if (error) return reject(error);
-            resolve(result);
-          },
-        );
-        stream.end(fileBuffer);
-      });
-    };
-
-    const result = await uploadToCloudinary(req.file.buffer);
-    const user = await userCollection.findById(req.session.user);
-
-    if (user.avatar && user.avatar.publicId) {
-      await cloudinary.uploader.destroy(user.avatar.publicId);
-    }
-
-    user.avatar = {
-      url: result.secure_url,
-      publicId: result.public_id,
-    };
-    await user.save();
+    const avatar = await accountService.uploadAvatar(req.session.user, req.file);
 
     res.json({
       success: true,
       message: "Profile picture updated successfully",
-      avatar: user.avatar,
+      avatar: avatar,
     });
   } catch (error) {
     console.error("Avatar upload error:", error);
-    res.json({
+    const status = error.message === "No file uploaded" ? 400 : 500;
+    res.status(status).json({
       success: false,
-      message: "Server error occurred. Please try again.",
+      message: error.message || "Server error occurred. Please try again.",
     });
   }
 };
 
 const deleteAvatar = async (req, res) => {
   try {
-    const user = await userCollection.findById(req.session.user);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Delete from Cloudinary if exists
-    if (user.avatar && user.avatar.publicId) {
-      await cloudinary.uploader.destroy(user.avatar.publicId);
-    }
-
-    // Remove avatar from user document
-    user.avatar = {
-      url: null,
-      publicId: null,
-    };
-    await user.save();
-
+    await accountService.deleteAvatar(req.session.user);
     res.json({
       success: true,
       message: "Profile picture removed successfully",

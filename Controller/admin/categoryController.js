@@ -1,6 +1,4 @@
-import Category from "../../Models/CategoryModel.js";
-import mongoose from "mongoose";
-import Product from "../../Models/ProductModel.js";
+import categoryService from "../../service/categoryService.js";
 
 const categoryInfoGet = async (req, res) => {
   try {
@@ -8,156 +6,75 @@ const categoryInfoGet = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    let search = "";
-    if (req.query.search) {
-      search = req.query.search;
-    }
+    const data = await categoryService.getCategories(req.query);
 
-    let page = 1;
-    if (req.query.page) {
-      page = parseInt(req.query.page, 10) || 1;
-    }
-
-    let limit = 4;
-
-    const filter = search
-      ? { name: { $regex: "^" + search, $options: "i" } }
-      : {}; 
-
-    const categoryTable = await Category.find(filter)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
-
-    const categoryIds = categoryTable.map((c) => c._id);
-    const productCounts = await Product.aggregate([
-      { $match: { category: { $in: categoryIds } } },
-      { $group: { _id: "$category", count: { $sum: 1 } } },
-    ]);
-    const productCountMap = {};
-    productCounts.forEach((p) => (productCountMap[p._id.toString()] = p.count));
-
-    const totalCategories = await Category.countDocuments(filter);
-    const totalPages = Math.ceil(totalCategories / limit);
-    const currentPage = page;
-
-    return res.render("category", {
-      categoryData: categoryTable,
-      currentPage,
-      searchQuery: search,
-      totalPages,
-      totalCategories: totalCategories,
-      productCountMap,
-    });
+    return res.render("category", data);
   } catch (error) {
-    console.log("Error in loading category,", error);
+    console.error("Error in loading category:", error);
     return res.redirect("/admin/dashboard");
   }
 };
 
 const addCategoryPost = async (req, res) => {
   try {
-    const { name, description } = req.body;
-    const exist = await Category.findOne({
-      name: { $regex: "^" + name + "$", $options: "i" },
-    });
-
-    if (exist) {
-      return res.status(400).json({ error: "Category already exist" });
-    }
-
-    const newCategory = new Category({
-      name,
-      description,
-    });
-    await newCategory.save();
-    return res.json({ message: "Category added successfully" });
+    const result = await categoryService.addCategory(req.body);
+    return res.json(result);
   } catch (error) {
-    console.log("Error in adding category ", error);
+    console.error("Error in adding category:", error);
+    if (error.message === "Category already exist") {
+      return res.status(400).json({ error: error.message });
+    }
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 const categoryDelete = async (req, res) => {
   try {
-    const { catId } = req.params;
-
-    if (!catId) {
-      return res.status(400).json({ success: false, message: "Missing Data" });
-    }
-
-    const updateCategory = await Category.findById(catId);
-
-    if (!updateCategory) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Category not Found" });
-    }
-
-    const newStatus =
-      updateCategory.status === "Active" ? "Inactive" : "Active";
-
-    await Category.findByIdAndUpdate(catId, { status: newStatus });
-
+    await categoryService.toggleCategoryStatus(req.params.catId);
     return res.redirect("/admin/category");
   } catch (error) {
-    console.log("Error in updating status ", error);
+    console.error("Error in updating status:", error);
+    if (error.message === "Missing Data") {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    if (error.message === "Category not Found") {
+      return res.status(404).json({ success: false, message: error.message });
+    }
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
 const categoryEditGet = async (req, res) => {
   try {
-    const { catId } = req.params;
     if (!req.session.admin) {
       return res.redirect("/admin/login");
     }
 
-    const updateCategory = await Category.findById(catId);
+    const data = await categoryService.getEditCategoryData(req.params.catId);
 
-    if (!updateCategory) {
-      return res.redirect("/admin/category");
-    }
-
-    if (updateCategory.status === "Inactive") {
-      return res.redirect("/admin/category");
-    }
-
-    return res.render("categoryEdit", { category: updateCategory });
+    return res.render("categoryEdit", data);
   } catch (error) {
-    console.log("Category Edit Get Error : ", error);
+    console.error("Category Edit Get Error:", error);
     return res.redirect("/admin/category");
   }
 };
 
 const categoryEditPost = async (req, res) => {
   try {
-    const { catId } = req.params;
+    const result = await categoryService.editCategory(
+      req.params.catId,
+      req.body,
+    );
 
-    const { name, description } = req.body;
-
-    const category = await Category.findById(catId);
-
-    if (!category) {
-      return res.redirect("/admin/category");
-    }
-
-    const exist = await Category.findOne({
-      name: { $regex: "^" + name + "$", $options: "i" },
-      _id: { $ne: catId },
-    });
-
-    if (exist) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Category already exists" });
-    }
-
-    await Category.findByIdAndUpdate(catId, { $set: { name, description } });
-
-    return res.status(200).json({ message: "Category updated successfully!" });
+    return res.status(200).json(result);
   } catch (error) {
-    console.log("Error in editing category", error);
+    console.error("Error in editing category:", error);
+    if (
+      error.message === "Category already exists" ||
+      error.message === "Category not found"
+    ) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     return res.status(500).json({ error: "Internal server error" });
   }
 };

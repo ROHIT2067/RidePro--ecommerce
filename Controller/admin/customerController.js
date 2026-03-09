@@ -1,48 +1,16 @@
-import userCollection from "../../Models/UserModel.js";
+import customerService from "../../service/customerService.js";
 
 const customerGet = async (req, res) => {
   try {
     if (!req.session.admin) {
       return res.redirect("/admin/login");
     }
-    let search = "";
-    if (req.query.search) {
-      search = req.query.search;
-    }
-    let page = 1;
-    if (req.query.page) {
-      page = parseInt(req.query.page, 10) || 1;
-    }
 
-    let limit = 4;
+    const data = await customerService.getCustomers(req.query);
 
-    const filter = {
-      role: "user",
-      $or: [
-        { username: { $regex: "^" + search, $options: "i" } },
-        { email: { $regex: "^" + search, $options: "i" } },
-      ],
-    };
-
-    const userData = await userCollection
-      .find(filter)
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip((page - 1) * limit);  //skips previous pages
-
-    const count = await userCollection.countDocuments(filter);
-
-    const totalPages = Math.ceil(count / limit);
-    const currentPage = page;
-
-    return res.render("customerPage", {
-      customers: userData,
-      currentPage,
-      search,
-      totalPages,
-    });
+    return res.render("customerPage", data);
   } catch (error) {
-    console.error("Error in loading customerPage ", error);
+    console.error("Error in loading customerPage:", error);
     return res.redirect("/admin/dashboard");
   }
 };
@@ -50,35 +18,16 @@ const customerGet = async (req, res) => {
 const updateCustomerStatusPost = async (req, res) => {
   try {
     const { userId, status } = req.body;
-
-    if (!userId || !status) {
-      return res.status(400).json({ success: false, message: "Missing Data" });
-    }
-
-    if (!["block", "unblock"].includes(status)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid Status" });
-    }
-
-    const isBlocked = status === "block";
-
-    const updateUser = await userCollection.findByIdAndUpdate(
-      userId,
-      { is_blocked: isBlocked },
-      { new: true },  //return the updated document instead of the old one.
-    );
-
-    if (!updateUser) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not Found" });
-    }
-    
-    // console.log(userId,status)
-    return res.json({ success: true });
+    const result = await customerService.updateCustomerStatus(userId, status);
+    return res.json(result);
   } catch (error) {
-    console.log("Error in updating status ", error);
+    console.error("Error in updating status:", error);
+    if (error.message === "Missing Data" || error.message === "Invalid Status") {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    if (error.message === "User not Found") {
+      return res.status(404).json({ success: false, message: error.message });
+    }
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
