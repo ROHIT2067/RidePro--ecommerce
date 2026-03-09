@@ -83,7 +83,7 @@
 
     #mainImg {
       width: 100%; height: 100%;
-      object-fit: cover; display: block;
+      object-fit: contain; display: block;
       transition: transform 0.08s linear;
       transform-origin: 50% 50%;
       user-select: none; pointer-events: none;
@@ -128,7 +128,7 @@
     .thumbs { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
     .thumb {
       width: 66px; height: 66px; border-radius: 8px;
-      object-fit: cover; cursor: pointer;
+      object-fit: contain; cursor: pointer;
       border: 2px solid transparent; opacity: 0.55;
       transition: opacity 0.15s, border-color 0.15s;
     }
@@ -149,13 +149,7 @@
       margin-top: 0.3rem;
     }
 
-    .rating-row { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
-    .stars { display: flex; gap: 2px; }
-    .star { font-size: 0.82rem; color: var(--warning); }
-    .star.empty { color: var(--muted2); }
-    .rating-num { font-size: 0.85rem; font-weight: 600; }
-    .rating-count { font-size: 0.78rem; color: var(--muted); }
-    .rating-sep { color: var(--border2); }
+    .stock-row { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
 
     .stock-pill {
       display: inline-flex; align-items: center; gap: 0.35rem;
@@ -171,7 +165,7 @@
 
     .price-row { display: flex; align-items: baseline; gap: 0.8rem; flex-wrap: wrap; }
     .price-current { font-size: 2.1rem; font-weight: 700; }
-    .price-original { font-size: 1.05rem; color: var(--muted); text-decoration: line-through; }
+    .price-original { font-size: 1.05rem; color: #f87171; text-decoration: line-through; }
     .price-off {
       font-size: 0.78rem; font-weight: 700; color: #4ade80;
       background: rgba(22,163,74,0.14); padding: 0.18rem 0.55rem; border-radius: 4px;
@@ -291,30 +285,6 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
-    .reviews-top { display: flex; align-items: center; gap: 2rem; margin-bottom: 1.75rem; flex-wrap: wrap; }
-    .big-score { font-family: var(--display); font-size: 4rem; color: var(--text); line-height: 1; }
-    .score-meta { display: flex; flex-direction: column; gap: 0.3rem; }
-    .score-label { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
-
-    .review-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 1.2rem; margin-bottom: 0.9rem;
-    }
-    .review-top {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      gap: 0.5rem; margin-bottom: 0.6rem; flex-wrap: wrap;
-    }
-    .reviewer { font-weight: 600; font-size: 0.87rem; }
-    .review-date { font-size: 0.74rem; color: var(--muted); margin-top: 0.15rem; }
-    .review-body { font-size: 0.84rem; color: var(--muted); line-height: 1.65; }
-    .review-verified {
-      display: flex; align-items: center; gap: 0.3rem;
-      font-size: 0.68rem; color: #4ade80; font-weight: 600; margin-top: 0.5rem;
-    }
-    .no-reviews { text-align: center; padding: 3.5rem 2rem; color: var(--muted); }
-    .no-reviews i { font-size: 2.2rem; display: block; margin-bottom: 0.75rem; opacity: 0.25; }
-    .no-reviews h3 { font-size: 1rem; color: var(--text); margin-bottom: 0.35rem; }
-
     .specs-tbl { width: 100%; border-collapse: collapse; }
     .specs-tbl tr { border-bottom: 1px solid var(--border); }
     .specs-tbl tr:last-child { border-bottom: none; }
@@ -344,7 +314,7 @@
     }
     .product-card:hover { border-color: #444; transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
     .product-img-wrap { position: relative; aspect-ratio: 1; background: var(--surface2); overflow: hidden; }
-    .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+    .product-img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.4s; }
     .product-card:hover .product-img { transform: scale(1.05); }
     .product-img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #333; font-size: 2rem; }
     .product-badge { position: absolute; top: 0.6rem; left: 0.6rem; background: var(--accent); color: #fff; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border-radius: 4px; }
@@ -352,8 +322,6 @@
     .rcard-cat { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.25rem; }
     .rcard-name { font-size: 0.84rem; font-weight: 500; line-height: 1.35; margin-bottom: 0.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .rcard-price { font-size: 0.9rem; font-weight: 600; }
-    .rcard-rating { display: flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; color: var(--warning); margin-top: 0.25rem; }
-    .rcard-rating span { color: var(--muted); }
 
     #toast {
       position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
@@ -441,15 +409,7 @@
       <h1 class="product-title"><%= product.productName %></h1>
     </div>
 
-    <div class="rating-row">
-      <div class="stars">
-        <% for (var i = 1; i <= 5; i++) { %>
-          <i class="fa fa-star star <%= i <= 4 ? '' : 'empty' %>"></i>
-        <% } %>
-      </div>
-      <span class="rating-num">4.5</span>
-      <span class="rating-count">(4 reviews)</span>
-      <span class="rating-sep">|</span>
+    <div class="stock-row">
       <% const selStock = selectedVariant ? (selectedVariant.stock_quantity || 0) : 0; %>
       <% if (!isAvailable || selStock === 0) { %>
         <span class="stock-pill out-stock" id="stockPill"><span class="stock-dot"></span> Out of Stock</span>
@@ -462,15 +422,16 @@
 
     <div class="divider"></div>
 
+    <%
+      const dummyOriginal = selectedVariant ? Math.round(selectedVariant.price * 1.2) : 0;
+      const displayOriginal = (selectedVariant && selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price)
+        ? selectedVariant.originalPrice : dummyOriginal;
+      const discountPct = selectedVariant ? Math.round((1 - selectedVariant.price / displayOriginal) * 100) : 0;
+    %>
     <div class="price-row">
       <span class="price-current" id="priceMain">₹<%= selectedVariant ? selectedVariant.price.toLocaleString('en-IN') : '—' %></span>
-      <% if (selectedVariant && selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price) { %>
-        <span class="price-original" id="priceOrig">₹<%= selectedVariant.originalPrice.toLocaleString('en-IN') %></span>
-        <span class="price-off" id="priceOff"><%= Math.round((1 - selectedVariant.price / selectedVariant.originalPrice) * 100) %>% OFF</span>
-      <% } else { %>
-        <span class="price-original" id="priceOrig" style="display:none"></span>
-        <span class="price-off" id="priceOff" style="display:none"></span>
-      <% } %>
+      <span class="price-original" id="priceOrig">₹<%= displayOriginal.toLocaleString('en-IN') %></span>
+      <span class="price-off" id="priceOff"><%= discountPct %>% OFF</span>
     </div>
 
     <div class="coupon-row">
@@ -576,46 +537,10 @@
 
 <div class="tabs-wrap">
   <div class="tabs-nav">
-    <button class="tab-btn active" onclick="switchTab('reviews', this)">Reviews (4)</button>
-    <button class="tab-btn" onclick="switchTab('specs', this)">Specifications</button>
+    <button class="tab-btn active" onclick="switchTab('specs', this)">Specifications</button>
   </div>
 
-  <div class="tab-panel active" id="tab-reviews">
-    <%
-      var dummyReviews = [
-        { userName: 'Arjun Mehta',  rating: 5, comment: 'Absolutely love this gear! Build quality is top notch and fits perfectly. Would highly recommend to any serious rider.', createdAt: '2025-01-14' },
-        { userName: 'Priya Sharma', rating: 4, comment: 'Great product for the price. Delivery was fast and packaging was solid. Slight adjustment needed for fit but overall very happy.', createdAt: '2025-02-03' },
-        { userName: 'Rohit Verma',  rating: 5, comment: 'Been using this for 3 months now and it still looks brand new. The material is durable and very comfortable on long rides.', createdAt: '2025-02-21' },
-        { userName: 'Sneha Nair',   rating: 4, comment: 'Good quality and true to size. The finish is premium and it looks even better in person than in the photos.', createdAt: '2025-03-10' },
-      ];
-    %>
-    <div class="reviews-top">
-      <div class="big-score">4.5</div>
-      <div class="score-meta">
-        <div class="stars">
-          <% for (var i = 1; i <= 5; i++) { %><i class="fa fa-star star <%= i <= 4 ? '' : 'empty' %>"></i><% } %>
-        </div>
-        <div class="score-label">4 verified reviews</div>
-      </div>
-    </div>
-    <% dummyReviews.forEach(function(r) { %>
-      <div class="review-card">
-        <div class="review-top">
-          <div>
-            <div class="reviewer"><%= r.userName %></div>
-            <div class="stars" style="margin-top:0.25rem">
-              <% for (var i = 1; i <= 5; i++) { %><i class="fa fa-star star" style="font-size:0.72rem;<%= i > r.rating ? 'color:var(--muted2)' : '' %>"></i><% } %>
-            </div>
-          </div>
-          <div class="review-date"><%= new Date(r.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %></div>
-        </div>
-        <div class="review-body"><%= r.comment %></div>
-        <div class="review-verified"><i class="fa fa-circle-check"></i> Verified Purchase</div>
-      </div>
-    <% }); %>
-  </div>
-
-  <div class="tab-panel" id="tab-specs">
+  <div class="tab-panel active" id="tab-specs">
     <table class="specs-tbl">
       <tr><td>Product Name</td><td><%= product.productName %></td></tr>
       <tr><td>Category</td><td><%= product.category ? product.category.name : '—' %></td></tr>
@@ -629,7 +554,6 @@
         <% } %>
         <tr><td>Stock</td><td><%= selectedVariant.stock_quantity > 0 ? selectedVariant.stock_quantity + ' units available' : 'Out of Stock' %></td></tr>
       <% } %>
-      <tr><td>Rating</td><td>⭐ 4.5 / 5 (4 reviews)</td></tr>
       <tr><td>Product ID</td><td style="font-size:0.72rem;color:var(--muted)"><%= product._id.toString() %></td></tr>
     </table>
   </div>
@@ -653,7 +577,6 @@
           <div class="rcard-cat"><%= rp.category ? rp.category.name : '' %></div>
           <div class="rcard-name"><%= rp.productName %></div>
           <div class="rcard-price">₹<%= minVarPrice.toLocaleString('en-IN') %></div>
-          <div class="rcard-rating"><i class="fa fa-star"></i> <%= rp.rating || '4.5' %> <span>(<%= rp.review_count || 4 %>)</span></div>
         </div>
       </a>
     <% }); %>
@@ -782,43 +705,66 @@ function pickColor(color) {
 
 function applyVariant(v) {
   activeVariantId = v._id;
+
+  // Price
   var pm = document.getElementById('priceMain');
   if (pm) pm.textContent = '₹' + v.price.toLocaleString('en-IN');
+
   var po = document.getElementById('priceOrig');
   var pf = document.getElementById('priceOff');
-  if (v.originalPrice && v.originalPrice > v.price) {
-    if (po) { po.textContent = '₹' + v.originalPrice.toLocaleString('en-IN'); po.style.display = ''; }
-    if (pf) { pf.textContent = Math.round((1 - v.price / v.originalPrice) * 100) + '% OFF'; pf.style.display = ''; }
-  } else {
-    if (po) po.style.display = 'none';
-    if (pf) pf.style.display = 'none';
-  }
+
+  var origPrice = (v.originalPrice && v.originalPrice > v.price)
+    ? v.originalPrice
+    : Math.round(v.price * 1.2);
+
+  if (po) { po.textContent = '₹' + origPrice.toLocaleString('en-IN'); po.style.display = ''; }
+  if (pf) { pf.textContent = Math.round((1 - v.price / origPrice) * 100) + '% OFF'; pf.style.display = ''; }
+
+  // Stock pill
   var pill = document.getElementById('stockPill');
   if (pill) {
     pill.className = 'stock-pill';
-    if (v.stock_quantity === 0) { pill.classList.add('out-stock'); pill.innerHTML = '<span class="stock-dot"></span> Out of Stock'; }
-    else if (v.stock_quantity <= 5) { pill.classList.add('low-stock'); pill.innerHTML = '<span class="stock-dot"></span> Only ' + v.stock_quantity + ' left'; }
-    else { pill.classList.add('in-stock'); pill.innerHTML = '<span class="stock-dot"></span> In Stock'; }
+    if (v.stock_quantity === 0) {
+      pill.classList.add('out-stock');
+      pill.innerHTML = '<span class="stock-dot"></span> Out of Stock';
+    } else if (v.stock_quantity <= 5) {
+      pill.classList.add('low-stock');
+      pill.innerHTML = '<span class="stock-dot"></span> Only ' + v.stock_quantity + ' left';
+    } else {
+      pill.classList.add('in-stock');
+      pill.innerHTML = '<span class="stock-dot"></span> In Stock';
+    }
   }
+
+  // Quantity
   qty = 1;
-  var qv = document.getElementById('qtyVal');
-  var qa = document.getElementById('qtyAvail');
+  var qv   = document.getElementById('qtyVal');
+  var qa   = document.getElementById('qtyAvail');
   var qMin = document.getElementById('qtyMinus');
   var qMax = document.getElementById('qtyPlus');
-  if (qv) { qv.value = 1; qv.max = v.stock_quantity; }
-  if (qa) qa.textContent = v.stock_quantity + ' available';
+  if (qv)  { qv.value = 1; qv.max = v.stock_quantity; }
+  if (qa)  qa.textContent = v.stock_quantity + ' available';
   if (qMin) qMin.disabled = true;
   if (qMax) qMax.disabled = v.stock_quantity <= 1;
+
+  // Cart button
   var btn = document.getElementById('cartBtn');
   if (btn) {
-    if (v.stock_quantity === 0) { btn.disabled = true; btn.innerHTML = '<i class="fa fa-ban"></i> Out of Stock'; }
-    else { btn.disabled = false; btn.innerHTML = '<i class="fa fa-cart-plus"></i> Add to Cart'; }
+    if (v.stock_quantity === 0) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa fa-ban"></i> Out of Stock';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa fa-cart-plus"></i> Add to Cart';
+    }
   }
+
+  // Images
   if (v.images && v.images.length > 0) {
     if (mainImg) mainImg.src = v.images[0];
     var tr = document.getElementById('thumbsRow');
     if (tr) tr.innerHTML = v.images.map(function(img, i) {
-      return '<img class="thumb ' + (i===0?'active':'') + '" src="' + img + '" alt="View ' + (i+1) + '" onclick="setMainImage(this,\'' + img + '\')">';
+      return '<img class="thumb ' + (i === 0 ? 'active' : '') + '" src="' + img + '" alt="View ' + (i + 1) + '" onclick="setMainImage(this,\'' + img + '\')">';
     }).join('');
   }
 }
