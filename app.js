@@ -61,7 +61,6 @@ app.use((req, res, next) => {
 });
 
 app.use('/', (req, res) => {
-  // console.log(req.method)
    res.render('pagenotfound')
 })
 

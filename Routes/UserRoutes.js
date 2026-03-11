@@ -7,6 +7,7 @@ import upload from "../middlewares/multer.js";
 import accountController from "../Controller/user/accountController.js";
 import addressController from "../Controller/user/addressController.js";
 import shoppingController from "../Controller/user/shoppingController.js";
+import cartController from "../Controller/user/cartController.js";
 
 router.get("/", blockIfLoggedIn, userController.landingPageGet);
 router.get("/home", userController.homeGet);
@@ -34,7 +35,6 @@ router.get(
       return res.redirect("/login");
     }
     req.session.user = req.user._id;
-    // console.log(req.session.user)
     res.redirect("/home");
   },
 );
@@ -76,9 +76,16 @@ router.post("/account/address/edit/:id", addressController.addressEditPost);
 router.post("/account/address/delete/:id", addressController.addressDeletePost);
 
 // ListingPage
-router.get('/products',shoppingController.productsGet)
+router.get('/products', shoppingController.productsGet)
 
 // ProductPage
 router.get('/product/:id', shoppingController.productDetailGet)
+
+// Cart Management
+router.get('/cart', cartController.cartGet)
+router.post('/cart/add', cartController.addToCartPost)
+router.post('/cart/update', cartController.updateCartPost)
+router.post('/cart/remove', cartController.removeFromCartPost)
+router.post('/cart/clear', cartController.clearCartPost)
 
 export default router;

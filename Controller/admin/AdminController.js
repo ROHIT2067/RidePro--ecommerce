@@ -1,4 +1,4 @@
-import adminService from "../../service/adminService.js";
+import adminService from "../../service/admin/adminService.js";
 
 const adminLoginGet = (req, res) => {
   if (!req.session.admin) {
@@ -58,7 +58,7 @@ const logOut = async (req, res) => {
   try {
     req.session.destroy((err) => {
       if (err) {
-        console.log("error in destroying session : ", err);
+        console.error("error in destroying session : ", err);
         return res.render("adminDashboard");
       }
 
@@ -67,7 +67,7 @@ const logOut = async (req, res) => {
       return res.redirect("/login");
     });
   } catch (error) {
-    console.log("Error in logging out : ", error);
+    console.error("Error in logging out : ", error);
     return res.redirect("/admin/dashboard");
   }
 };

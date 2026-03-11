@@ -10,7 +10,5 @@ const connectDB = async () => {
     process.exit(1);
   }
 };
-console.log("DB CONNECTED");
-
 
 export default connectDB;

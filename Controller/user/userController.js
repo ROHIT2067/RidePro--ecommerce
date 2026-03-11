@@ -1,4 +1,4 @@
-import userService from "../../service/userService.js";
+import userService from "../../service/user/userService.js";
 
 const landingPageGet = async (req, res) => {
   try {
@@ -66,7 +66,6 @@ const signUppost = async (req, res) => {
     req.session.userData = req.body;
 
     res.redirect("/verify-otp");
-    console.log("Otp is ", otp);
   } catch (error) {
     console.error("Error in signup:", error);
     if (error.message === "User already exists") {
@@ -115,7 +114,6 @@ const resendOtpPost = async (req, res) => {
     const otp = await userService.resendOtp(req.session.userData);
     req.session.userOtp = otp;
 
-    console.log("New Otp : ", otp);
     res.status(200).json({ success: true, message: "OTP Send Successfully" });
   } catch (error) {
     console.error("Error resending OTP:", error);
@@ -180,7 +178,6 @@ const forgotPasswordPost = async (req, res) => {
 
     req.session.userOtp = otp;
     req.session.email = email;
-    console.log("Otp is ", otp);
     return res.redirect("/verify-password");
   } catch (error) {
     console.error("Forgot password error:", error);
@@ -228,7 +225,6 @@ const resendOtpPassPost = async (req, res) => {
     const otp = await userService.resendPasswordOtp(req.session.email);
     req.session.userOtp = otp;
 
-    console.log("New Otp : ", otp);
     res.status(200).json({ success: true, message: "OTP Send Successfully" });
   } catch (error) {
     console.error("Error resending password OTP:", error);

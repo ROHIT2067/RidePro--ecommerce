@@ -1,5 +1,5 @@
-import Category from "../Models/CategoryModel.js";
-import Product from "../Models/ProductModel.js";
+import Category from "../../Models/CategoryModel.js";
+import Product from "../../Models/ProductModel.js";
 
 const getCategories = async (query) => {
     let search = query.search || "";

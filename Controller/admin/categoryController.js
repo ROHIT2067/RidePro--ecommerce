@@ -1,4 +1,4 @@
-import categoryService from "../../service/categoryService.js";
+import categoryService from "../../service/admin/categoryService.js";
 
 const categoryInfoGet = async (req, res) => {
   try {

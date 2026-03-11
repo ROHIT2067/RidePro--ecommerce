@@ -94,6 +94,29 @@
   flex-shrink: 0;
 }
 
+/* ── Cart badge ────────────────────────────────── */
+.cart-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: #e8411a;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.2rem 0.35rem;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 /* ── Search overlay ────────────────────────────── */
 .search-overlay {
   position: fixed;

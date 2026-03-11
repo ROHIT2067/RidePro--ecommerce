@@ -1,4 +1,4 @@
-import userCollection from "../Models/UserModel.js";
+import userCollection from "../../Models/UserModel.js";
 
 const getCustomers = async (query) => {
     let search = query.search || "";

@@ -1,4 +1,4 @@
-import address from "../Models/AddressModel.js";
+import address from "../../Models/AddressModel.js";
 
 const validateAddressData = (addressData) => {
     const { name, area, district, state, pincode, country, mobile } = addressData;

@@ -1,4 +1,4 @@
-import userCollection from "../Models/UserModel.js";
+import userCollection from "../../Models/UserModel.js";
 import bcrypt from "bcrypt";
 
 const authenticateAdmin = async (email, password) => {

@@ -1,9 +1,9 @@
-import userCollection from "../Models/UserModel.js";
+import userCollection from "../../Models/UserModel.js";
 import bcrypt from "bcrypt";
-import { generateOtp } from "../utils/otp.js";
+import { generateOtp } from "../../utils/otp.js";
 import { sendVerificationEmail } from "./mailService.js";
-import { securePassword } from "../utils/passwordHash.js";
-import cloudinary from "../Config/cloudinary.js";
+import { securePassword } from "../../utils/passwordHash.js";
+import cloudinary from "../../Config/cloudinary.js";
 
 const getProfileData = async (userId) => {
     const findUser = await userCollection.findById(userId).lean();

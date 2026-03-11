@@ -25,7 +25,7 @@ export async function sendVerificationEmail(email, otp) {
 
     return info.accepted.length > 0;
   } catch (error) {
-    console.log("Error in sending email:", error.message);
+    console.error("Error in sending email:", error.message);
     return false;
   }
 }

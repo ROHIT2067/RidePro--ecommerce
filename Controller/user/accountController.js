@@ -1,4 +1,4 @@
-import accountService from "../../service/accountService.js";
+import accountService from "../../service/user/accountService.js";
 
 const changePassGet = (req, res) => {
   if (req.session.admin) {

@@ -387,6 +387,7 @@ function addVariant(existingData = null) {
       </button>
     </div>
     <div class="variant-body" ${variantIdAttr}>
+      ${existingData && existingData._id ? `<input type="hidden" name="variants[${num}][_id]" value="${existingData._id}" />` : ''}
       <div class="form-group">
         <label>Size</label>
         <select name="variants[${num}][size]">

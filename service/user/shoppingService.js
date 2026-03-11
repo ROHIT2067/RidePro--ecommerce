@@ -1,6 +1,6 @@
-import Variant from "../Models/VariantModel.js";
-import Product from "../Models/ProductModel.js";
-import Category from "../Models/CategoryModel.js";
+import Variant from "../../Models/VariantModel.js";
+import Product from "../../Models/ProductModel.js";
+import Category from "../../Models/CategoryModel.js";
 
 const getProductsList = async (query) => {
     let search = query.search || "";

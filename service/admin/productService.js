@@ -1,7 +1,7 @@
-import Product from "../Models/ProductModel.js";
-import Variant from "../Models/VariantModel.js";
-import Category from "../Models/CategoryModel.js";
-import cloudinary from "../Config/cloudinary.js";
+import Product from "../../Models/ProductModel.js";
+import Variant from "../../Models/VariantModel.js";
+import Category from "../../Models/CategoryModel.js";
+import cloudinary from "../../Config/cloudinary.js";
 import mongoose from "mongoose";
 
 const uploadToCloudinary = (buffer) => {

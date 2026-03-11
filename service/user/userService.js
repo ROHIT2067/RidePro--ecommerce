@@ -1,11 +1,11 @@
-import userCollection from "../Models/UserModel.js";
+import userCollection from "../../Models/UserModel.js";
 import bcrypt from "bcrypt";
-import { generateOtp } from "../utils/otp.js";
+import { generateOtp } from "../../utils/otp.js";
 import { sendVerificationEmail } from "./mailService.js";
-import { securePassword } from "../utils/passwordHash.js";
-import Category from "../Models/CategoryModel.js";
-import Product from "../Models/ProductModel.js";
-import Variant from "../Models/VariantModel.js";
+import { securePassword } from "../../utils/passwordHash.js";
+import Category from "../../Models/CategoryModel.js";
+import Product from "../../Models/ProductModel.js";
+import Variant from "../../Models/VariantModel.js";
 
 const getHomeData = async () => {
     const categories = await Category.find({ status: "Active" });

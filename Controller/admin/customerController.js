@@ -1,4 +1,4 @@
-import customerService from "../../service/customerService.js";
+import customerService from "../../service/admin/customerService.js";
 
 const customerGet = async (req, res) => {
   try {
