@@ -8,6 +8,9 @@ import accountController from "../Controller/user/accountController.js";
 import addressController from "../Controller/user/addressController.js";
 import shoppingController from "../Controller/user/shoppingController.js";
 import cartController from "../Controller/user/cartController.js";
+import wishlistController from "../Controller/user/wishlistController.js";
+import checkoutController from "../Controller/user/checkoutController.js";
+import orderController from "../Controller/user/orderController.js";
 
 router.get("/", blockIfLoggedIn, userController.landingPageGet);
 router.get("/home", userController.homeGet);
@@ -87,5 +90,29 @@ router.post('/cart/add', cartController.addToCartPost)
 router.post('/cart/update', cartController.updateCartPost)
 router.post('/cart/remove', cartController.removeFromCartPost)
 router.post('/cart/clear', cartController.clearCartPost)
+
+// Wishlist Management
+router.get('/wishlist', wishlistController.wishlistGet)
+router.post('/wishlist/add', wishlistController.addToWishlistPost)
+router.post('/wishlist/remove', wishlistController.removeFromWishlistPost)
+router.post('/wishlist/move-to-cart', wishlistController.moveToCartPost)
+router.post('/wishlist/clear', wishlistController.clearWishlistPost)
+router.get('/wishlist/check/:variantId', wishlistController.checkWishlistItemGet)
+
+// Checkout & Orders
+router.get('/checkout', checkoutController.checkoutGet)
+router.post('/checkout/place-order', checkoutController.placeOrderPost)
+router.get('/order-success', checkoutController.orderSuccessGet)
+
+// Order Management
+router.get('/orders', orderController.ordersGet)
+router.get('/account/orders', orderController.ordersGet)
+router.get('/orders/:orderId', orderController.orderDetailsGet)
+router.post('/orders/:orderId/cancel', orderController.cancelOrderPost)
+router.post('/orders/:orderId/items/:itemId/cancel', orderController.cancelOrderItemPost)
+router.post('/orders/:orderId/cancel-items', orderController.cancelOrderItemsPost)
+router.post('/orders/:orderId/return', orderController.returnOrderPost)
+router.post('/orders/:orderId/return-item', orderController.returnOrderItemPost)
+router.get('/orders/:orderId/invoice', orderController.downloadInvoiceGet)
 
 export default router;

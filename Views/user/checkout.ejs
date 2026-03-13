@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — RidePro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/styles/header.css" />
+  <link rel="stylesheet" href="/styles/footer.css" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0d0d0d; --surface: #141414; --surface2: #1c1c1c; --surface3: #222;
+      --border: #2a2a2a; --border2: #333; --text: #f0f0f0; --muted: #888; --muted2: #555;
+      --accent: #e8411a; --accent2: #ff5733; --success: #16a34a; --danger: #ef4444;
+      --font: 'DM Sans', sans-serif; --display: 'Bebas Neue', sans-serif;
+      --radius: 10px; --radius2: 14px;
+    }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; padding-top: 72px; }
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 2.5rem 2rem 5rem; }
+    .page-title { font-family: var(--display); font-size: 2.6rem; letter-spacing: 0.04em; margin-bottom: 0.4rem; }
+    .page-title em { color: var(--accent); font-style: normal; }
+    .page-subtitle { font-size: 0.84rem; color: var(--muted); margin-bottom: 2.5rem; }
+    .checkout-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2rem; align-items: start; }
+    .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius2); padding: 1.6rem 1.8rem; margin-bottom: 1.5rem; }
+    .section-title { font-family: var(--display); font-size: 1.5rem; letter-spacing: 0.04em; margin-bottom: 1.2rem; }
+    .address-list { display: flex; flex-direction: column; gap: 0.8rem; }
+    .address-card { background: var(--surface2); border: 2px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; cursor: pointer; transition: border-color 0.2s; }
+    .address-card:hover { border-color: var(--border2); }
+    .address-card.selected { border-color: var(--accent); background: rgba(232, 65, 26, 0.05); }
+    .address-card input[type="radio"] { display: none; }
+    .address-name { font-weight: 600; font-size: 0.92rem; margin-bottom: 0.3rem; }
+    .address-details { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    .address-phone { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
+    .btn-add-address { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--surface3); color: var(--text); text-decoration: none; padding: 0.65rem 1.2rem; border-radius: 8px; font-size: 0.84rem; font-weight: 600; border: 1px solid var(--border2); transition: background 0.15s; margin-top: 0.5rem; }
+    .btn-add-address:hover { background: var(--border2); }
+    .order-item { display: grid; grid-template-columns: 60px 1fr auto; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+    .order-item:last-child { border-bottom: none; }
+    .item-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: var(--surface2); }
+    .item-info { display: flex; flex-direction: column; gap: 0.25rem; }
+    .item-name { font-size: 0.88rem; font-weight: 600; }
+    .item-variant { font-size: 0.76rem; color: var(--muted); }
+    .item-price-qty { text-align: right; }
+    .item-qty { font-size: 0.76rem; color: var(--muted); }
+    .item-price { font-size: 0.92rem; font-weight: 600; margin-top: 0.2rem; }
+    .order-summary { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius2); padding: 1.6rem 1.5rem; position: sticky; top: 72px; }
+    .summary-title { font-family: var(--display); font-size: 1.4rem; letter-spacing: 0.04em; margin-bottom: 1.4rem; }
+    .summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.86rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+    .summary-row:last-of-type { border-bottom: none; }
+    .summary-row .label { color: var(--muted); }
+    .summary-row .value { font-weight: 600; }
+    .summary-row.total { padding-top: 1rem; }
+    .summary-row.total .label { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .summary-row.total .value { font-size: 1.25rem; color: var(--accent); }
+    .divider { height: 1px; background: var(--border); margin: 1rem 0; }
+    .payment-method { background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius); padding: 1rem 1.2rem; display: flex; align-items: center; gap: 0.8rem; }
+    .payment-icon { width: 40px; height: 40px; background: var(--surface3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--accent); }
+    .payment-info { flex: 1; }
+    .payment-name { font-weight: 600; font-size: 0.88rem; }
+    .payment-desc { font-size: 0.76rem; color: var(--muted); margin-top: 0.15rem; }
+    .btn-place-order { width: 100%; padding: 0.9rem; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-family: var(--font); font-size: 0.92rem; font-weight: 600; cursor: pointer; margin-top: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background 0.15s, transform 0.15s; }
+    .btn-place-order:hover:not(:disabled) { background: var(--accent2); transform: translateY(-1px); }
+    .btn-place-order:disabled { background: var(--muted2); cursor: not-allowed; transform: none; }
+    .secure-note { display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.72rem; color: var(--muted); margin-top: 0.85rem; }
+    #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; padding: 0.75rem 1.2rem; border-radius: 10px; font-size: 0.84rem; font-weight: 500; color: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); opacity: 0; transform: translateY(8px); transition: opacity 0.28s, transform 0.28s; pointer-events: none; }
+    @media (max-width: 900px) { .checkout-layout { grid-template-columns: 1fr; } .order-summary { position: static; } }
+  </style>
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <div class="page-wrap">
+    <%- include('partials/breadcrumb', { breadcrumbs: [
+      { name: 'Home', url: '/home' },
+      { name: 'Shopping Cart', url: '/cart' },
+      { name: 'Checkout' }
+    ] }) %>
+    <h1 class="page-title">Checkout <em>—</em></h1>
+    <p class="page-subtitle">Review your order and complete purchase</p>
+
+    <div class="checkout-layout">
+      <div class="checkout-main">
+        <!-- Delivery Address -->
+        <div class="section">
+          <h2 class="section-title">Delivery Address</h2>
+          <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 1rem;">
+            <i class="fa fa-info-circle"></i> To edit or manage your addresses, go to <a href="/account/address" style="color: var(--accent); text-decoration: none;">Account Settings</a>
+          </p>
+          <div class="address-list">
+            <% addresses.forEach(address => { %>
+              <label class="address-card <%= selectedAddress && selectedAddress._id.toString() === address._id.toString() ? 'selected' : '' %>">
+                <input type="radio" name="address" value="<%= address._id %>" <%= selectedAddress && selectedAddress._id.toString() === address._id.toString() ? 'checked' : '' %>>
+                <div class="address-name"><%= address.name %></div>
+                <div class="address-details">
+                  <%= address.area %>, <%= address.district %><br>
+                  <%= address.state %>, <%= address.country %> - <%= address.pincode %>
+                </div>
+                <div class="address-phone"><i class="fa fa-phone"></i> <%= address.mobile %></div>
+              </label>
+            <% }) %>
+          </div>
+          <a href="/account/address/add" class="btn-add-address">
+            <i class="fa fa-plus"></i> Add New Address
+          </a>
+        </div>
+
+        <!-- Order Items -->
+        <div class="section">
+          <h2 class="section-title">Order Items</h2>
+          <% items.forEach(item => { 
+            const variant = item.variant_id;
+            const product = variant.product_id;
+            const img = variant.images && variant.images.length > 0 ? variant.images[0] : '/images/placeholder.jpg';
+          %>
+            <div class="order-item">
+              <img src="<%= img %>" alt="<%= product.productName %>" class="item-img">
+              <div class="item-info">
+                <div class="item-name"><%= product.productName %></div>
+                <div class="item-variant">
+                  <% if (variant.size) { %><span>Size: <%= variant.size %></span><% } %>
+                  <% if (variant.color) { %><span> • Color: <%= variant.color %></span><% } %>
+                </div>
+              </div>
+              <div class="item-price-qty">
+                <div class="item-qty">Qty: <%= item.quantity %></div>
+                <div class="item-price">₹<%= (item.price * item.quantity).toLocaleString('en-IN') %></div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="section">
+          <h2 class="section-title">Payment Method</h2>
+          <div class="payment-method">
+            <div class="payment-icon"><i class="fa fa-money-bill"></i></div>
+            <div class="payment-info">
+              <div class="payment-name">Cash on Delivery</div>
+              <div class="payment-desc">Pay when you receive your order</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="order-summary">
+        <h3 class="summary-title">Order Summary</h3>
+        <div class="summary-row">
+          <span class="label">Subtotal</span>
+          <span class="value">₹<%= subtotal.toLocaleString('en-IN') %></span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Shipping</span>
+          <span class="value"><%= shippingCost === 0 ? 'FREE' : '₹' + shippingCost.toLocaleString('en-IN') %></span>
+        </div>
+        <div class="divider"></div>
+        <div class="summary-row total">
+          <span class="label">Total</span>
+          <span class="value">₹<%= totalAmount.toLocaleString('en-IN') %></span>
+        </div>
+        <button class="btn-place-order" onclick="placeOrder()">
+          <i class="fa fa-check-circle"></i> Place Order
+        </button>
+        <div class="secure-note">
+          <i class="fa fa-lock"></i> Secure Checkout
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+
+  <div id="toast"></div>
+
+  <script>
+    // Address selection
+    document.querySelectorAll('.address-card').forEach(card => {
+      card.addEventListener('click', function() {
+        document.querySelectorAll('.address-card').forEach(c => c.classList.remove('selected'));
+        this.classList.add('selected');
+        this.querySelector('input[type="radio"]').checked = true;
+      });
+    });
+
+    // Toast notification
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.style.background = type === 'success' ? '#16a34a' : '#ef4444';
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+      }, 3000);
+    }
+
+    // Place order
+    async function placeOrder() {
+      const selectedAddress = document.querySelector('input[name="address"]:checked');
+      
+      if (!selectedAddress) {
+        showToast('Please select a delivery address', 'error');
+        return;
+      }
+
+      const btn = document.querySelector('.btn-place-order');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+
+      try {
+        const response = await fetch('/checkout/place-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ addressId: selectedAddress.value })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          window.location.href = `/order-success?orderId=${data.orderId}`;
+        } else {
+          showToast(data.message || 'Failed to place order', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa fa-check-circle"></i> Place Order';
+        }
+      } catch (error) {
+        showToast('An error occurred. Please try again.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-check-circle"></i> Place Order';
+      }
+    }
+  </script>
+</body>
+</html>

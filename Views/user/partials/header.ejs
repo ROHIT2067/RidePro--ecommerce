@@ -3,12 +3,26 @@
 
   <!-- Left: Search Button -->
   <div></div>
-
+<div class="header-spacer"></div>
   <!-- Center: Logo -->
   <a href="/home" class="site-logo" aria-label="RidePro Home">RidePro</a>
 
-  <!-- Right: Cart + Account -->
+  <!-- Right: Wishlist + Cart + Account -->
   <nav class="header-nav" aria-label="Main Navigation">
+
+    <a href="/wishlist" class="nav-item wishlist-link" aria-label="Wishlist">
+      <div class="wishlist-icon-wrap">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 20 20">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+        </svg>
+        <% if (typeof wishlistCount !== 'undefined' && wishlistCount > 0) { %>
+          <span class="wishlist-badge"><%= wishlistCount > 99 ? '99+' : wishlistCount %></span>
+        <% } %>
+      </div>
+      <span class="nav-label">Wishlist</span>
+    </a>
+
     <a href="/cart" class="nav-item cart-link" aria-label="Cart">
       <div class="cart-icon-wrap">
         <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -21,6 +35,7 @@
       </div>
       <span class="nav-label">Cart</span>
     </a>
+
     <a href="<%= typeof currentUser !== 'undefined' && currentUser ? '/account' : '/login' %>" class="nav-item" aria-label="Account">
       <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
         <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
@@ -29,71 +44,7 @@
         <%= typeof currentUser !== 'undefined' && currentUser ? currentUser.username : 'Login' %>
       </span>
     </a>
+
   </nav>
 
 </header>
-
-<!-- Search Overlay -->
-<div class="search-overlay" id="searchOverlay" role="dialog" aria-label="Search" aria-hidden="true">
-  <button class="search-close" id="searchClose" aria-label="Close search">&#x2715;</button>
-  <form class="search-form" action="/search" method="GET">
-    <input
-      type="text"
-      name="q"
-      class="search-input"
-      placeholder="Search products…"
-      autocomplete="off"
-      aria-label="Search products"
-    />
-    <button type="submit" class="search-submit" aria-label="Submit search">
-      <svg fill="currentColor" viewBox="0 0 20 20" width="22" height="22">
-        <path fill-rule="evenodd"
-          d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-          clip-rule="evenodd" />
-      </svg>
-    </button>
-  </form>
-</div>
-
-<!-- Spacer pushes page content below the fixed bar -->
-<div class="header-spacer"></div>
-
-<!-- Header JS — guarded so it's safe even if partial is included multiple times -->
-<script>
-  (function () {
-    if (window.__headerInitDone) return;
-    window.__headerInitDone = true;
-
-    var overlay = document.getElementById('searchOverlay');
-    var input   = overlay ? overlay.querySelector('.search-input') : null;
-
-    function openSearch() {
-      overlay.classList.add('open');
-      overlay.setAttribute('aria-hidden', 'false');
-      if (input) input.focus();
-    }
-
-    function closeSearch() {
-      overlay.classList.remove('open');
-      overlay.setAttribute('aria-hidden', 'true');
-    }
-
-    var toggleBtn = document.getElementById('searchToggle');
-    var closeBtn  = document.getElementById('searchClose');
-
-    if (toggleBtn) toggleBtn.addEventListener('click', openSearch);
-    if (closeBtn)  closeBtn.addEventListener('click', closeSearch);
-
-    if (overlay) {
-      overlay.addEventListener('click', function (e) {
-        if (e.target === overlay) closeSearch();
-      });
-    }
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && overlay && overlay.classList.contains('open')) {
-        closeSearch();
-      }
-    });
-  })();
-</script>

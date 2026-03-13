@@ -19,6 +19,7 @@
     "nodemailer": "^7.0.13",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "pdfkit": "^0.17.2",
     "zod": "^4.3.6"
   },
   "devDependencies": {

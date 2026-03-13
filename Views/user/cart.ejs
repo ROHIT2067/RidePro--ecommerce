@@ -534,8 +534,13 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
     }
 
     .modal-box {
@@ -549,8 +554,15 @@
     }
 
     @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     .modal-icon {
@@ -641,7 +653,9 @@
       }
 
       .page-wrap {
-        padding: 1.5rem 1rem 4rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 5rem 2rem 5rem;
       }
 
       .modal-box {
@@ -660,6 +674,10 @@
   <%- include('partials/header') %>
 
     <div class="page-wrap">
+      <%- include('partials/breadcrumb', { breadcrumbs: [
+        { name: 'Home', url: '/home' },
+        { name: 'Shopping Cart' }
+      ] }) %>
       <h1 class="page-title">Your <em>Cart</em></h1>
       <p class="page-subtitle">
         <%= cartCount %> item<%= cartCount !==1 ? 's' : '' %> in your cart
@@ -704,134 +722,149 @@
               </div>
               <% } %>
 
-                <% if (items.length===0) { %>
-                  <div class="empty-cart">
-                    <i class="fa fa-cart-shopping"></i>
-                    <h3>Your cart is empty</h3>
-                    <p>Looks like you haven't added anything yet. Browse our collection and find something you love.</p>
-                    <a href="/products" class="btn-shop"><i class="fa fa-arrow-left"></i> Continue Shopping</a>
+                <% if (typeof checkoutError !=='undefined' && checkoutError) { %>
+                  <div
+                    style="background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.22); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.84rem; color: #f87171;">
+                    <i class="fa fa-circle-exclamation" style="margin-top:0.15rem; flex-shrink:0;"></i>
+                    <div>
+                      <strong style="display:block; margin-bottom:0.3rem;">Checkout Error</strong>
+                      <p style="margin:0;">
+                        <%= checkoutError %>
+                      </p>
+                    </div>
                   </div>
-                  <% } else { %>
-                    <div class="cart-layout">
-                      <div class="cart-items" id="cartItems">
-                        <% items.forEach(function(item) { const variant=item.variant_id; const
-                          product=variant.product_id; const firstImg=variant.images && variant.images.length ?
-                          variant.images[0] : null; const stock=variant.stock_quantity; const itemTotal=item.price *
-                          item.quantity; const isUnavailable=item.isOutOfStock; %>
-                          <div class="cart-item <%= isUnavailable ? 'oos' : '' %>" id="item-<%= variant._id %>">
-                            <div class="item-img-wrap">
-                              <% if (firstImg) { %>
-                                <img class="item-img" src="<%= firstImg %>" alt="<%= product.productName %>" />
-                                <% } else { %>
-                                  <div class="item-img-placeholder"><i class="fa fa-image"></i></div>
-                                  <% } %>
-                            </div>
+                  <% } %>
 
-                            <div class="item-info">
-                              <div class="item-name">
-                                <a href="/product/<%= product._id %>">
-                                  <%= product.productName %>
-                                </a>
-                              </div>
-                              <div class="item-meta">
-                                <% if (variant.size) { %><span class="item-tag">
-                                    <%= variant.size %>
-                                  </span>
-                                  <% } %>
-                                    <% if (variant.color) { %><span class="item-tag">
-                                        <%= variant.color %>
+                    <% if (items.length===0) { %>
+                      <div class="empty-cart">
+                        <i class="fa fa-cart-shopping"></i>
+                        <h3>Your cart is empty</h3>
+                        <p>Looks like you haven't added anything yet. Browse our collection and find something you love.
+                        </p>
+                        <a href="/products" class="btn-shop"><i class="fa fa-arrow-left"></i> Continue Shopping</a>
+                      </div>
+                      <% } else { %>
+                        <div class="cart-layout">
+                          <div class="cart-items" id="cartItems">
+                            <% items.forEach(function(item) { const variant=item.variant_id; const
+                              product=variant.product_id; const firstImg=variant.images && variant.images.length ?
+                              variant.images[0] : null; const stock=variant.stock_quantity; const itemTotal=item.price *
+                              item.quantity; const isUnavailable=item.isOutOfStock; %>
+                              <div class="cart-item <%= isUnavailable ? 'oos' : '' %>" id="item-<%= variant._id %>">
+                                <div class="item-img-wrap">
+                                  <% if (firstImg) { %>
+                                    <img class="item-img" src="<%= firstImg %>" alt="<%= product.productName %>" />
+                                    <% } else { %>
+                                      <div class="item-img-placeholder"><i class="fa fa-image"></i></div>
+                                      <% } %>
+                                </div>
+
+                                <div class="item-info">
+                                  <div class="item-name">
+                                    <a href="/product/<%= product._id %>">
+                                      <%= product.productName %>
+                                    </a>
+                                  </div>
+                                  <div class="item-meta">
+                                    <% if (variant.size) { %><span class="item-tag">
+                                        <%= variant.size %>
                                       </span>
                                       <% } %>
-                              </div>
-                              <% if (isUnavailable) { %>
-                                <div class="oos-badge"><i class="fa fa-ban"></i> Out of Stock</div>
-                                <% } else { %>
-                                  <div class="item-price" id="total-<%= variant._id %>">₹<%=
-                                      itemTotal.toLocaleString('en-IN') %>
+                                        <% if (variant.color) { %><span class="item-tag">
+                                            <%= variant.color %>
+                                          </span>
+                                          <% } %>
                                   </div>
-                                  <div class="item-unit-price">₹<%= item.price.toLocaleString('en-IN') %> each</div>
-                                  <% if (stock> 0 && stock <= 5) { %>
-                                      <div class="stock-warn"><i class="fa fa-circle-exclamation"></i> Only <%= stock %>
-                                          left</div>
-                                      <% } %>
-                                        <% } %>
-                            </div>
+                                  <% if (isUnavailable) { %>
+                                    <div class="oos-badge"><i class="fa fa-ban"></i> Out of Stock</div>
+                                    <% } else { %>
+                                      <div class="item-price" id="total-<%= variant._id %>">₹<%=
+                                          itemTotal.toLocaleString('en-IN') %>
+                                      </div>
+                                      <div class="item-unit-price">₹<%= item.price.toLocaleString('en-IN') %> each</div>
+                                      <% if (stock> 0 && stock <= 5) { %>
+                                          <div class="stock-warn"><i class="fa fa-circle-exclamation"></i> Only <%=
+                                              stock %>
+                                              left</div>
+                                          <% } %>
+                                            <% } %>
+                                </div>
 
-                            <div class="item-actions">
-                              <% if (!isUnavailable) { %>
-                                <div class="qty-ctrl">
-                                  <button class="qty-btn"
-                                    onclick="updateQty('<%= variant._id %>', <%= item.quantity - 1 %>)" <%=item.quantity
-                                    <=1 ? 'disabled' : '' %>>
-                                    <i class="fa fa-minus"></i>
-                                  </button>
-                                  <input class="qty-val" type="text" value="<%= item.quantity %>"
-                                    id="qty-<%= variant._id %>" readonly />
-                                  <button class="qty-btn"
-                                    onclick="updateQty('<%= variant._id %>', <%= item.quantity + 1 %>)"
-                                    <%=(item.quantity>= 5 || item.quantity >= stock) ? 'disabled' : '' %>>
-                                    <i class="fa fa-plus"></i>
+                                <div class="item-actions">
+                                  <% if (!isUnavailable) { %>
+                                    <div class="qty-ctrl">
+                                      <button class="qty-btn"
+                                        onclick="updateQty('<%= variant._id %>', <%= item.quantity - 1 %>)"
+                                        <%=item.quantity <=1 ? 'disabled' : '' %>>
+                                        <i class="fa fa-minus"></i>
+                                      </button>
+                                      <input class="qty-val" type="text" value="<%= item.quantity %>"
+                                        id="qty-<%= variant._id %>" readonly />
+                                      <button class="qty-btn"
+                                        onclick="updateQty('<%= variant._id %>', <%= item.quantity + 1 %>)"
+                                        <%=(item.quantity>= 5 || item.quantity >= stock) ? 'disabled' : '' %>>
+                                        <i class="fa fa-plus"></i>
+                                      </button>
+                                    </div>
+                                    <% } %>
+                                      <button class="btn-remove" onclick="removeItem('<%= variant._id %>')">
+                                        <i class="fa fa-trash-can"></i> Remove
+                                      </button>
+                                </div>
+                              </div>
+                              <% }); %>
+
+                                <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+                                  <button class="btn-remove" onclick="clearCart()" style="color: var(--danger);">
+                                    <i class="fa fa-trash-can"></i> Clear Cart
                                   </button>
                                 </div>
-                                <% } %>
-                                  <button class="btn-remove" onclick="removeItem('<%= variant._id %>')">
-                                    <i class="fa fa-trash-can"></i> Remove
-                                  </button>
-                            </div>
                           </div>
-                          <% }); %>
 
-                            <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
-                              <button class="btn-remove" onclick="clearCart()" style="color: var(--danger);">
-                                <i class="fa fa-trash-can"></i> Clear Cart
-                              </button>
+                          <div class="order-summary">
+                            <div class="summary-title">Order Summary</div>
+                            <div class="summary-row">
+                              <span class="label">Subtotal (<span id="summary-count">
+                                  <%= cartCount %>
+                                </span> items)</span>
+                              <span class="value" id="summary-subtotal">₹<%= totalPrice.toLocaleString('en-IN') %>
+                                  </span>
                             </div>
-                      </div>
-
-                      <div class="order-summary">
-                        <div class="summary-title">Order Summary</div>
-                        <div class="summary-row">
-                          <span class="label">Subtotal (<span id="summary-count">
-                              <%= cartCount %>
-                            </span> items)</span>
-                          <span class="value" id="summary-subtotal">₹<%= totalPrice.toLocaleString('en-IN') %></span>
-                        </div>
-                        <div class="summary-row">
-                          <span class="label">Delivery</span>
-                          <span class="value" style="color:#4ade80" id="summary-delivery">
-                            <%= totalPrice>= 1999 ? 'FREE' : '₹99' %>
-                          </span>
-                        </div>
-                        <div class="divider"></div>
-                        <div class="coupon-wrap">
-                          <span class="coupon-label">Have a coupon?</span>
-                          <div class="coupon-input-row">
-                            <input type="text" class="coupon-input" id="couponInput" placeholder="Enter code" />
-                            <button class="coupon-apply" onclick="applyCoupon()">Apply</button>
-                          </div>
-                          <div class="coupon-msg" id="couponMsg"></div>
-                        </div>
-                        <div class="summary-row total">
-                          <span class="label">Total</span>
-                          <span class="value" id="summary-total">₹<%= (totalPrice>= 1999 ? totalPrice : totalPrice +
-                              99).toLocaleString('en-IN') %></span>
-                        </div>
-
-                        <button class="btn-checkout" onclick="window.location.href='/checkout'" <%=(items.length===0 ||
-                          hasOutOfStock) ? 'disabled' : '' %>>
-                          <i class="fa fa-lock"></i> Proceed to Checkout
-                        </button>
-
-                        <% if (hasOutOfStock) { %>
-                          <div class="oos-checkout-note">
-                            <i class="fa fa-circle-exclamation"></i> Remove out of stock items to proceed
-                          </div>
-                          <% } %>
-                            <div class="secure-note"><i class="fa fa-shield-halved"></i> Secure checkout — SSL encrypted
+                            <div class="summary-row">
+                              <span class="label">Delivery</span>
+                              <span class="value" id="summary-delivery">₹118</span>
                             </div>
-                      </div>
-                    </div>
-                    <% } %>
+                            <div class="divider"></div>
+                            <div class="coupon-wrap">
+                              <span class="coupon-label">Have a coupon?</span>
+                              <div class="coupon-input-row">
+                                <input type="text" class="coupon-input" id="couponInput" placeholder="Enter code" />
+                                <button class="coupon-apply" onclick="applyCoupon()">Apply</button>
+                              </div>
+                              <div class="coupon-msg" id="couponMsg"></div>
+                            </div>
+                            <div class="summary-row total">
+                              <span class="label">Total</span>
+                              <span class="value" id="summary-total">₹<%= (totalPrice + 118).toLocaleString('en-IN') %>
+                                  </span>
+                            </div>
+
+                            <button class="btn-checkout" onclick="window.location.href='/checkout'" <%=(items.length===0
+                              || hasOutOfStock) ? 'disabled' : '' %>>
+                              <i class="fa fa-lock"></i> Proceed to Checkout
+                            </button>
+
+                            <% if (hasOutOfStock) { %>
+                              <div class="oos-checkout-note">
+                                <i class="fa fa-circle-exclamation"></i> Remove out of stock items to proceed
+                              </div>
+                              <% } %>
+                                <div class="secure-note"><i class="fa fa-shield-halved"></i> Secure checkout — SSL
+                                  encrypted
+                                </div>
+                          </div>
+                        </div>
+                        <% } %>
     </div>
 
     <div id="toast"></div>
@@ -897,9 +930,9 @@
               document.getElementById(`qty-${variantId}`).value = newQty;
               document.getElementById(`total-${variantId}`).textContent = '₹' + parseFloat(data.itemTotal).toLocaleString('en-IN');
               document.getElementById('summary-subtotal').textContent = '₹' + parseFloat(data.cartTotal).toLocaleString('en-IN');
-              document.getElementById('summary-total').textContent = '₹' + (parseFloat(data.cartTotal) >= 1999 ? parseFloat(data.cartTotal) : parseFloat(data.cartTotal) + 99).toLocaleString('en-IN');
+              document.getElementById('summary-total').textContent = '₹' + (parseFloat(data.cartTotal) + 118).toLocaleString('en-IN');
               document.getElementById('summary-count').textContent = data.cartCount;
-              document.getElementById('summary-delivery').textContent = parseFloat(data.cartTotal) >= 1999 ? 'FREE' : '₹99';
+              document.getElementById('summary-delivery').textContent = '₹118';
 
               // Refresh to handle disabled states of buttons properly without complex DOM manipulation
               setTimeout(() => location.reload(), 400);
@@ -924,9 +957,9 @@
         async function confirmRemoveItem() {
           const variantId = window.pendingRemoveVariantId;
           closeRemoveModal();
-          
+
           if (!variantId) return;
-          
+
           try {
             const res = await fetch('/cart/remove', {
               method: 'POST',
@@ -966,16 +999,16 @@
         }
 
         // Close modals on overlay click
-        document.getElementById('clearCartModal').addEventListener('click', function(e) {
+        document.getElementById('clearCartModal').addEventListener('click', function (e) {
           if (e.target === this) closeModal();
         });
 
-        document.getElementById('removeItemModal').addEventListener('click', function(e) {
+        document.getElementById('removeItemModal').addEventListener('click', function (e) {
           if (e.target === this) closeRemoveModal();
         });
 
         // Close modals on Escape key
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
           if (e.key === 'Escape') {
             closeModal();
             closeRemoveModal();

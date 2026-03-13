@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Details — Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --surface2: #1c1c1c;
+      --border: #2a2a2a;
+      --accent: #e8411a;
+      --text: #f0f0f0;
+      --muted: #888;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f0f2f8;
+      display: flex;
+      min-height: 100vh;
+      color: #1a1a1a;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #ffffff;
+      border-right: 1px solid #e5e7eb;
+      padding: 20px 0;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .logo {
+      padding: 0 20px 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .logo i {
+      font-size: 24px;
+    }
+
+    .nav-menu {
+      list-style: none;
+    }
+
+    .nav-item {
+      margin-bottom: 5px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      color: #6b7280;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .nav-link:hover {
+      background-color: #f9fafb;
+      color: #1a1a1a;
+    }
+
+    .nav-link.active {
+      background-color: #f3f4f6;
+      color: #1a1a1a;
+      font-weight: 500;
+      border-left: 3px solid #3b82f6;
+    }
+
+    .nav-link i {
+      width: 20px;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .main-content {
+      margin-left: 250px;
+      flex: 1;
+      padding: 30px 40px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 30px;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .breadcrumb a {
+      color: #6b7280;
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+      color: #3b82f6;
+    }
+
+    .breadcrumb-separator {
+      color: #d1d5db;
+    }
+
+    .breadcrumb-active {
+      color: #1a1a1a;
+      font-weight: 500;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .order-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+    }
+
+    .order-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .info-item {}
+
+    .info-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-confirmed {
+      background: #cfe2ff;
+      color: #084298;
+    }
+
+    .status-shipped {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .status-delivered {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-cancelled {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-return-requested {
+      background: #ffeaa7;
+      color: #d63031;
+    }
+
+    .status-returned {
+      background: #fab1a0;
+      color: #e17055;
+    }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .items-table th {
+      padding: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b7280;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .items-table td {
+      padding: 12px;
+      font-size: 14px;
+      color: #374151;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .items-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .product-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .product-name {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .product-variant {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .address-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .address-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1a1a1a;
+    }
+
+    .address-text {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .summary-row.total {
+      border-top: 1px solid #e5e7eb;
+      margin-top: 12px;
+      padding-top: 12px;
+      font-weight: 600;
+    }
+
+    .summary-label {
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .summary-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a1a1a;
+    }
+
+    .summary-row.total .summary-label,
+    .summary-row.total .summary-value {
+      font-size: 16px;
+      color: #1a1a1a;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .status-update {
+      margin-top: 20px;
+    }
+
+    .status-select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #1a1a1a;
+      color: white;
+      padding: 14px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+      z-index: 1000;
+      font-size: 14px;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #toast.success {
+      background: #16a34a;
+    }
+
+    #toast.error {
+      background: #ef4444;
+    }
+  </style>
+</head>
+
+<body>
+
+  <%- include('partials/admin_sidebar') %>
+
+    <main class="main-content">
+
+      <nav class="breadcrumb">
+        <a href="/admin/dashboard">Admin</a>
+        <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right" style="font-size:10px"></i></span>
+        <a href="/admin/orders">Orders</a>
+        <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right" style="font-size:10px"></i></span>
+        <span class="breadcrumb-active">Order Details</span>
+      </nav>
+
+      <div class="page-header">
+        <h1 class="page-title">Order #<%= order.order_id %>
+        </h1>
+        <a href="/admin/orders" class="btn btn-secondary">
+          <i class="fa fa-arrow-left"></i> Back to Orders
+        </a>
+      </div>
+
+      <div class="order-grid">
+        <!-- Order Details -->
+        <div>
+          <div class="card">
+            <h2 class="card-title">Order Information</h2>
+
+            <div class="order-info">
+              <div class="info-item">
+                <div class="info-label">Order ID</div>
+                <div class="info-value">
+                  <%= order.order_id %>
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Order Date</div>
+                <div class="info-value">
+                  <%= new Date(order.order_date).toLocaleDateString('en-IN', { day: 'numeric' , month: 'long' ,
+                    year: 'numeric' }) %>
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Status</div>
+                <div class="info-value">
+                  <span class="status-badge status-<%= order.order_status.toLowerCase() %>">
+                    <%= order.order_status %>
+                  </span>
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Payment Method</div>
+                <div class="info-value">
+                  <%= order.payment_method || 'N/A' %>
+                </div>
+              </div>
+              <% if (order.shipped_date) { %>
+                <div class="info-item">
+                  <div class="info-label">Shipped Date</div>
+                  <div class="info-value">
+                    <%= new Date(order.shipped_date).toLocaleDateString('en-IN') %>
+                  </div>
+                </div>
+                <% } %>
+                  <% if (order.delivery_date) { %>
+                    <div class="info-item">
+                      <div class="info-label">Delivered Date</div>
+                      <div class="info-value">
+                        <%= new Date(order.delivery_date).toLocaleDateString('en-IN') %>
+                      </div>
+                    </div>
+                    <% } %>
+            </div>
+
+            <h3 class="card-title">Order Items</h3>
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% order.items.forEach(item=> {
+                  const itemReturnReq = order.returnRequests && order.returnRequests.find(req => req.itemId.toString()
+                  === item._id.toString());
+                  const hasPendingItemReturn = itemReturnReq && itemReturnReq.status === 'pending';
+                  const hasRejectedReturn = itemReturnReq && itemReturnReq.status === 'rejected';
+                  const hasApprovedReturn = itemReturnReq && itemReturnReq.status === 'approved';
+                  const itemImage = item.variant_id?.images && item.variant_id.images.length > 0 ?
+                  item.variant_id.images[0] : null;
+                  %>
+                  <tr data-item-id="<%= item._id %>">
+                    <td>
+                      <div class="product-info" style="display: flex; align-items: center; gap: 12px;">
+                        <% if (itemImage) { %>
+                          <img src="<%= itemImage %>" alt="<%= item.product_id?.productName || 'Product' %>"
+                            style="width: 64px; height: 64px; object-fit: contain; border-radius: 8px; background: #f3f4f6; border: 1px solid #e5e7eb;">
+                          <% } else { %>
+                            <div
+                              style="width: 64px; height: 64px; border-radius: 8px; background: #f3f4f6; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 24px;">
+                              <i class="fa fa-image"></i>
+                            </div>
+                            <% } %>
+                              <div style="flex: 1;">
+                                <div class="product-name">
+                                  <%= item.product_id?.productName || 'Product Not Found' %>
+                                </div>
+                                <% if (item.variant_id) { %>
+                                  <div class="product-variant">Color: <%= item.variant_id.color || 'N/A' %> | Size: <%=
+                                        item.variant_id.size || 'N/A' %>
+                                  </div>
+                                  <% } %>
+
+                                    <% if (hasPendingItemReturn) { %>
+                                      <!-- Return Reason from customer -->
+                                      <div
+                                        style="margin-top: 10px; padding: 10px 12px; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px;">
+                                        <div
+                                          style="font-size: 12px; font-weight: 600; color: #92400e; margin-bottom: 4px;">
+                                          <i class="fa fa-undo" style="margin-right: 4px;"></i>Return Requested</div>
+                                        <div style="font-size: 12px; color: #78350f; margin-bottom: 4px;">Requested on
+                                          <%= new Date(itemReturnReq.requestedAt).toLocaleDateString('en-IN', {
+                                            day: 'numeric' , month: 'short' , year: 'numeric' }) %>
+                                        </div>
+                                        <div style="font-size: 13px; color: #374151;"><strong>Customer reason:</strong>
+                                          "<%= itemReturnReq.reason %>"</div>
+                                        <!-- Approve / Reject buttons -->
+                                        <div style="display: flex; gap: 8px; margin-top: 10px;">
+                                          <button onclick="approveItemReturn('<%= item._id %>')"
+                                            style="padding: 6px 14px; background: #16a34a; color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                            <i class="fa fa-check"></i> Approve
+                                          </button>
+                                          <button onclick="rejectItemReturn('<%= item._id %>')"
+                                            style="padding: 6px 14px; background: #ef4444; color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                            <i class="fa fa-times"></i> Reject
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <% } else if (hasRejectedReturn) { %>
+                                        <div
+                                          style="margin-top: 8px; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;">
+                                          <div
+                                            style="font-size: 12px; font-weight: 600; color: #dc2626; margin-bottom: 3px;">
+                                            <i class="fa fa-times-circle" style="margin-right: 4px;"></i>Return Rejected
+                                          </div>
+                                          <div style="font-size: 12px; color: #374151;"><strong>Customer:</strong> "<%=
+                                              itemReturnReq.reason %>"</div>
+                                          <div style="font-size: 12px; color: #dc2626; margin-top: 3px;"><strong>Admin
+                                              reason:</strong> "<%= itemReturnReq.adminReason || 'No reason given' %>"
+                                          </div>
+                                        </div>
+                                        <% } else if (hasApprovedReturn) { %>
+                                          <div
+                                            style="margin-top: 8px; padding: 8px 12px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px;">
+                                            <div style="font-size: 12px; font-weight: 600; color: #16a34a;"><i
+                                                class="fa fa-check-circle" style="margin-right: 4px;"></i>Return
+                                              Approved</div>
+                                            <div style="font-size: 12px; color: #374151; margin-top: 3px;">
+                                              <strong>Customer reason:</strong> "<%= itemReturnReq.reason %>"</div>
+                                          </div>
+                                          <% } %>
+                              </div>
+                      </div>
+                    </td>
+                    <td>
+                      <%= item.quantity %>
+                    </td>
+                    <td>₹<%= item.price.toLocaleString('en-IN') %>
+                    </td>
+                  </tr>
+                  <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Customer & Summary -->
+        <div>
+          <!-- Customer Information -->
+          <div class="card">
+            <h2 class="card-title">Customer Information</h2>
+            <div class="info-item">
+              <div class="info-label">Name</div>
+              <div class="info-value">
+                <%= order.user_id?.username || 'N/A' %>
+              </div>
+            </div>
+            <div class="info-item" style="margin-top: 12px;">
+              <div class="info-label">Email</div>
+              <div class="info-value">
+                <%= order.user_id?.email || 'N/A' %>
+              </div>
+            </div>
+            <div class="info-item" style="margin-top: 12px;">
+              <div class="info-label">Phone</div>
+              <div class="info-value">
+                <%= order.user_id?.phoneNumber || 'N/A' %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shipping Address -->
+          <div class="card">
+            <h2 class="card-title">Shipping Address</h2>
+            <div class="address-card">
+              <div class="address-title">
+                <%= order.shipping_address?.name || 'N/A' %>
+              </div>
+              <div class="address-text">
+                <%= order.shipping_address?.area || 'N/A' %><br>
+                  <%= order.shipping_address?.district || 'N/A' %>, <%= order.shipping_address?.state || 'N/A' %>
+                      <%= order.shipping_address?.pincode || 'N/A' %><br>
+                        <%= order.shipping_address?.country || 'N/A' %><br>
+                          Phone: <%= order.shipping_address?.mobile || 'N/A' %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Summary -->
+          <div class="card">
+            <h2 class="card-title">Order Summary</h2>
+            <div class="summary-row">
+              <span class="summary-label">Subtotal</span>
+              <span class="summary-value">₹<%= (order.subtotal || 0).toLocaleString('en-IN') %></span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Shipping Cost</span>
+              <span class="summary-value">₹<%= (order.shipping_cost || 0).toLocaleString('en-IN') %></span>
+            </div>
+            <div class="summary-row total">
+              <span class="summary-label">Total Amount</span>
+              <span class="summary-value">₹<%= order.total_amount.toLocaleString('en-IN') %></span>
+            </div>
+          </div>
+
+          <!-- Status Update -->
+          <div class="card">
+            <h2 class="card-title">Update Order Status</h2>
+            <div class="status-update">
+              <% if (order.order_status==='Cancelled' ) { %>
+                <div
+                  style="padding: 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; text-align: center;">
+                  <i class="fa fa-ban" style="color: #dc2626; font-size: 24px; margin-bottom: 8px;"></i>
+                  <p style="color: #dc2626; font-weight: 500; margin: 0;">This order has been cancelled and cannot be
+                    updated.</p>
+                </div>
+                <% } else if (order.order_status==='Return Requested' ) { %>
+                  <!-- Return Request Approval Section -->
+                  <div
+                    style="padding: 16px; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; margin-bottom: 16px;">
+                    <div style="text-align: center; margin-bottom: 16px;">
+                      <i class="fa fa-undo" style="color: #d97706; font-size: 24px; margin-bottom: 8px;"></i>
+                      <p style="color: #92400e; font-weight: 500; margin: 0;">Customer has requested to return this
+                        order</p>
+                    </div>
+
+
+
+                    <!-- Display Return Reasons -->
+                    <% if (order.returnRequests && order.returnRequests.length> 0) { %>
+                      <% const pendingRequests=order.returnRequests.filter(req=> req.status === 'pending'); %>
+                        <% if (pendingRequests.length> 0) { %>
+                          <div
+                            style="background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 16px; text-align: left;">
+                            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #1a1a1a;">Return
+                              Reasons:</h4>
+                            <% pendingRequests.forEach((req, index)=> { %>
+                              <div style="margin-bottom: 8px; padding: 8px; background: #f9fafb; border-radius: 6px;">
+                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">
+                                  Requested on <%= new Date(req.requestedAt).toLocaleDateString('en-IN') %>
+                                </div>
+                                <div style="font-size: 13px; color: #374151; font-weight: 500;">
+                                  "<%= req.reason %>"
+                                </div>
+                              </div>
+                              <% }) %>
+                          </div>
+                          <% } else { %>
+                            <div
+                              style="background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 16px; text-align: center; color: #6b7280;">
+                              No pending return requests found.
+                            </div>
+                            <% } %>
+                              <% } else { %>
+                                <div
+                                  style="background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 16px; text-align: center; color: #6b7280;">
+                                  No return request details found.
+                                </div>
+                                <% } %>
+
+                                  <div style="display: flex; gap: 12px; justify-content: center;">
+                                    <button onclick="approveOrderReturn()"
+                                      style="padding: 10px 20px; background: #16a34a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                      <i class="fa fa-check"></i> Approve Return
+                                    </button>
+                                    <button onclick="rejectOrderReturn()"
+                                      style="padding: 10px 20px; background: #ef4444; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                      <i class="fa fa-times"></i> Reject Return
+                                    </button>
+                                  </div>
+                  </div>
+                  <% } else if (order.order_status==='Returned' ) { %>
+                    <!-- Feature 5: Lock status after return -->
+                    <select class="status-select" disabled style="background: #f3f4f6; color: #6b7280;">
+                      <option>
+                        <%= order.order_status %>
+                      </option>
+                    </select>
+                    <div style="font-size: 12px; color: #6b7280; margin-top: 8px; text-align: center;">Locked — order
+                      <%= order.order_status.toLowerCase() %>
+                    </div>
+                    <% } else { %>
+                      <select class="status-select" id="statusSelect">
+                        <option value="">Select New Status</option>
+                        <option value="Pending" <%=order.order_status==='Pending' ? 'disabled' : '' %>>Pending</option>
+                        <option value="Confirmed" <%=order.order_status==='Confirmed' ? 'disabled' : '' %>>Confirmed
+                        </option>
+                        <option value="Shipped" <%=order.order_status==='Shipped' ? 'disabled' : '' %>>Shipped</option>
+                        <option value="Out for Delivery" <%=order.order_status==='Out for Delivery' ? 'disabled' : '' %>
+                          >Out for Delivery</option>
+                        <option value="Delivered" <%=order.order_status==='Delivered' ? 'disabled' : '' %>>Delivered
+                        </option>
+                        <option value="Cancelled" <%=order.order_status==='Cancelled' ? 'disabled' : '' %>>Cancelled
+                        </option>
+                        <option value="Return Requested" <%=order.order_status==='Return Requested' ? 'disabled' : '' %>
+                          >Return Requested</option>
+                      </select>
+                      <button class="btn btn-primary" onclick="updateStatus()" style="width: 100%;">
+                        <i class="fa fa-save"></i> Update Status
+                      </button>
+                      <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <div id="toast"></div>
+
+    <!-- Approve Order Return Modal -->
+    <div id="approveOrderReturnModal"
+      style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 10000; display: none; align-items: center; justify-content: center;">
+      <div
+        style="background: #fff; border-radius: 12px; padding: 24px; max-width: 480px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+        <h3
+          style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1a1a1a; display: flex; align-items: center; gap: 12px;">
+          <i class="fa fa-check-circle" style="color: #16a34a;"></i>
+          Approve Order Return
+        </h3>
+        <div style="margin-bottom: 20px; color: #6b7280; line-height: 1.5;">
+          <p>Are you sure you want to approve this order return? This action will:</p>
+          <ul style="margin-top: 12px; padding-left: 20px;">
+            <li>Change the order status to "Returned"</li>
+            <li>Process refunds for all items</li>
+            <li>Mark the return as approved</li>
+          </ul>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button onclick="closeApproveOrderModal()"
+            style="flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; background: #f3f4f6; color: #374151;">Cancel</button>
+          <button onclick="confirmApproveOrderReturn()"
+            style="flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; background: #16a34a; color: #fff;">Approve
+            Return</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reject Order Return Modal -->
+    <div id="rejectOrderReturnModal"
+      style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 10000; display: none; align-items: center; justify-content: center;">
+      <div
+        style="background: #fff; border-radius: 12px; padding: 24px; max-width: 480px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+        <h3
+          style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1a1a1a; display: flex; align-items: center; gap: 12px;">
+          <i class="fa fa-times-circle" style="color: #ef4444;"></i>
+          Reject Order Return
+        </h3>
+        <div style="margin-bottom: 20px; color: #6b7280; line-height: 1.5;">
+          <p>Please provide a reason for rejecting this order return.</p>
+          <div style="margin-top: 16px;">
+            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #1a1a1a;">Reason
+              for rejection (required)</label>
+            <textarea id="rejectOrderReason" placeholder="Please explain why this order return is being rejected..."
+              required
+              style="width: 100%; padding: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; color: #374151; font-family: inherit; font-size: 14px; resize: vertical; min-height: 100px;"></textarea>
+          </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button onclick="closeRejectOrderModal()"
+            style="flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; background: #f3f4f6; color: #374151;">Cancel</button>
+          <button onclick="confirmRejectOrderReturn()"
+            style="flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; background: #ef4444; color: #fff;">Reject
+            Return</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reject Item Return Modal -->
+    <div id="rejectItemReturnModal"
+      style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 10000; display: none; align-items: center; justify-content: center;">
+      <div
+        style="background: #fff; border-radius: 12px; padding: 24px; max-width: 480px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+        <h3
+          style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1a1a1a; display: flex; align-items: center; gap: 12px;">
+          <i class="fa fa-times-circle" style="color: #ef4444;"></i>
+          Reject Item Return
+        </h3>
+        <div style="margin-bottom: 20px; color: #6b7280; line-height: 1.5;">
+          <p>Please provide a reason for rejecting this item's return request.</p>
+          <div style="margin-top: 16px;">
+            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #1a1a1a;">Reason
+              for rejection (required)</label>
+            <textarea id="rejectItemReason" placeholder="Explain why this item return is being rejected..." required
+              style="width: 100%; padding: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; color: #374151; font-family: inherit; font-size: 14px; resize: vertical; min-height: 100px;"></textarea>
+          </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button onclick="closeRejectItemModal()"
+            style="flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; background: #f3f4f6; color: #374151;">Cancel</button>
+          <button onclick="confirmRejectItemReturn()"
+            style="flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; background: #ef4444; color: #fff;">Reject
+            Return</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentItemId = null;
+      let pendingRejectItemId = null;
+
+      function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = `show ${type}`;
+        setTimeout(() => {
+          toast.className = '';
+        }, 3000);
+      }
+
+      async function updateStatus() {
+        const newStatus = document.getElementById('statusSelect').value;
+        if (!newStatus) {
+          showToast('Please select a status', 'error');
+          return;
+        }
+
+        if (!confirm(`Are you sure you want to change the order status to ${newStatus}?`)) {
+          return;
+        }
+
+        try {
+          const response = await fetch('/admin/orders/update-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: '<%= order._id %>', status: newStatus })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            showToast('Order status updated successfully', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+          } else {
+            showToast(data.message || 'Failed to update status', 'error');
+          }
+        } catch (error) {
+          showToast('An error occurred', 'error');
+        }
+      }
+
+      // Order-level return approval functions
+      function approveOrderReturn() {
+        document.getElementById('approveOrderReturnModal').style.display = 'flex';
+      }
+
+      function rejectOrderReturn() {
+        document.getElementById('rejectOrderReturnModal').style.display = 'flex';
+      }
+
+      function closeApproveOrderModal() {
+        document.getElementById('approveOrderReturnModal').style.display = 'none';
+      }
+
+      function closeRejectOrderModal() {
+        document.getElementById('rejectOrderReturnModal').style.display = 'none';
+        document.getElementById('rejectOrderReason').value = '';
+      }
+
+      async function confirmApproveOrderReturn() {
+        try {
+          const response = await fetch('/admin/orders/approve-return', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: '<%= order._id %>' })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            showToast('Order return approved successfully', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+          } else {
+            showToast(data.message || 'Failed to approve return', 'error');
+          }
+        } catch (error) {
+          showToast('An error occurred', 'error');
+        }
+
+        closeApproveOrderModal();
+      }
+
+      async function confirmRejectOrderReturn() {
+        const reason = document.getElementById('rejectOrderReason').value.trim();
+        if (!reason) {
+          showToast('Please provide a reason for rejection', 'error');
+          return;
+        }
+
+        try {
+          const response = await fetch('/admin/orders/reject-return', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: '<%= order._id %>', reason })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            showToast('Order return rejected successfully', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+          } else {
+            showToast(data.message || 'Failed to reject return', 'error');
+          }
+        } catch (error) {
+          showToast('An error occurred', 'error');
+        }
+
+        closeRejectOrderModal();
+      }
+
+      // Item-level return functions
+      function approveItemReturn(itemId) {
+        if (!confirm('Approve the return for this item?')) return;
+        fetch(`/admin/orders/items/${itemId}/approve-return`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              showToast('Item return approved', 'success');
+              setTimeout(() => window.location.reload(), 1500);
+            } else {
+              showToast(data.message || 'Failed to approve return', 'error');
+            }
+          })
+          .catch(() => showToast('An error occurred', 'error'));
+      }
+
+      function rejectItemReturn(itemId) {
+        pendingRejectItemId = itemId;
+        document.getElementById('rejectItemReason').value = '';
+        document.getElementById('rejectItemReturnModal').style.display = 'flex';
+      }
+
+      function closeRejectItemModal() {
+        document.getElementById('rejectItemReturnModal').style.display = 'none';
+        pendingRejectItemId = null;
+      }
+
+      async function confirmRejectItemReturn() {
+        const reason = document.getElementById('rejectItemReason').value.trim();
+        if (!reason) {
+          showToast('Please provide a reason for rejection', 'error');
+          return;
+        }
+        try {
+          const response = await fetch(`/admin/orders/items/${pendingRejectItemId}/reject-return`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason })
+          });
+          const data = await response.json();
+          if (data.success) {
+            showToast('Item return rejected', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+          } else {
+            showToast(data.message || 'Failed to reject return', 'error');
+          }
+        } catch {
+          showToast('An error occurred', 'error');
+        }
+        closeRejectItemModal();
+      }
+
+      // Close modals when clicking outside
+      document.addEventListener('click', function (e) {
+        if (e.target.id === 'approveOrderReturnModal') closeApproveOrderModal();
+        if (e.target.id === 'rejectOrderReturnModal') closeRejectOrderModal();
+        if (e.target.id === 'rejectItemReturnModal') closeRejectItemModal();
+      });
+    </script>
+</body>
+
+</html>

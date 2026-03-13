@@ -767,6 +767,13 @@ function applyVariant(v) {
       return '<img class="thumb ' + (i === 0 ? 'active' : '') + '" src="' + img + '" alt="View ' + (i + 1) + '" onclick="setMainImage(this,\'' + img + '\')">';
     }).join('');
   }
+
+  // Update wishlist button state
+  var wishBtn = document.getElementById('wishBtn');
+  if (wishBtn) {
+    wishBtn.classList.remove('wishlisted');
+    checkWishlistStatus();
+  }
 }
 
 function changeQty(delta) {
@@ -794,10 +801,60 @@ async function addToCart() {
   finally { btn.disabled = false; btn.innerHTML = '<i class="fa fa-cart-plus"></i> Add to Cart'; }
 }
 
-function toggleWish() {
+async function toggleWish() {
+  <% if (typeof currentUser === 'undefined' || !currentUser) { %>
+    window.location.href = '/login';
+    return;
+  <% } %>
+
+  if (!activeVariantId) {
+    showToast('Please select a variant', 'error');
+    return;
+  }
+
   var btn = document.getElementById('wishBtn');
-  btn.classList.toggle('wishlisted');
-  showToast(btn.classList.contains('wishlisted') ? 'Added to wishlist ♥' : 'Removed from wishlist', 'success');
+  var isWishlisted = btn.classList.contains('wishlisted');
+  var endpoint = isWishlisted ? '/wishlist/remove' : '/wishlist/add';
+
+  btn.disabled = true;
+
+  try {
+    var res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ variantId: activeVariantId })
+    });
+    var data = await res.json();
+
+    if (res.ok && data.success) {
+      btn.classList.toggle('wishlisted');
+      showToast(isWishlisted ? 'Removed from wishlist' : 'Added to wishlist ♥', 'success');
+    } else {
+      showToast(data.message || 'Could not update wishlist', 'error');
+    }
+  } catch (e) {
+    showToast('Something went wrong', 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function checkWishlistStatus() {
+  <% if (typeof currentUser === 'undefined' || !currentUser) { %>
+    return;
+  <% } %>
+
+  if (!activeVariantId) return;
+
+  try {
+    var res = await fetch('/wishlist/check/' + activeVariantId);
+    var data = await res.json();
+    if (data.success && data.inWishlist) {
+      document.getElementById('wishBtn').classList.add('wishlisted');
+    }
+  } catch (e) {
+    console.error('Check wishlist error:', e);
+  }
 }
 
 function copyCoupon(code) {
@@ -830,6 +887,8 @@ function showToast(msg, type) {
     if (initV.color) updateSizePillsForColor(initV.color);
     if (initV.size)  updateColorPillsForSize(initV.size);
   }
+  // Check wishlist status on page load
+  checkWishlistStatus();
 })();
 </script>
 

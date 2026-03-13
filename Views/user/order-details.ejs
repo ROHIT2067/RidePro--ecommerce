@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Details — RidePro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/styles/header.css" />
+  <link rel="stylesheet" href="/styles/footer.css" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --surface2: #1c1c1c;
+      --surface3: #222;
+      --border: #2a2a2a;
+      --border2: #333;
+      --text: #f0f0f0;
+      --muted: #888;
+      --muted2: #555;
+      --accent: #e8411a;
+      --accent2: #ff5733;
+      --success: #16a34a;
+      --danger: #ef4444;
+      --font: 'DM Sans', sans-serif;
+      --display: 'Bebas Neue', sans-serif;
+      --radius: 10px;
+      --radius2: 14px;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-top: 72px;
+    }
+
+    .page-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 5rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.84rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .back-link:hover {
+      color: var(--text);
+    }
+
+    .page-title {
+      font-family: var(--display);
+      font-size: 2.6rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+    }
+
+    .page-title em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .order-meta {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius2);
+      padding: 1.6rem 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-family: var(--display);
+      font-size: 1.5rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 1.2rem;
+    }
+
+    .order-item {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      gap: 1.2rem;
+      padding: 1.2rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .order-item:last-child {
+      border-bottom: none;
+    }
+
+    .item-img {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: var(--surface2);
+    }
+
+    .item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .item-name {
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .item-variant {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .item-price-qty {
+      text-align: right;
+    }
+
+    .item-qty {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .item-price {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-top: 0.3rem;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn-cancel-item,
+    .btn-return-item {
+      padding: 0.4rem 0.8rem;
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      font-size: 0.76rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-cancel-item:hover {
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .btn-return-item:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .address-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.2rem;
+    }
+
+    .address-name {
+      font-weight: 600;
+      font-size: 0.92rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .address-details {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.86rem;
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-row .label {
+      color: var(--muted);
+    }
+
+    .summary-row .value {
+      font-weight: 600;
+    }
+
+    .summary-row.total {
+      padding-top: 1rem;
+    }
+
+    .summary-row.total .label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .summary-row.total .value {
+      font-size: 1.25rem;
+      color: var(--accent);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1rem 0;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.85rem;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 0.8rem;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent2);
+    }
+
+    .btn-secondary {
+      background: var(--surface3);
+      color: var(--text);
+      border: 1px solid var(--border2);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border2);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .status-badge {
+      padding: 0.4rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: inline-block;
+    }
+
+    .status-pending {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+
+    .status-confirmed {
+      background: rgba(59, 130, 246, 0.15);
+      color: #3b82f6;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .status-shipped {
+      background: rgba(139, 92, 246, 0.15);
+      color: #8b5cf6;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .status-delivered {
+      background: rgba(22, 163, 74, 0.15);
+      color: #16a34a;
+      border: 1px solid rgba(22, 163, 74, 0.3);
+    }
+
+    .status-cancelled {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .status-return-requested {
+      background: rgba(255, 193, 7, 0.15);
+      color: #ff6b35;
+      border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .status-returned {
+      background: rgba(249, 115, 22, 0.15);
+      color: #f97316;
+      border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      padding: 0.75rem 1.2rem;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.28s, transform 0.28s;
+      pointer-events: none;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius2);
+      padding: 1.8rem 2rem;
+      max-width: 480px;
+      width: 90%;
+    }
+
+    .modal-title {
+      font-family: var(--display);
+      font-size: 1.6rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 1rem;
+    }
+
+    .modal-body {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-textarea {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.84rem;
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <%- include('partials/header') %>
+
+    <div class="page-wrap">
+      <%- include('partials/breadcrumb', { breadcrumbs: [ { name: 'Home' , url: '/home' }, { name: 'My Orders' ,
+        url: '/orders' }, { name: 'Order #' + order.order_id } ] }) %>
+
+        <a href="/orders" class="back-link"><i class="fa fa-arrow-left"></i> Back to Orders</a>
+        <h1 class="page-title">Order <em>#<%= order.order_id %></em></h1>
+        <div class="order-meta">
+          <span>Ordered on <%= new Date(order.order_date).toLocaleDateString('en-IN', { day: 'numeric' , month: 'long' ,
+              year: 'numeric' }) %></span>
+          <span class="status-badge status-<%= order.order_status.toLowerCase() %>">
+            <%= order.order_status %>
+          </span>
+        </div>
+
+        <!-- Show Rejection Reasons if any return requests were rejected -->
+        <% if (order.returnRequests && order.returnRequests.some(req=> req.status === 'rejected')) { %>
+          <div
+            style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1.2rem; margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;">
+              <i class="fa fa-exclamation-triangle" style="color: #dc2626; font-size: 1.1rem;"></i>
+              <h3 style="color: #dc2626; font-size: 1rem; font-weight: 600; margin: 0;">Return Request Rejected</h3>
+            </div>
+            <% order.returnRequests.forEach((req, index)=> { %>
+              <% if (req.status==='rejected' ) { %>
+                <div
+                  style="background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem;">
+                  <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.5rem;">
+                    Rejected on <%= new Date(req.processedAt).toLocaleDateString('en-IN', { day: 'numeric' ,
+                      month: 'long' , year: 'numeric' }) %>
+                  </div>
+                  <div style="font-size: 0.85rem; color: #374151; margin-bottom: 0.5rem;">
+                    <strong>Your request:</strong> "<%= req.reason %>"
+                  </div>
+                  <div style="font-size: 0.85rem; color: #dc2626;">
+                    <strong>Admin response:</strong> "<%= req.adminReason || 'No specific reason provided' %>"
+                  </div>
+                </div>
+                <% } %>
+                  <% }) %>
+                    <div style="font-size: 0.8rem; color: #6b7280; margin-top: 0.8rem;">
+                      If you have questions about this decision, please contact our customer support.
+                    </div>
+          </div>
+          <% } %>
+
+            <!-- Show Pending Return Request Status -->
+            <% if (order.returnRequests && order.returnRequests.some(req=> req.status === 'pending')) { %>
+              <div
+                style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 12px; padding: 1.2rem; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;">
+                  <i class="fa fa-clock" style="color: #d97706; font-size: 1.1rem;"></i>
+                  <h3 style="color: #92400e; font-size: 1rem; font-weight: 600; margin: 0;">Return Request Under Review
+                  </h3>
+                </div>
+                <% order.returnRequests.forEach((req, index)=> { %>
+                  <% if (req.status==='pending' ) { %>
+                    <div
+                      style="background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem;">
+                      <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.5rem;">
+                        Submitted on <%= new Date(req.requestedAt).toLocaleDateString('en-IN', { day: 'numeric' ,
+                          month: 'long' , year: 'numeric' }) %>
+                      </div>
+                      <div style="font-size: 0.85rem; color: #374151;">
+                        <strong>Your reason:</strong> "<%= req.reason %>"
+                      </div>
+                    </div>
+                    <% } %>
+                      <% }) %>
+                        <div style="font-size: 0.8rem; color: #6b7280; margin-top: 0.8rem;">
+                          Your return request is being reviewed by our team. You'll be notified once a decision is made.
+                        </div>
+              </div>
+              <% } %>
+
+
+                <div class="layout">
+                  <div class="main-content">
+                    <!-- Order Items -->
+                    <div class="section">
+                      <h2 class="section-title">Order Items</h2>
+                      <% order.items.forEach(item=> {
+                        const variant = item.variant_id;
+                        const product = variant?.product_id;
+                        const img = item.variantDetails.images && item.variantDetails.images.length > 0 ?
+                        item.variantDetails.images[0] : '/images/placeholder.jpg';
+                        const itemReturnReq = order.returnRequests && order.returnRequests.find(req => req.itemId &&
+                        req.itemId.toString() === item._id.toString());
+                        %>
+                        <div class="order-item" data-item-id="<%= item._id %>">
+                          <img src="<%= img %>" alt="<%= item.productName %>" class="item-img">
+                          <div class="item-info">
+                            <div class="item-name">
+                              <%= item.productName %>
+                            </div>
+                            <div class="item-variant">
+                              <% if (item.variantDetails.size) { %><span>Size: <%= item.variantDetails.size %></span>
+                                <% } %>
+                                  <% if (item.variantDetails.color) { %><span> • Color: <%= item.variantDetails.color %>
+                                        </span>
+                                    <% } %>
+                            </div>
+                            <div class="item-qty">Quantity: <%= item.quantity %>
+                            </div>
+
+                            <%# Item-level return status badges %>
+                              <% if (itemReturnReq && itemReturnReq.status==='pending' ) { %>
+                                <div
+                                  style="margin-top: 8px; padding: 8px 12px; background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.35); border-radius: 8px;">
+                                  <div style="font-size: 12px; font-weight: 600; color: #fbbf24; margin-bottom: 3px;"><i
+                                      class="fa fa-clock" style="margin-right:4px;"></i>Return Under Review</div>
+                                  <div style="font-size: 12px; color: var(--muted);">Your reason: "<%=
+                                      itemReturnReq.reason %>"</div>
+                                </div>
+                                <% } else if (itemReturnReq && itemReturnReq.status==='rejected' ) { %>
+                                  <div
+                                    style="margin-top: 8px; padding: 8px 12px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px;">
+                                    <div style="font-size: 12px; font-weight: 600; color: #ef4444; margin-bottom: 3px;">
+                                      <i class="fa fa-times-circle" style="margin-right:4px;"></i>Return Rejected</div>
+                                    <div style="font-size: 12px; color: var(--muted);">Your reason: "<%=
+                                        itemReturnReq.reason %>"</div>
+                                    <div style="font-size: 12px; color: #ef4444; margin-top: 3px;">Admin: "<%=
+                                        itemReturnReq.adminReason || 'No reason provided' %>"</div>
+                                  </div>
+                                  <% } else if (itemReturnReq && itemReturnReq.status==='approved' ) { %>
+                                    <div
+                                      style="margin-top: 8px; padding: 8px 12px; background: rgba(22,163,74,0.1); border: 1px solid rgba(22,163,74,0.3); border-radius: 8px;">
+                                      <div style="font-size: 12px; font-weight: 600; color: #16a34a;"><i
+                                          class="fa fa-check-circle" style="margin-right:4px;"></i>Return Approved</div>
+                                    </div>
+                                    <% } %>
+
+                                      <% if (['Pending', 'Confirmed' ].includes(order.order_status)) { %>
+                                        <div class="item-actions">
+                                          <button class="btn-cancel-item" onclick="cancelItem('<%= item._id %>')">Cancel
+                                            Item</button>
+                                        </div>
+                                        <% } %>
+                                          <% if (item.status==='Delivered' || item.item_status==='Delivered' ) { %>
+                                            <div class="item-actions">
+                                              <button class="btn-return-item"
+                                                onclick="returnItem('<%= item._id %>')">Return Item</button>
+                                            </div>
+                                            <% } %>
+                          </div>
+                          <div class="item-price-qty">
+                            <div class="item-price">₹<%= (item.totalPrice || item.price *
+                                item.quantity).toLocaleString('en-IN') %>
+                            </div>
+                          </div>
+                        </div>
+                        <% }) %>
+                    </div>
+
+                    <!-- Shipping Address -->
+                    <div class="section">
+                      <h2 class="section-title">Shipping Address</h2>
+                      <div class="address-box">
+                        <div class="address-name">
+                          <%= order.shipping_address.name %>
+                        </div>
+                        <div class="address-details">
+                          <%= order.shipping_address.area %><br>
+                            <%= order.shipping_address.district %>, <%= order.shipping_address.state %><br>
+                                <%= order.shipping_address.country %> - <%= order.shipping_address.pincode %><br>
+                                    Phone: <%= order.shipping_address.mobile %>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Order Summary Sidebar -->
+                  <div class="sidebar">
+                    <div class="section">
+                      <h3 class="section-title">Order Summary</h3>
+                      <div class="summary-row">
+                        <span class="label">Subtotal</span>
+                        <span class="value">₹<%= order.subtotal.toLocaleString('en-IN') %></span>
+                      </div>
+                      <div class="summary-row">
+                        <span class="label">Shipping</span>
+                        <span class="value">₹<%= order.shipping_cost.toLocaleString('en-IN') %></span>
+                      </div>
+                      <div class="divider"></div>
+                      <div class="summary-row total">
+                        <span class="label">Total</span>
+                        <span class="value">₹<%= order.total_amount.toLocaleString('en-IN') %></span>
+                      </div>
+                      <div class="summary-row">
+                        <span class="label">Payment Method</span>
+                        <span class="value">
+                          <%= order.payment_method %>
+                        </span>
+                      </div>
+                      <div class="summary-row">
+                        <span class="label">Payment Status</span>
+                        <span class="value">
+                          <%= order.payment_status %>
+                        </span>
+                      </div>
+
+                      <button class="btn btn-secondary" onclick="downloadInvoice()">
+                        <i class="fa fa-download"></i> Download Invoice
+                      </button>
+
+                      <% if (['Pending', 'Confirmed' ].includes(order.order_status)) { %>
+                        <button class="btn btn-danger" onclick="cancelOrder()">
+                          <i class="fa fa-times"></i> Cancel Order
+                        </button>
+                        <% } %>
+
+                          <% if (order.order_status==='Delivered' ) { %>
+                            <button class="btn btn-secondary" onclick="returnOrder()">
+                              <i class="fa fa-undo"></i> Return Order
+                            </button>
+                            <% } %>
+                    </div>
+                  </div>
+                </div>
+    </div>
+
+    <%- include('partials/footer') %>
+
+      <div id="toast"></div>
+
+      <!-- Cancel Order Modal -->
+      <div class="modal-overlay" id="cancelModal">
+        <div class="modal-box">
+          <h3 class="modal-title">Cancel Order</h3>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Reason for cancellation (optional)</label>
+              <textarea class="form-textarea" id="cancelReason"
+                placeholder="Tell us why you're cancelling..."></textarea>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="modal-btn" style="background: var(--surface3); color: var(--text);"
+              onclick="closeModal('cancelModal')">Cancel</button>
+            <button class="modal-btn" style="background: var(--danger); color: #fff;"
+              onclick="confirmCancelOrder()">Confirm Cancellation</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cancel Item Modal -->
+      <div class="modal-overlay" id="cancelItemModal">
+        <div class="modal-box">
+          <h3 class="modal-title">Cancel Item</h3>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Reason for cancellation (optional)</label>
+              <textarea class="form-textarea" id="cancelItemReason"
+                placeholder="Tell us why you're cancelling this item..."></textarea>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="modal-btn" style="background: var(--surface3); color: var(--text);"
+              onclick="closeModal('cancelItemModal')">Cancel</button>
+            <button class="modal-btn" style="background: var(--danger); color: #fff;"
+              onclick="confirmCancelItem()">Confirm Cancellation</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Return Order Modal -->
+      <div class="modal-overlay" id="returnModal">
+        <div class="modal-box">
+          <h3 class="modal-title">Return Order</h3>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Reason for return (required)</label>
+              <textarea class="form-textarea" id="returnReason" placeholder="Please provide a reason for return..."
+                required></textarea>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="modal-btn" style="background: var(--surface3); color: var(--text);"
+              onclick="closeModal('returnModal')">Cancel</button>
+            <button class="modal-btn" style="background: var(--accent); color: #fff;"
+              onclick="confirmReturnOrder()">Submit Return Request</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Return Item Modal -->
+      <div class="modal-overlay" id="returnItemModal">
+        <div class="modal-box">
+          <h3 class="modal-title">Return Item</h3>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Reason for return (required)</label>
+              <textarea class="form-textarea" id="returnItemReason" placeholder="Please provide a reason for return..."
+                required></textarea>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="modal-btn" style="background: var(--surface3); color: var(--text);"
+              onclick="closeModal('returnItemModal')">Cancel</button>
+            <button class="modal-btn" style="background: var(--accent); color: #fff;"
+              onclick="confirmReturnItem()">Submit Return Request</button>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        let currentItemId = null;
+
+        function showToast(message, type = 'success') {
+          const toast = document.getElementById('toast');
+          toast.textContent = message;
+          toast.style.background = type === 'success' ? '#16a34a' : '#ef4444';
+          toast.style.opacity = '1';
+          toast.style.transform = 'translateY(0)';
+          setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(8px)';
+          }, 3000);
+        }
+
+        function showModal(modalId) {
+          document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+          document.getElementById(modalId).classList.remove('show');
+        }
+
+        function cancelOrder() {
+          showModal('cancelModal');
+        }
+
+        async function confirmCancelOrder() {
+          const reason = document.getElementById('cancelReason').value;
+          try {
+            const response = await fetch('/orders/<%= order._id %>/cancel', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reason })
+            });
+            const data = await response.json();
+            if (data.success) {
+              showToast('Order cancelled successfully');
+
+              // Update order status dynamically
+              const orderStatusBadge = document.querySelector('.order-meta .status-badge');
+              if (orderStatusBadge) {
+                orderStatusBadge.className = 'status-badge status-cancelled';
+                orderStatusBadge.textContent = 'Cancelled';
+              }
+
+              // Update all item statuses and hide cancel buttons
+              document.querySelectorAll('.item-status').forEach(badge => {
+                badge.className = 'item-status status-cancelled';
+                badge.textContent = 'Cancelled';
+              });
+
+              document.querySelectorAll('.item-actions').forEach(actions => {
+                actions.style.display = 'none';
+              });
+
+              // Hide cancel order button
+              const cancelOrderBtn = document.querySelector('.btn-danger');
+              if (cancelOrderBtn) {
+                cancelOrderBtn.style.display = 'none';
+              }
+            } else {
+              showToast(data.message, 'error');
+            }
+          } catch (error) {
+            showToast('Failed to cancel order', 'error');
+          }
+          closeModal('cancelModal');
+        }
+
+        function cancelItem(itemId) {
+          currentItemId = itemId;
+          showModal('cancelItemModal');
+        }
+
+        async function confirmCancelItem() {
+          const reason = document.getElementById('cancelItemReason').value;
+          try {
+            const response = await fetch(`/orders/<%= order._id %>/items/${currentItemId}/cancel`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reason })
+            });
+            const data = await response.json();
+            if (data.success) {
+              showToast('Item cancelled successfully');
+
+              // Update the item status dynamically
+              const itemElement = document.querySelector(`[data-item-id="${currentItemId}"]`);
+              if (itemElement) {
+                const statusBadge = itemElement.querySelector('.item-status');
+                const itemActions = itemElement.querySelector('.item-actions');
+
+                statusBadge.className = 'item-status status-cancelled';
+                statusBadge.textContent = 'Cancelled';
+
+                if (itemActions) {
+                  itemActions.style.display = 'none';
+                }
+              }
+
+              // Check if all items are cancelled to update order status
+              const allItemsCancelled = Array.from(document.querySelectorAll('.item-status')).every(
+                badge => badge.textContent === 'Cancelled'
+              );
+
+              if (allItemsCancelled) {
+                const orderStatusBadge = document.querySelector('.order-meta .status-badge');
+                if (orderStatusBadge) {
+                  orderStatusBadge.className = 'status-badge status-cancelled';
+                  orderStatusBadge.textContent = 'Cancelled';
+                }
+
+                // Hide cancel order button
+                const cancelOrderBtn = document.querySelector('.btn-danger');
+                if (cancelOrderBtn) {
+                  cancelOrderBtn.style.display = 'none';
+                }
+              }
+            } else {
+              showToast(data.message, 'error');
+            }
+          } catch (error) {
+            showToast('Failed to cancel item', 'error');
+          }
+          closeModal('cancelItemModal');
+        }
+
+        function returnOrder() {
+          showModal('returnModal');
+        }
+
+        async function confirmReturnOrder() {
+          const reason = document.getElementById('returnReason').value;
+          if (!reason.trim()) {
+            showToast('Please provide a reason for return', 'error');
+            return;
+          }
+          try {
+            const response = await fetch('/orders/<%= order._id %>/return', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reason })
+            });
+            const data = await response.json();
+            if (data.success) {
+              showToast('Return request submitted successfully');
+              setTimeout(() => window.location.reload(), 1500);
+            } else {
+              showToast(data.message, 'error');
+            }
+          } catch (error) {
+            showToast('Failed to submit return request', 'error');
+          }
+          closeModal('returnModal');
+        }
+
+        function returnItem(itemId) {
+          currentItemId = itemId;
+          showModal('returnItemModal');
+        }
+
+        async function confirmReturnItem() {
+          const reason = document.getElementById('returnItemReason').value;
+          if (!reason.trim()) {
+            showToast('Please provide a reason for return', 'error');
+            return;
+          }
+          try {
+            const response = await fetch('/orders/<%= order._id %>/return-item', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ itemId: currentItemId, reason })
+            });
+            const data = await response.json();
+            if (data.success) {
+              showToast('Return request submitted successfully');
+              setTimeout(() => window.location.reload(), 1500);
+            } else {
+              showToast(data.message, 'error');
+            }
+          } catch (error) {
+            showToast('Failed to submit return request', 'error');
+          }
+          closeModal('returnItemModal');
+        }
+
+        function downloadInvoice() {
+          window.location.href = '/orders/<%= order._id %>/invoice';
+        }
+      </script>
+</body>
+
+</html>

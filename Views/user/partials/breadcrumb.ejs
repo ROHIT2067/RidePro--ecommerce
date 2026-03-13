@@ -1,0 +1,52 @@
+<div class="breadcrumb">
+  <% if (typeof breadcrumbs !== 'undefined' && breadcrumbs && breadcrumbs.length > 0) { %>
+    <% breadcrumbs.forEach((crumb, index) => { %>
+      <% if (index > 0) { %>
+        <span class="breadcrumb-separator"><i class="fa fa-chevron-right"></i></span>
+      <% } %>
+      <% if (crumb.url && index < breadcrumbs.length - 1) { %>
+        <a href="<%= crumb.url %>" class="breadcrumb-link"><%= crumb.name %></a>
+      <% } else { %>
+        <span class="breadcrumb-current"><%= crumb.name %></span>
+      <% } %>
+    <% }) %>
+  <% } %>
+</div>
+
+<style>
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+  
+  .breadcrumb-link {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  
+  .breadcrumb-link:hover {
+    color: var(--accent);
+  }
+  
+  .breadcrumb-current {
+    color: var(--text);
+    font-weight: 500;
+  }
+  
+  .breadcrumb-separator {
+    color: var(--muted2);
+    font-size: 0.7rem;
+  }
+  
+  @media (max-width: 768px) {
+    .breadcrumb {
+      font-size: 0.8rem;
+      margin-bottom: 1rem;
+    }
+  }
+</style>

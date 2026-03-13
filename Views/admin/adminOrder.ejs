@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orders — Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f0f2f8;
+      display: flex;
+      min-height: 100vh;
+      color: #1a1a1a;
+    }
+
+    .sidebar { width: 250px; background-color: #ffffff; border-right: 1px solid #e5e7eb; padding: 20px 0; position: fixed; height: 100vh; overflow-y: auto; }
+    .logo { padding: 0 20px 30px; display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; color: #1a1a1a; }
+    .logo i { font-size: 24px; }
+    .nav-menu { list-style: none; }
+    .nav-item { margin-bottom: 5px; }
+    .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: #6b7280; text-decoration: none; transition: all 0.3s ease; font-size: 14px; }
+    .nav-link:hover { background-color: #f9fafb; color: #1a1a1a; }
+    .nav-link.active { background-color: #f3f4f6; color: #1a1a1a; font-weight: 500; border-left: 3px solid #3b82f6; }
+    .nav-link i { width: 20px; text-align: center; font-size: 16px; }
+
+    .main-content { margin-left: 250px; flex: 1; padding: 30px 40px; }
+
+    .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 30px; font-size: 14px; color: #6b7280; }
+    .breadcrumb-separator { color: #d1d5db; }
+    .breadcrumb-active { color: #1a1a1a; font-weight: 500; }
+
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    
+    .filters-section { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .filters-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+    .filter-group { flex: 1; min-width: 180px; }
+    .filter-label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    .filter-input, .filter-select { width: 100%; padding: 9px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f9fafb; color: #1a1a1a; font-family: inherit; }
+    .filter-input:focus, .filter-select:focus { outline: none; border-color: #3b82f6; background: #fff; }
+    .filter-actions { display: flex; gap: 8px; }
+    .btn { padding: 9px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .btn-primary { background: #3b82f6; color: #fff; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+    .btn-secondary:hover { background: #e5e7eb; }
+
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
+
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table thead tr { background-color: #9ca3af; color: #fff; }
+    .data-table th { padding: 14px 16px; font-size: 13px; font-weight: 500; text-align: left; }
+    .data-table tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.15s; }
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table tbody tr:hover { background: #fafafa; }
+    .data-table td { padding: 14px 16px; font-size: 14px; color: #374151; }
+
+    .order-id { font-weight: 600; color: #1a1a1a; font-size: 13px; }
+    .order-date { color: #6b7280; font-size: 13px; }
+    .user-info { display: flex; flex-direction: column; gap: 3px; }
+    .user-name { font-weight: 500; color: #1a1a1a; font-size: 14px; }
+    .user-email { color: #6b7280; font-size: 12px; }
+
+    .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-block; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-confirmed { background: #cfe2ff; color: #084298; }
+    .status-shipped { background: #d1ecf1; color: #0c5460; }
+    .status-delivered { background: #d4edda; color: #155724; }
+    .status-cancelled { background: #f8d7da; color: #721c24; }
+    .status-return-requested { background: #ffeaa7; color: #d63031; }
+    .status-returned { background: #fab1a0; color: #e17055; }
+
+    .amount { font-weight: 600; color: #1a1a1a; font-size: 14px; }
+
+    .btn-view { padding: 7px 14px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; font-weight: 500; transition: background 0.2s; }
+    .btn-view:hover { background: #2563eb; }
+
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; padding: 20px; }
+    .page-btn { width: 34px; height: 34px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.15s; font-weight: 500; }
+    .page-btn:hover { background: #f3f4f6; }
+    .page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+    .page-btn.disabled { opacity: 0.4; pointer-events: none; }
+    .page-info { color: #6b7280; font-size: 13px; margin: 0 8px; }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: #9ca3af; }
+    .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state p { font-size: 14px; }
+
+    #toast { position: fixed; bottom: 30px; right: 30px; background: #1a1a1a; color: white; padding: 14px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 1000; font-size: 14px; }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { background: #16a34a; }
+    #toast.error { background: #ef4444; }
+  </style>
+</head>
+<body>
+
+  <%- include('partials/admin_sidebar') %>
+
+  <main class="main-content">
+
+    <nav class="breadcrumb">
+      <span>Admin</span>
+      <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right" style="font-size:10px"></i></span>
+      <span class="breadcrumb-active">Orders</span>
+    </nav>
+
+    <div class="filters-section">
+      <form action="/admin/orders" method="GET">
+        <div class="filters-row">
+          <div class="filter-group">
+            <label class="filter-label">Search</label>
+            <input type="text" name="search" class="filter-input" placeholder="Order ID or Customer Name" value="<%= searchQuery %>">
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">Status</label>
+            <select name="status" class="filter-select">
+              <option value="">All Statuses</option>
+              <option value="Pending" <%= statusFilter === 'Pending' ? 'selected' : '' %>>Pending</option>
+              <option value="Confirmed" <%= statusFilter === 'Confirmed' ? 'selected' : '' %>>Confirmed</option>
+              <option value="Shipped" <%= statusFilter === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+              <option value="Out for Delivery" <%= statusFilter === 'Out for Delivery' ? 'selected' : '' %>>Out for Delivery</option>
+              <option value="Delivered" <%= statusFilter === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+              <option value="Cancelled" <%= statusFilter === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+              <option value="Return Requested" <%= statusFilter === 'Return Requested' ? 'selected' : '' %>>Return Requested</option>
+              <option value="Returned" <%= statusFilter === 'Returned' ? 'selected' : '' %>>Returned</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">Sort By</label>
+            <select name="sortBy" class="filter-select">
+              <option value="order_date" <%= sortBy === 'order_date' ? 'selected' : '' %>>Order Date</option>
+              <option value="total_amount" <%= sortBy === 'total_amount' ? 'selected' : '' %>>Amount</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">Order</label>
+            <select name="sortOrder" class="filter-select">
+              <option value="desc" <%= sortOrder === 'desc' ? 'selected' : '' %>>Descending</option>
+              <option value="asc" <%= sortOrder === 'asc' ? 'selected' : '' %>>Ascending</option>
+            </select>
+          </div>
+          
+          <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa fa-search"></i> Search
+            </button>
+            <a href="/admin/orders" class="btn btn-secondary">
+              <i class="fa fa-times"></i> Clear
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <% if (orders.length === 0) { %>
+        <div class="empty-state">
+          <i class="fa fa-box-open"></i>
+          <p>No orders found</p>
+        </div>
+      <% } else { %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Status</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(order => { %>
+              <tr>
+                <td>
+                  <div class="order-id"><%= order.order_id %></div>
+                </td>
+                <td>
+                  <div class="order-date"><%= new Date(order.order_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></div>
+                </td>
+                <td>
+                  <div class="user-info">
+                    <span class="user-name"><%= order.user_id?.username || 'N/A' %></span>
+                    <span class="user-email"><%= order.user_id?.email || 'N/A' %></span>
+                  </div>
+                </td>
+                <td>
+                  <span class="status-badge status-<%= order.order_status.toLowerCase() %>">
+                    <%= order.order_status %>
+                  </span>
+                </td>
+                <td>
+                  <div class="amount">₹<%= order.total_amount.toLocaleString('en-IN') %></div>
+                </td>
+                <td>
+                  <a href="/admin/orders/<%= order._id %>" class="btn-view">
+                    <i class="fa fa-eye"></i> View
+                  </a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+
+        <% if (totalPages > 1) { %>
+          <div class="pagination">
+            <% if (currentPage > 1) { %>
+              <a href="/admin/orders?page=<%= currentPage - 1 %>&search=<%= searchQuery %>&status=<%= statusFilter %>&sortBy=<%= sortBy %>&sortOrder=<%= sortOrder %>" class="page-btn">
+                <i class="fa-solid fa-chevron-left" style="font-size:11px"></i>
+              </a>
+            <% } else { %>
+              <span class="page-btn disabled">
+                <i class="fa-solid fa-chevron-left" style="font-size:11px"></i>
+              </span>
+            <% } %>
+            
+            <span class="page-info">Page <%= currentPage %> of <%= totalPages %></span>
+            
+            <% if (currentPage < totalPages) { %>
+              <a href="/admin/orders?page=<%= currentPage + 1 %>&search=<%= searchQuery %>&status=<%= statusFilter %>&sortBy=<%= sortBy %>&sortOrder=<%= sortOrder %>" class="page-btn">
+                <i class="fa-solid fa-chevron-right" style="font-size:11px"></i>
+              </a>
+            <% } else { %>
+              <span class="page-btn disabled">
+                <i class="fa-solid fa-chevron-right" style="font-size:11px"></i>
+              </span>
+            <% } %>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+
+  </main>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `show ${type}`;
+      setTimeout(() => {
+        toast.className = '';
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

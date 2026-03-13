@@ -3,6 +3,10 @@
    Include this on every user-facing page.
    ================================================ */
 
+body {
+  padding-top: 56px !important;
+}
+
 /* ── Fixed header bar ──────────────────────────── */
 .site-header {
   position: fixed;
@@ -70,6 +74,38 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
+}
+
+
+.wishlist-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wishlist-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: #e53e3e;        /* match your cart-badge color */
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+/* Optional: filled heart on hover */
+.wishlist-link:hover .nav-icon {
+  fill: currentColor;
+  stroke: none;
 }
 
 .nav-item {

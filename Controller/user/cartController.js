@@ -13,6 +13,9 @@ const cartGet = async (req, res) => {
     const userId = req.session.user;
     const cartData = await cartService.getCart(userId);
 
+    const checkoutError = req.session.checkoutError;
+    delete req.session.checkoutError;
+
     return res.render("cart", {
       items: cartData.items,
       cartCount: cartData.cartCount,
@@ -20,6 +23,7 @@ const cartGet = async (req, res) => {
       hasOutOfStock: cartData.hasOutOfStock,
       unavailableItems: cartData.unavailableItems || [],
       adjustmentWarnings: cartData.adjustmentWarnings || [],
+      checkoutError: checkoutError || null,
     });
   } catch (error) {
     console.error("Cart Get Error:", error);
