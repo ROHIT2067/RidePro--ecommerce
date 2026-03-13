@@ -21,7 +21,22 @@ const getProductsList = async (query) => {
 
     if (search)
         productFilter.productName = { $regex: "^" + search, $options: "i" };
-    if (category) productFilter.category = category;
+    
+    if (category) {
+        // Check if category is a valid ObjectId or a category name
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(category);
+        if (isObjectId) {
+            productFilter.category = category;
+        } else {
+            // Find category by name (case-insensitive)
+            const categoryDoc = activeCategories.find(
+                cat => cat.name.toLowerCase() === category.toLowerCase()
+            );
+            if (categoryDoc) {
+                productFilter.category = categoryDoc._id;
+            }
+        }
+    }
 
     const sortMap = {
         newest: { createdAt: -1 },

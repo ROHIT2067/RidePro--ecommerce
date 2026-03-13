@@ -529,6 +529,34 @@
               </div>
               <% } %>
 
+                <!-- Show Approved Return Request Status -->
+                <% if (order.returnRequests && order.returnRequests.some(req => req.status === 'approved')) { %>
+                  <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 1.2rem; margin-bottom: 2rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;">
+                      <i class="fa fa-check-circle" style="color: #16a34a; font-size: 1.1rem;"></i>
+                      <h3 style="color: #15803d; font-size: 1rem; font-weight: 600; margin: 0;">Return Request Approved</h3>
+                    </div>
+                    <% order.returnRequests.forEach((req, index) => { %>
+                      <% if (req.status === 'approved') { %>
+                        <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem;">
+                          <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.5rem;">
+                            Approved on <%= new Date(req.processedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                          </div>
+                          <div style="font-size: 0.85rem; color: #374151; margin-bottom: 0.5rem;">
+                            <strong>Your reason:</strong> "<%= req.reason %>"
+                          </div>
+                          <div style="font-size: 0.85rem; color: #16a34a;">
+                            <strong>Refund amount:</strong> ₹<%= req.refundAmount.toLocaleString('en-IN') %>
+                          </div>
+                        </div>
+                      <% } %>
+                    <% }) %>
+                    <div style="font-size: 0.8rem; color: #6b7280; margin-top: 0.8rem;">
+                      Your refund will be processed within 5-7 business days.
+                    </div>
+                  </div>
+                <% } %>
+
 
                 <div class="layout">
                   <div class="main-content">
@@ -542,12 +570,17 @@
                         item.variantDetails.images[0] : '/images/placeholder.jpg';
                         const itemReturnReq = order.returnRequests && order.returnRequests.find(req => req.itemId &&
                         req.itemId.toString() === item._id.toString());
+                        const itemStatus = item.status || item.item_status || 'Pending';
+                        const isCancelled = itemStatus === 'Cancelled';
                         %>
-                        <div class="order-item" data-item-id="<%= item._id %>">
-                          <img src="<%= img %>" alt="<%= item.productName %>" class="item-img">
+                        <div class="order-item" data-item-id="<%= item._id %>" style="<%= isCancelled ? 'opacity: 0.7;' : '' %>">
+                          <img src="<%= img %>" alt="<%= item.productName %>" class="item-img" style="<%= isCancelled ? 'filter: grayscale(50%);' : '' %>">
                           <div class="item-info">
-                            <div class="item-name">
+                            <div class="item-name" style="<%= isCancelled ? 'text-decoration: line-through; color: var(--muted);' : '' %>">
                               <%= item.productName %>
+                              <% if (isCancelled) { %>
+                                <span style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-left: 8px;">[CANCELLED]</span>
+                              <% } %>
                             </div>
                             <div class="item-variant">
                               <% if (item.variantDetails.size) { %><span>Size: <%= item.variantDetails.size %></span>
@@ -558,9 +591,25 @@
                             </div>
                             <div class="item-qty">Quantity: <%= item.quantity %>
                             </div>
+                            
+                            <% if (isCancelled) { %>
+                              <div style="margin-top: 8px; padding: 8px 12px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px;">
+                                <div style="font-size: 12px; font-weight: 600; color: #ef4444; margin-bottom: 3px;">
+                                  <i class="fa fa-ban" style="margin-right:4px;"></i>Item Cancelled
+                                </div>
+                                <% if (item.cancellationReason) { %>
+                                  <div style="font-size: 12px; color: var(--muted);">Reason: "<%= item.cancellationReason %>"</div>
+                                <% } %>
+                                <% if (item.cancelledAt) { %>
+                                  <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">
+                                    Cancelled on <%= new Date(item.cancelledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                                  </div>
+                                <% } %>
+                              </div>
+                            <% } %>
 
                             <%# Item-level return status badges %>
-                              <% if (itemReturnReq && itemReturnReq.status==='pending' ) { %>
+                              <% if (!isCancelled && itemReturnReq && itemReturnReq.status==='pending' ) { %>
                                 <div
                                   style="margin-top: 8px; padding: 8px 12px; background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.35); border-radius: 8px;">
                                   <div style="font-size: 12px; font-weight: 600; color: #fbbf24; margin-bottom: 3px;"><i
@@ -568,7 +617,7 @@
                                   <div style="font-size: 12px; color: var(--muted);">Your reason: "<%=
                                       itemReturnReq.reason %>"</div>
                                 </div>
-                                <% } else if (itemReturnReq && itemReturnReq.status==='rejected' ) { %>
+                                <% } else if (!isCancelled && itemReturnReq && itemReturnReq.status==='rejected' ) { %>
                                   <div
                                     style="margin-top: 8px; padding: 8px 12px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px;">
                                     <div style="font-size: 12px; font-weight: 600; color: #ef4444; margin-bottom: 3px;">
@@ -578,7 +627,7 @@
                                     <div style="font-size: 12px; color: #ef4444; margin-top: 3px;">Admin: "<%=
                                         itemReturnReq.adminReason || 'No reason provided' %>"</div>
                                   </div>
-                                  <% } else if (itemReturnReq && itemReturnReq.status==='approved' ) { %>
+                                  <% } else if (!isCancelled && itemReturnReq && itemReturnReq.status==='approved' ) { %>
                                     <div
                                       style="margin-top: 8px; padding: 8px 12px; background: rgba(22,163,74,0.1); border: 1px solid rgba(22,163,74,0.3); border-radius: 8px;">
                                       <div style="font-size: 12px; font-weight: 600; color: #16a34a;"><i
@@ -586,13 +635,15 @@
                                     </div>
                                     <% } %>
 
-                                      <% if (['Pending', 'Confirmed' ].includes(order.order_status)) { %>
+                                      <% if (!isCancelled && ['Pending', 'Confirmed' ].includes(order.order_status)) { %>
                                         <div class="item-actions">
                                           <button class="btn-cancel-item" onclick="cancelItem('<%= item._id %>')">Cancel
                                             Item</button>
                                         </div>
                                         <% } %>
-                                          <% if (item.status==='Delivered' || item.item_status==='Delivered' ) { %>
+
+                                          
+                                          <% if (!isCancelled && order.order_status === 'Delivered' && !itemReturnReq) { %>
                                             <div class="item-actions">
                                               <button class="btn-return-item"
                                                 onclick="returnItem('<%= item._id %>')">Return Item</button>
@@ -600,8 +651,15 @@
                                             <% } %>
                           </div>
                           <div class="item-price-qty">
-                            <div class="item-price">₹<%= (item.totalPrice || item.price *
-                                item.quantity).toLocaleString('en-IN') %>
+                            <div class="item-price" style="<%= isCancelled ? 'text-decoration: line-through; color: var(--muted);' : '' %>">
+                              <% if (isCancelled) { %>
+                                <span style="color: #ef4444; font-size: 0.8rem;">₹0.00</span>
+                                <div style="font-size: 0.7rem; color: var(--muted);">
+                                  (Was: ₹<%= (item.totalPrice || item.price * item.quantity).toLocaleString('en-IN') %>)
+                                </div>
+                              <% } else { %>
+                                ₹<%= (item.totalPrice || item.price * item.quantity).toLocaleString('en-IN') %>
+                              <% } %>
                             </div>
                           </div>
                         </div>
@@ -664,12 +722,6 @@
                           <i class="fa fa-times"></i> Cancel Order
                         </button>
                         <% } %>
-
-                          <% if (order.order_status==='Delivered' ) { %>
-                            <button class="btn btn-secondary" onclick="returnOrder()">
-                              <i class="fa fa-undo"></i> Return Order
-                            </button>
-                            <% } %>
                     </div>
                   </div>
                 </div>
@@ -715,26 +767,6 @@
               onclick="closeModal('cancelItemModal')">Cancel</button>
             <button class="modal-btn" style="background: var(--danger); color: #fff;"
               onclick="confirmCancelItem()">Confirm Cancellation</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Return Order Modal -->
-      <div class="modal-overlay" id="returnModal">
-        <div class="modal-box">
-          <h3 class="modal-title">Return Order</h3>
-          <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label">Reason for return (required)</label>
-              <textarea class="form-textarea" id="returnReason" placeholder="Please provide a reason for return..."
-                required></textarea>
-            </div>
-          </div>
-          <div class="modal-actions">
-            <button class="modal-btn" style="background: var(--surface3); color: var(--text);"
-              onclick="closeModal('returnModal')">Cancel</button>
-            <button class="modal-btn" style="background: var(--accent); color: #fff;"
-              onclick="confirmReturnOrder()">Submit Return Request</button>
           </div>
         </div>
       </div>
@@ -846,24 +878,60 @@
             if (data.success) {
               showToast('Item cancelled successfully');
 
-              // Update the item status dynamically
+              // Update the item visually to show it's cancelled
               const itemElement = document.querySelector(`[data-item-id="${currentItemId}"]`);
               if (itemElement) {
-                const statusBadge = itemElement.querySelector('.item-status');
+                // Add cancelled styling
+                itemElement.style.opacity = '0.7';
+                
+                const itemImg = itemElement.querySelector('.item-img');
+                if (itemImg) {
+                  itemImg.style.filter = 'grayscale(50%)';
+                }
+                
+                const itemName = itemElement.querySelector('.item-name');
+                if (itemName) {
+                  itemName.style.textDecoration = 'line-through';
+                  itemName.style.color = 'var(--muted)';
+                  itemName.innerHTML += ' <span style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-left: 8px;">[CANCELLED]</span>';
+                }
+                
+                const itemPrice = itemElement.querySelector('.item-price');
+                if (itemPrice) {
+                  const originalPrice = itemPrice.textContent;
+                  itemPrice.style.textDecoration = 'line-through';
+                  itemPrice.style.color = 'var(--muted)';
+                  itemPrice.innerHTML = '<span style="color: #ef4444; font-size: 0.8rem;">₹0.00</span><div style="font-size: 0.7rem; color: var(--muted);">(Was: ' + originalPrice + ')</div>';
+                }
+                
+                // Hide action buttons
                 const itemActions = itemElement.querySelector('.item-actions');
-
-                statusBadge.className = 'item-status status-cancelled';
-                statusBadge.textContent = 'Cancelled';
-
                 if (itemActions) {
                   itemActions.style.display = 'none';
+                }
+                
+                // Add cancelled status box
+                const itemInfo = itemElement.querySelector('.item-info');
+                if (itemInfo) {
+                  const cancelledBox = document.createElement('div');
+                  cancelledBox.style.cssText = 'margin-top: 8px; padding: 8px 12px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px;';
+                  cancelledBox.innerHTML = `
+                    <div style="font-size: 12px; font-weight: 600; color: #ef4444; margin-bottom: 3px;">
+                      <i class="fa fa-ban" style="margin-right:4px;"></i>Item Cancelled
+                    </div>
+                    ${reason ? `<div style="font-size: 12px; color: var(--muted);">Reason: "${reason}"</div>` : ''}
+                    <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">
+                      Cancelled on ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
+                  `;
+                  itemInfo.appendChild(cancelledBox);
                 }
               }
 
               // Check if all items are cancelled to update order status
-              const allItemsCancelled = Array.from(document.querySelectorAll('.item-status')).every(
-                badge => badge.textContent === 'Cancelled'
-              );
+              const allItemsCancelled = Array.from(document.querySelectorAll('.order-item')).every(item => {
+                return item.style.opacity === '0.7' || item.querySelector('.item-name').textContent.includes('[CANCELLED]');
+              });
 
               if (allItemsCancelled) {
                 const orderStatusBadge = document.querySelector('.order-meta .status-badge');
@@ -885,35 +953,6 @@
             showToast('Failed to cancel item', 'error');
           }
           closeModal('cancelItemModal');
-        }
-
-        function returnOrder() {
-          showModal('returnModal');
-        }
-
-        async function confirmReturnOrder() {
-          const reason = document.getElementById('returnReason').value;
-          if (!reason.trim()) {
-            showToast('Please provide a reason for return', 'error');
-            return;
-          }
-          try {
-            const response = await fetch('/orders/<%= order._id %>/return', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ reason })
-            });
-            const data = await response.json();
-            if (data.success) {
-              showToast('Return request submitted successfully');
-              setTimeout(() => window.location.reload(), 1500);
-            } else {
-              showToast(data.message, 'error');
-            }
-          } catch (error) {
-            showToast('Failed to submit return request', 'error');
-          }
-          closeModal('returnModal');
         }
 
         function returnItem(itemId) {

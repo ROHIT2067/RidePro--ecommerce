@@ -86,36 +86,10 @@ const rejectReturnPost = async (req, res) => {
   }
 };
 
-const approveOrderReturnPost = async (req, res) => {
-  try {
-    const { orderId } = req.body;
-
-    const result = await orderService.approveOrderReturn(orderId);
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error("Error approving order return:", error);
-    return res.status(400).json({ success: false, message: error.message });
-  }
-};
-
-const rejectOrderReturnPost = async (req, res) => {
-  try {
-    const { orderId, reason } = req.body;
-
-    const result = await orderService.rejectOrderReturn(orderId, reason);
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error("Error rejecting order return:", error);
-    return res.status(400).json({ success: false, message: error.message });
-  }
-};
-
 export default {
   ordersGet,
   orderDetailsGet,
   updateOrderStatusPost,
-  approveOrderReturnPost,
-  rejectOrderReturnPost,
   approveReturnPost,
   rejectReturnPost,
 };

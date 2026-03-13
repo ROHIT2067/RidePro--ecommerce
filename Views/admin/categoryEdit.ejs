@@ -444,8 +444,6 @@
             );
 
             const data = await res.json();
-            console.log("Status:", res.status); // ✅ add this
-            console.log("Response:", data);
 
             if (!res.ok) {
               showMsg(

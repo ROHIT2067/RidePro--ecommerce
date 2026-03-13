@@ -1,4 +1,4 @@
-import orderService from "../../service/user/orderService.js";
+import orderService, { fixExistingOrders } from "../../service/user/orderService.js";
 import Order from "../../Models/OrderModel.js";
 import User from "../../Models/UserModel.js";
 import Cart from "../../Models/CartModel.js";
@@ -152,32 +152,6 @@ const cancelOrderItemsPost = async (req, res) => {
     });
   }
 };
-
-const returnOrderPost = async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Please login" });
-    }
-
-    const userId = req.session.user;
-    const orderId = req.params.orderId;
-    const { reason } = req.body;
-
-    await orderService.returnEntireOrder(userId, orderId, reason);
-
-    return res.json({
-      success: true,
-      message: "Return request submitted successfully",
-    });
-  } catch (error) {
-    console.error("Return Order Error:", error);
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
 
 const returnOrderItemPost = async (req, res) => {
   try {
@@ -364,13 +338,73 @@ const downloadInvoiceGet = async (req, res) => {
   }
 };
 
+const fixOrdersGet = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: "Please login" });
+    }
+
+    const result = await fixExistingOrders();
+    return res.json({
+      success: true,
+      message: `Fixed ${result.modifiedCount} orders`,
+      result
+    });
+  } catch (error) {
+    console.error("Fix Orders Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const testReturnRequestsGet = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: "Please login" });
+    }
+
+    const orderId = req.params.orderId;
+    
+    // Get raw order data from database
+    const order = await Order.findById(orderId).lean();
+    
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    return res.json({
+      success: true,
+      orderId: order.order_id,
+      orderStatus: order.order_status,
+      returnRequestsExists: !!order.returnRequests,
+      returnRequestsCount: order.returnRequests ? order.returnRequests.length : 0,
+      returnRequests: order.returnRequests || [],
+      rawData: {
+        hasReturnRequestsField: 'returnRequests' in order,
+        returnRequestsType: typeof order.returnRequests,
+        isArray: Array.isArray(order.returnRequests)
+      }
+    });
+  } catch (error) {
+    console.error("Test Return Requests Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 export default {
   ordersGet,
   orderDetailsGet,
   cancelOrderPost,
   cancelOrderItemPost,
   cancelOrderItemsPost,
-  returnOrderPost,
   returnOrderItemPost,
   downloadInvoiceGet,
+  fixOrdersGet,
+  testReturnRequestsGet,
 };
+

@@ -47,7 +47,8 @@
           <h1 class="slide-title">Protect<span>Your Ride.</span></h1>
           <p class="slide-sub">ISI & ECE certified helmets trusted by thousands of riders across India.</p>
           <div class="slide-actions">
-            <a href="/products?category=helmets" class="btn-primary">Shop Helmets →</a>
+            <% const helmetCategory = categories.find(cat => cat.name === 'Helmets'); %>
+            <a href="/products<%= helmetCategory ? '?category=' + helmetCategory._id : '' %>" class="btn-primary">Shop Helmets →</a>
           </div>
         </div>
       </div>
@@ -60,7 +61,8 @@
           <h1 class="slide-title">Armored.<span>Ready.</span></h1>
           <p class="slide-sub">CE-certified armored jackets and suits for every type of rider and every road.</p>
           <div class="slide-actions">
-            <a href="/products?category=jackets" class="btn-primary">Shop Jackets →</a>
+            <% const jacketCategory = categories.find(cat => cat.name === 'Jackets'); %>
+            <a href="/products<%= jacketCategory ? '?category=' + jacketCategory._id : '' %>" class="btn-primary">Shop Jackets →</a>
           </div>
         </div>
       </div>

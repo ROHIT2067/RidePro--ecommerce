@@ -39,8 +39,6 @@ router.post('/editProduct/:id',upload.any(),productController.editProductPost)
 router.get('/orders', blockIfLoggedIn, orderController.ordersGet)
 router.get('/orders/:id', blockIfLoggedIn, orderController.orderDetailsGet)
 router.post('/orders/update-status', orderController.updateOrderStatusPost)
-router.post('/orders/approve-return', orderController.approveOrderReturnPost)
-router.post('/orders/reject-return', orderController.rejectOrderReturnPost)
 router.post('/orders/items/:itemId/approve-return', orderController.approveReturnPost)
 router.post('/orders/items/:itemId/reject-return', orderController.rejectReturnPost)
 

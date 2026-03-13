@@ -40,10 +40,6 @@ const getOrders = async (userId, page = 1, limit = 10, search = "") => {
 };
 
 const getOrderDetails = async (userId, orderId) => {
-  console.log("=== User Get Order Details Debug ===");
-  console.log("UserId:", userId);
-  console.log("OrderId:", orderId);
-
   const order = await Order.findOne({
     _id: orderId,
     user_id: userId,
@@ -57,25 +53,6 @@ const getOrderDetails = async (userId, orderId) => {
       },
     })
     .lean();
-
-  if (order) {
-    console.log("User order found:", order.order_id);
-    console.log("User order status:", order.order_status);
-    console.log("User ReturnRequests exists:", !!order.returnRequests);
-    console.log("User ReturnRequests length:", order.returnRequests ? order.returnRequests.length : 0);
-    console.log("User ReturnRequests content:", JSON.stringify(order.returnRequests, null, 2));
-    
-    // Check if returnRequests field exists but is undefined/null
-    console.log("ReturnRequests field type:", typeof order.returnRequests);
-    console.log("ReturnRequests is array:", Array.isArray(order.returnRequests));
-    
-    // Check the raw document structure
-    const rawOrder = await Order.findOne({ _id: orderId, user_id: userId }).select('returnRequests').lean();
-    console.log("Raw returnRequests from DB:", rawOrder.returnRequests);
-  } else {
-    console.log("User order not found");
-  }
-  console.log("=== End User Debug ===");
 
   return order;
 };
@@ -261,97 +238,6 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
   return { order, cancelledCount };
 };
 
-
-const returnEntireOrder = async (userId, orderId, reason) => {
-  console.log("=== Return Entire Order Debug ===");
-  console.log("UserId:", userId);
-  console.log("OrderId:", orderId);
-  console.log("Reason:", reason);
-
-  const order = await Order.findOne({
-    _id: orderId,
-    user_id: userId,
-  });
-
-  if (!order) {
-    throw new Error("Order not found");
-  }
-
-  console.log("Order found:", order.order_id);
-  console.log("Current order status:", order.order_status);
-  console.log("Current returnRequests:", order.returnRequests);
-
-  if (order.order_status !== "Delivered") {
-    throw new Error("Only delivered orders can be returned");
-  }
-
-  if (!reason || reason.trim() === "") {
-    throw new Error("Return reason is required");
-  }
-
-  // Update order status to "Return Requested" instead of "Returned"
-  order.order_status = "Return Requested";
-  
-  // Collect return requests to add
-  const returnRequestsToAdd = [];
-  
-  order.items.forEach((item) => {
-    if ((item.status || item.item_status) === "Delivered") {
-      item.status = item.status ? "Return Requested" : undefined;
-      item.item_status = "Return Requested"; // Keep backward compatibility
-      item.return_reason = reason;
-      item.return_requested_at = new Date();
-      
-      // Add to status history if the field exists
-      if (!item.statusHistory) {
-        item.statusHistory = [];
-      }
-      item.statusHistory.push({
-        status: "Return Requested",
-        reason: reason,
-      });
-
-      // Prepare return request for this item
-      returnRequestsToAdd.push({
-        itemId: item._id,
-        reason: reason,
-        status: "pending",
-        refundAmount: item.totalPrice || (item.price * item.quantity),
-        requestedAt: new Date()
-      });
-      console.log("Prepared return request for item:", item._id);
-    }
-  });
-
-  // Initialize returnRequests if it doesn't exist
-  if (!order.returnRequests) {
-    order.returnRequests = [];
-    console.log("Initialized returnRequests array");
-  }
-  
-  // Add all return requests
-  order.returnRequests.push(...returnRequestsToAdd);
-  console.log("Added return requests, total count:", order.returnRequests.length);
-
-  console.log("Before save - returnRequests:", JSON.stringify(order.returnRequests, null, 2));
-  
-  try {
-    await order.save();
-    console.log("Order saved successfully");
-  } catch (saveError) {
-    console.error("Save error:", saveError);
-    throw saveError;
-  }
-  
-  // Verify the save worked by fetching fresh from DB
-  const savedOrder = await Order.findById(orderId).lean();
-  console.log("After save - returnRequests:", JSON.stringify(savedOrder.returnRequests, null, 2));
-  console.log("After save - order status:", savedOrder.order_status);
-  console.log("=== End Return Debug ===");
-
-  return order;
-};
-
 const returnOrderItem = async (userId, orderId, itemId, reason) => {
   const order = await Order.findOne({
     _id: orderId,
@@ -371,49 +257,77 @@ const returnOrderItem = async (userId, orderId, itemId, reason) => {
     throw new Error("Item not found in order");
   }
 
-  if ((item.status || item.item_status) !== "Delivered") {
-    throw new Error("Only delivered items can be returned");
+  // Check if item is cancelled
+  const itemStatus = item.status || item.item_status || 'Pending';
+  if (itemStatus === 'Cancelled') {
+    throw new Error("Cannot return cancelled items");
   }
 
-  // Set item status to "Return Requested" instead of "Returned"
-  item.status = item.status ? "Return Requested" : undefined;
-  item.item_status = "Return Requested"; // Keep backward compatibility
-
-  // Create return request if the array exists
-  if (!order.returnRequests) {
-    order.returnRequests = [];
+  // For delivered orders, allow return of any non-cancelled item
+  if (order.order_status !== "Delivered") {
+    throw new Error("Only items from delivered orders can be returned");
   }
-  order.returnRequests.push({
+
+
+
+  // Create return request using atomic operation
+  const returnRequest = {
     itemId: item._id,
-    reason: reason,
+    reason: reason.trim(),
     status: "pending",
     refundAmount: item.totalPrice || (item.price * item.quantity),
-  });
+    requestedAt: new Date()
+  };
 
-  // Add to status history if the field exists
-  if (!item.statusHistory) {
-    item.statusHistory = [];
-  }
-  item.statusHistory.push({
-    status: "Return Requested",
-    reason: reason,
-  });
+  // Update order with return request
+  await Order.findByIdAndUpdate(
+    orderId,
+    {
+      $push: { 
+        returnRequests: returnRequest
+      }
+    },
+    { runValidators: true }
+  );
 
-  item.return_reason = reason;
-  item.return_requested_at = new Date();
+  // Update the specific item
+  await Order.updateOne(
+    { _id: orderId, "items._id": itemId },
+    {
+      $set: {
+        "items.$.status": "Return Requested",
+        "items.$.item_status": "Return Requested",
+        "items.$.return_reason": reason,
+        "items.$.return_requested_at": new Date()
+      },
+      $push: {
+        "items.$.statusHistory": {
+          status: "Return Requested",
+          reason: reason,
+          timestamp: new Date()
+        }
+      }
+    }
+  );
 
-  // Check if all items have return requests
-  const allReturnRequested = order.items.every(
+  // Check if all non-cancelled items have return requests to update order status
+  const updatedOrder = await Order.findById(orderId);
+  const nonCancelledItems = updatedOrder.items.filter(item => 
+    (item.status || item.item_status) !== 'Cancelled'
+  );
+  
+  const allNonCancelledItemsReturnRequested = nonCancelledItems.every(
     (item) => (item.status || item.item_status) === "Return Requested" || 
     (item.status || item.item_status) === "Returned" ||
-    (order.returnRequests && order.returnRequests.some(req => req.itemId.toString() === item._id.toString()))
+    (updatedOrder.returnRequests && updatedOrder.returnRequests.some(req => req.itemId.toString() === item._id.toString()))
   );
-  if (allReturnRequested) {
-    order.order_status = "Return Requested";
+  
+  if (allNonCancelledItemsReturnRequested && nonCancelledItems.length > 0) {
+    await Order.findByIdAndUpdate(orderId, { order_status: "Return Requested" });
   }
 
-  await order.save();
-  return order;
+
+  return updatedOrder;
 };
 
 export default {
@@ -422,6 +336,22 @@ export default {
   cancelOrderItem,
   cancelEntireOrder,
   cancelOrderItems,
-  returnEntireOrder,
   returnOrderItem,
 };
+
+// Migration function to fix existing orders without returnRequests field
+const fixExistingOrders = async () => {
+  try {
+    const result = await Order.updateMany(
+      { returnRequests: { $exists: false } },
+      { $set: { returnRequests: [] } }
+    );
+  
+    return result;
+  } catch (error) {
+    console.error("Error fixing existing orders:", error);
+    throw error;
+  }
+};
+
+export { fixExistingOrders };

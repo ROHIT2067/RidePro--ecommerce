@@ -1,5 +1,6 @@
 import Order from "../../Models/OrderModel.js";
 import User from "../../Models/UserModel.js";
+import Variant from "../../Models/VariantModel.js";
 
 const getOrders = async (query) => {
   let search = query.search || "";
@@ -97,25 +98,21 @@ const updateOrderStatus = async (orderId, newStatus) => {
 
 const getOrderDetails = async (orderId) => {
   try {
-    console.log("=== Admin Get Order Details Debug ===");
-    console.log("Fetching order:", orderId);
-
     const order = await Order.findById(orderId)
       .populate("user_id", "username email phoneNumber")
       .populate("items.product_id", "productName")
       .populate("items.variant_id", "color size price images")
       .lean();
 
-    if (order) {
-      console.log("Order found:", order.order_id);
-      console.log("Order status:", order.order_status);
-      console.log("ReturnRequests exists:", !!order.returnRequests);
-      console.log("ReturnRequests length:", order.returnRequests ? order.returnRequests.length : 0);
-      console.log("ReturnRequests content:", JSON.stringify(order.returnRequests, null, 2));
-    } else {
-      console.log("Order not found");
+    if (!order) return null;
+
+    // Normalize returnRequests itemIds to strings for safe EJS comparison
+    if (order.returnRequests && order.returnRequests.length > 0) {
+      order.returnRequests = order.returnRequests.map(req => ({
+        ...req,
+        itemId: req.itemId?.toString()
+      }));
     }
-    console.log("=== End Admin Debug ===");
 
     return order;
   } catch (error) {
@@ -148,12 +145,17 @@ const approveReturn = async (itemId) => {
     throw new Error("Return request is not pending");
   }
 
+  // Increment stock for the returned item
+  await Variant.findByIdAndUpdate(item.variant_id, {
+    $inc: { stock_quantity: item.quantity }
+  });
+
   // Update item status to "Returned"
   item.status = item.status ? "Returned" : undefined;
   item.item_status = "Returned"; // Keep backward compatibility
   item.returned_at = new Date();
   
-  // Add to status history if the field exists
+  // Add to status history
   if (!item.statusHistory) {
     item.statusHistory = [];
   }
@@ -166,17 +168,19 @@ const approveReturn = async (itemId) => {
   returnRequest.status = "approved";
   returnRequest.processedAt = new Date();
 
-  // Check if all items are returned to update order status
-  const allItemsReturned = order.items.every(item => 
-    (item.status || item.item_status) === "Returned" || 
-    (item.status || item.item_status) === "Cancelled"
+  // Check if all return requests are approved to update order status
+  const allReturnRequestsApproved = order.returnRequests.every(req => 
+    req.status === "approved" || req.status === "rejected"
   );
   
-  if (allItemsReturned) {
+  const hasApprovedReturns = order.returnRequests.some(req => req.status === "approved");
+  
+  if (allReturnRequestsApproved && hasApprovedReturns) {
     order.order_status = "Returned";
   }
 
   await order.save();
+  
   return { success: true, item, refundAmount: returnRequest.refundAmount };
 };
 
@@ -199,9 +203,9 @@ const rejectReturn = async (itemId, reason) => {
     throw new Error("Return request is not pending");
   }
 
-  // Update return request
+  // Update return request with rejection details
   returnRequest.status = "rejected";
-  returnRequest.adminReason = reason;
+  returnRequest.adminReason = reason.trim();
   returnRequest.processedAt = new Date();
 
   await order.save();
@@ -225,13 +229,18 @@ const approveOrderReturn = async (orderId) => {
   // Update order status to "Returned"
   order.order_status = "Returned";
   
-  // Update all items to "Returned" status
-  order.items.forEach((item) => {
+  // Update all items to "Returned" status and increment stock
+  for (const item of order.items) {
+    // Increment stock for each returned item
+    await Variant.findByIdAndUpdate(item.variant_id, {
+      $inc: { stock_quantity: item.quantity }
+    });
+
     item.status = item.status ? "Returned" : undefined;
     item.item_status = "Returned"; // Keep backward compatibility
     item.returned_at = new Date();
     
-    // Add to status history if the field exists
+    // Add to status history
     if (!item.statusHistory) {
       item.statusHistory = [];
     }
@@ -239,7 +248,7 @@ const approveOrderReturn = async (orderId) => {
       status: "Returned",
       reason: "Order return approved by admin",
     });
-  });
+  }
 
   // Update all return requests to approved
   if (!order.returnRequests) {
@@ -253,6 +262,7 @@ const approveOrderReturn = async (orderId) => {
   });
 
   await order.save();
+  
   return { success: true };
 };
 
@@ -270,16 +280,16 @@ const rejectOrderReturn = async (orderId, reason) => {
     throw new Error("Order is not in return requested status");
   }
 
-  // Update order status back to "Delivered" (assuming it was delivered before return request)
+  // Update order status back to "Delivered"
   order.order_status = "Delivered";
   
   // Update all items back to "Delivered" status
   order.items.forEach((item) => {
     if ((item.status || item.item_status) === "Return Requested") {
       item.status = item.status ? "Delivered" : undefined;
-      item.item_status = "Delivered"; // Keep backward compatibility
+      item.item_status = "Delivered";
       
-      // Add to status history if the field exists
+      // Add to status history
       if (!item.statusHistory) {
         item.statusHistory = [];
       }
@@ -290,14 +300,14 @@ const rejectOrderReturn = async (orderId, reason) => {
     }
   });
 
-  // Update all return requests to rejected
+  // Update all return requests to rejected with admin reason
   if (!order.returnRequests) {
     order.returnRequests = [];
   }
   order.returnRequests.forEach(req => {
     if (req.status === "pending") {
       req.status = "rejected";
-      req.adminReason = reason;
+      req.adminReason = reason.trim();
       req.processedAt = new Date();
     }
   });
