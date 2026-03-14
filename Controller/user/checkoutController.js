@@ -1,4 +1,5 @@
 import checkoutService from "../../service/user/checkoutService.js";
+import addressService from "../../service/user/addressService.js";
 
 const checkoutGet = async (req, res) => {
   try {
@@ -38,6 +39,56 @@ const checkoutGet = async (req, res) => {
     console.error("Checkout Get Error:", error);
     req.session.checkoutError = error.message;
     return res.redirect("/cart");
+  }
+};
+
+const addAddressPost = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: "Please login to add address" });
+    }
+
+    const userId = req.session.user;
+    await addressService.addAddress(userId, req.body);
+
+    return res.json({
+      success: true,
+      message: "Address added successfully",
+    });
+  } catch (error) {
+    console.error("Add Address Error:", error);
+    return res.status(400).json({ 
+      success: false, 
+      message: error.message || "Failed to add address" 
+    });
+  }
+};
+
+const editAddressPost = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: "Please login to edit address" });
+    }
+
+    const userId = req.session.user;
+    const { addressId, ...addressData } = req.body;
+
+    if (!addressId) {
+      return res.status(400).json({ success: false, message: "Address ID is required" });
+    }
+
+    await addressService.updateAddress(userId, addressId, addressData);
+
+    return res.json({
+      success: true,
+      message: "Address updated successfully",
+    });
+  } catch (error) {
+    console.error("Edit Address Error:", error);
+    return res.status(400).json({ 
+      success: false, 
+      message: error.message || "Failed to update address" 
+    });
   }
 };
 
@@ -94,6 +145,8 @@ const orderSuccessGet = async (req, res) => {
 
 export default {
   checkoutGet,
+  addAddressPost,
+  editAddressPost,
   placeOrderPost,
   orderSuccessGet,
 };

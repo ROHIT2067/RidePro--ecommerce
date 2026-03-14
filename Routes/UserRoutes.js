@@ -101,6 +101,8 @@ router.get('/wishlist/check/:variantId', wishlistController.checkWishlistItemGet
 
 // Checkout & Orders
 router.get('/checkout', checkoutController.checkoutGet)
+router.post('/checkout/add-address', checkoutController.addAddressPost)
+router.post('/checkout/edit-address', checkoutController.editAddressPost)
 router.post('/checkout/place-order', checkoutController.placeOrderPost)
 router.get('/order-success', checkoutController.orderSuccessGet)
 
