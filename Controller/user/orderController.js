@@ -1,7 +1,5 @@
 import orderService, { fixExistingOrders } from "../../service/user/orderService.js";
 import Order from "../../Models/OrderModel.js";
-import User from "../../Models/UserModel.js";
-import Cart from "../../Models/CartModel.js";
 import PDFDocument from "pdfkit";
 
 const ordersGet = async (req, res) => {

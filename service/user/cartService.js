@@ -72,7 +72,8 @@ const getCart = async (userId) => {
           productName: product.productName,
           reason: `Product is now out of stock`,
         });
-        item.quantity = 0;
+       validItems.push(item);
+  continue;
       } else {
         // Adjust quantity to available stock
         adjustmentWarnings.push({
