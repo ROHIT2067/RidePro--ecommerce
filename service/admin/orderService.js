@@ -10,34 +10,34 @@ const getOrders = async (query) => {
   let sortOrder = query.sortOrder === "asc" ? 1 : -1;
   let statusFilter = query.status || "";
 
-  // Build filter
   let filter = {};
 
-  // Search by order ID or user name
+  //Search by order ID or user name
   if (search) {
     const users = await User.find({
       username: { $regex: search, $options: "i" },
     }).select("_id");
 
-    const userIds = users.map((u) => u._id);
+    const userIds = users.map((u) => u._id);  //makes an array of ids
 
+  //Checks if search matches either order_id,or user_id 
     filter.$or = [
       { order_id: { $regex: search, $options: "i" } },
       { user_id: { $in: userIds } },
     ];
   }
 
-  // Filter by status
+  //Filter by status
   if (statusFilter) {
     filter.order_status = statusFilter;
   }
 
   const orders = await Order.find(filter)
-    .sort({ [sortBy]: sortOrder })
+    .sort({ [sortBy]: sortOrder })  //[]->telling JS to use the value of the variable as the key
     .skip((page - 1) * limit)
     .limit(limit)
     .populate("user_id", "username email")
-    .lean();
+    .lean();   //returns plain JS objects instead of Mongoose documents
 
   const totalOrders = await Order.countDocuments(filter);
   const totalPages = Math.ceil(totalOrders / limit);
@@ -69,24 +69,22 @@ const updateOrderStatus = async (orderId, newStatus) => {
     throw new Error("Order not found");
   }
 
-  // Prevent status updates for cancelled orders
   if (order.order_status === "Cancelled") {
     throw new Error("Cannot update status of a cancelled order");
   }
 
-  // Prevent status updates for returned orders (Feature 5)
   if (order.order_status === "Returned" || order.order_status === "Return Requested") {
     throw new Error("Cannot update status of a returned or return requested order");
   }
 
   order.order_status = newStatus;
 
-  // Set delivery date if status is Delivered
+  //Set delivery date if status is Delivered
   if (newStatus === "Delivered" && !order.delivery_date) {
     order.delivery_date = new Date();
   }
 
-  // Set shipped date if status is Shipped
+  //Set shipped date if status is Shipped
   if (newStatus === "Shipped" && !order.shipped_date) {
     order.shipped_date = new Date();
   }
@@ -100,19 +98,19 @@ const getOrderDetails = async (orderId) => {
   try {
     const order = await Order.findById(orderId)
       .populate("user_id", "username email phoneNumber")
-      .populate("items.product_id", "productName")
+      .populate("items.product_id", "productName") 
       .populate("items.variant_id", "color size price images")
       .lean();
 
     if (!order) return null;
 
-    // Normalize returnRequests itemIds to strings for safe EJS comparison
+   
     if (order.returnRequests && order.returnRequests.length > 0) {
       order.returnRequests = order.returnRequests.map(req => ({
         ...req,
         itemId: req.itemId?.toString()
       }));
-    }
+    }   //Converts each itemId in returnRequests to a plain string[EJS template comparisons will fail if not converted]
 
     return order;
   } catch (error) {
@@ -126,36 +124,34 @@ const approveReturn = async (itemId) => {
     throw new Error("Item ID is required");
   }
 
-  const order = await Order.findOne({ "items._id": itemId });
+  const order = await Order.findOne({ "items._id": itemId });  //queries inside the nested items array
   if (!order) {
     throw new Error("Order not found");
   }
 
-  const item = order.items.id(itemId);
+  const item = order.items.id(itemId);   //finds the specific subdocument inside the  array by _id
   if (!item) {
     throw new Error("Item not found");
   }
 
-  const returnRequest = order.returnRequests.find(req => req.itemId.toString() === itemId);
+  const returnRequest = order.returnRequests.find(req => req.itemId.toString() === itemId);  
   if (!returnRequest) {
     throw new Error("Return request not found");
-  }
+  }//Finds the matching return request for this item and validates it actually exists and is still pending
 
   if (returnRequest.status !== "pending") {
     throw new Error("Return request is not pending");
   }
 
-  // Increment stock for the returned item
   await Variant.findByIdAndUpdate(item.variant_id, {
     $inc: { stock_quantity: item.quantity }
   });
 
-  // Update item status to "Returned"
+  //Updates the item's status, records the return timestamp, and appends to its status history log
   item.status = item.status ? "Returned" : undefined;
-  item.item_status = "Returned"; // Keep backward compatibility
+  item.item_status = "Returned";
   item.returned_at = new Date();
-  
-  // Add to status history
+ 
   if (!item.statusHistory) {
     item.statusHistory = [];
   }
@@ -164,11 +160,10 @@ const approveReturn = async (itemId) => {
     reason: "Return approved by admin",
   });
 
-  // Update return request
   returnRequest.status = "approved";
   returnRequest.processedAt = new Date();
 
-  // Check if all return requests are approved to update order status
+  //Check if all return requests are approved to update order status
   const allReturnRequestsApproved = order.returnRequests.every(req => 
     req.status === "approved" || req.status === "rejected"
   );

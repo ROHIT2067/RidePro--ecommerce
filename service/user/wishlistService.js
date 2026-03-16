@@ -12,24 +12,24 @@ const getWishlist = async (userId) => {
         path: "product_id",
         populate: { path: "category" },
       },
-    });
+    });  //nested population is used to check if any product/category has been disabled
 
   if (!wishlist) {
     return { items: [], wishlistCount: 0, removedItems: [] };
   }
 
-  // Filter out invalid items (blocked/unlisted products)
   const validItems = [];
   const removedItems = [];
   let itemsRemoved = false;
 
+  //looped backwards because, When removing items while looping forward indexes shift and it skips items
   for (let i = wishlist.items.length - 1; i >= 0; i--) {
     const item = wishlist.items[i];
     const variant = item.variant_id;
     const product = variant?.product_id;
     const category = product?.category;
 
-    // Check if variant/product doesn't exist
+    //Check if variant/product doesn't exist
     if (!variant || !product) {
       removedItems.push({
         productName: product?.productName || "Unknown Product",
@@ -62,10 +62,10 @@ const getWishlist = async (userId) => {
       continue;
     }
 
-    validItems.unshift(item);
+    validItems.unshift(item);  //restores the original order of valid items
   }
 
-  // Save if items were removed
+  //Save if items were removed
   if (itemsRemoved) {
     await wishlist.save();
   }
@@ -78,7 +78,7 @@ const getWishlist = async (userId) => {
 };
 
 const addToWishlist = async (userId, variantId) => {
-  // Get variant with product and category details
+  //Fetches the variant with its product and category 
   const variant = await Variant.findById(variantId).populate({
     path: "product_id",
     populate: { path: "category" },
@@ -91,33 +91,32 @@ const addToWishlist = async (userId, variantId) => {
   const product = variant.product_id;
   const category = product?.category;
 
-  // Check if product is unlisted
+  //Check if product is unlisted
   if (product.status === "Out Of Stock") {
     throw new Error("This product is currently unavailable");
   }
 
-  // Check if category is inactive
+  //Check if category is inactive
   if (category && category.status === "Inactive") {
     throw new Error("This product category is currently unavailable");
   }
 
-  // Find or create wishlist
+  //Finds existing wishlist or creates a new one if the user doesn't have one yet
   let wishlist = await Wishlist.findOne({ user_id: userId });
 
   if (!wishlist) {
     wishlist = new Wishlist({ user_id: userId, items: [] });
   }
 
-  // Check if item already exists
   const existingItem = wishlist.items.find(
     (item) => item.variant_id.toString() === variantId.toString()
-  );
+  );//Prevents duplicate entries by checking if this variant is already wishlisted. Both IDs are converted to strings for safe comparison
 
   if (existingItem) {
     throw new Error("Item already in wishlist");
   }
 
-  // Add item to wishlist
+  //Add item to wishlist
   wishlist.items.push({ variant_id: variantId });
   await wishlist.save();
 
@@ -131,7 +130,7 @@ const removeFromWishlist = async (userId, variantId) => {
     throw new Error("Wishlist not found");
   }
 
-  // Remove item
+  //create a new array excluding the item with the matching variantId
   wishlist.items = wishlist.items.filter(
     (item) => item.variant_id.toString() !== variantId.toString()
   );
@@ -142,7 +141,7 @@ const removeFromWishlist = async (userId, variantId) => {
 };
 
 const moveToCart = async (userId, variantId, quantity = 1) => {
-  // Get variant with product and category details
+  //Get variant with product and category details
   const variant = await Variant.findById(variantId).populate({
     path: "product_id",
     populate: { path: "category" },
@@ -155,28 +154,29 @@ const moveToCart = async (userId, variantId, quantity = 1) => {
   const product = variant.product_id;
   const category = product?.category;
 
-  // Check if product is unlisted
+  //Check if product is unlisted
   if (product.status === "Out Of Stock") {
     throw new Error("This product is currently unavailable");
   }
 
-  // Check if category is inactive
+  //Check if category is inactive
   if (category && category.status === "Inactive") {
     throw new Error("This product category is currently unavailable");
   }
 
-  // Check stock availability
+  //prevents adding more items than available
   if (variant.stock_quantity < quantity) {
     throw new Error(`Only ${variant.stock_quantity} items available in stock`);
   }
 
-  // Add to cart
+  //Add to cart[if no cart,creates a new onw]
   let cart = await Cart.findOne({ user_id: userId });
 
   if (!cart) {
     cart = new Cart({ user_id: userId, items: [] });
   }
 
+  //item already exists in the cart? increment quantity bt max 5
   const existingCartItem = cart.items.find(
     (item) => item.variant_id.toString() === variantId.toString()
   );
@@ -195,11 +195,11 @@ const moveToCart = async (userId, variantId, quantity = 1) => {
       quantity: parseInt(quantity),
       price: variant.price,
     });
-  }
+  }   //if a new cart item, adds it with full details
 
   await cart.save();
 
-  // Remove from wishlist
+  //Remove from wishlist
   const wishlist = await Wishlist.findOne({ user_id: userId });
   if (wishlist) {
     wishlist.items = wishlist.items.filter(
@@ -208,7 +208,7 @@ const moveToCart = async (userId, variantId, quantity = 1) => {
     await wishlist.save();
   }
 
-  const cartCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);  //calculated with quantity instead of length
   const wishlistCount = wishlist ? wishlist.items.length : 0;
 
   return { cartCount, wishlistCount };

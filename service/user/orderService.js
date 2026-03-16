@@ -72,28 +72,26 @@ const cancelOrderItem = async (userId, orderId, itemId, reason) => {
     throw new Error(`Cannot cancel items when order status is: ${order.order_status}`);
   }
 
-  const item = order.items.id(itemId);
+  const item = order.items.id(itemId);  //finds a specific subdocument inside the items array by its _id
   if (!item) {
     throw new Error("Item not found in order");
   }
 
-  // Check if item is already cancelled
   if ((item.status || item.item_status) === "Cancelled") {
     throw new Error("Item is already cancelled");
   }
 
-  // Restore stock
   await Variant.findByIdAndUpdate(item.variant_id, {
     $inc: { stock_quantity: item.quantity },
   });
 
-  // Update item status
+  //Update item status
   item.status = item.status ? "Cancelled" : undefined;
-  item.item_status = "Cancelled"; // Keep backward compatibility
+  item.item_status = "Cancelled"; 
   item.cancellationReason = reason || "Item cancelled by user";
   item.cancelledAt = new Date();
 
-  // Add to status history if the field exists
+  //Add to status history if the field exists
   if (!item.statusHistory) {
     item.statusHistory = [];
   }
@@ -102,7 +100,7 @@ const cancelOrderItem = async (userId, orderId, itemId, reason) => {
     reason: reason || "Item cancelled by user",
   });
 
-  // Add to cancelled items if the array exists
+  //Add to cancelled items if the array exists
   if (!order.cancelledItems) {
     order.cancelledItems = [];
   }
@@ -111,7 +109,7 @@ const cancelOrderItem = async (userId, orderId, itemId, reason) => {
     reason: reason || "Item cancelled by user",
   });
 
-  // Check if all items are cancelled
+  //After cancelling one item, checks if all items are now cancelled. If yes, marks the entire order as Cancelled too 
   const allCancelled = order.items.every((item) => (item.status || item.item_status) === "Cancelled");
   if (allCancelled) {
     order.order_status = "Cancelled";
@@ -135,7 +133,7 @@ const cancelEntireOrder = async (userId, orderId, reason) => {
     throw new Error(`Cannot cancel order when status is: ${order.order_status}`);
   }
 
-  // Restore stock for all items
+  //Skips items already cancelled & restores the stock
   for (const item of order.items) {
     if ((item.status || item.item_status) !== "Cancelled") {
       await Variant.findByIdAndUpdate(item.variant_id, {
@@ -144,7 +142,7 @@ const cancelEntireOrder = async (userId, orderId, reason) => {
     }
   }
 
-  // Update order status
+  //updates every non-cancelled item's status.
   order.order_status = "Cancelled";
   order.items.forEach((item) => {
     if ((item.status || item.item_status) !== "Cancelled") {
@@ -153,7 +151,7 @@ const cancelEntireOrder = async (userId, orderId, reason) => {
       item.cancellationReason = reason || "Order cancelled by user";
       item.cancelledAt = new Date();
       
-      // Add to status history if the field exists
+      //Add to status history if the field exists
       if (!item.statusHistory) {
         item.statusHistory = [];
       }
@@ -162,7 +160,7 @@ const cancelEntireOrder = async (userId, orderId, reason) => {
         reason: reason || "Order cancelled by user",
       });
 
-      // Add to cancelled items if the array exists
+      //Add to cancelled items if the array exists
       if (!order.cancelledItems) {
         order.cancelledItems = [];
       }
@@ -193,10 +191,11 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
 
   let cancelledCount = 0;
 
+  //Only processes items that exist and aren't already cancelled
   for (const itemId of itemIds) {
     const item = order.items.id(itemId);
     if (item && (item.status || item.item_status) !== "Cancelled") {
-      // Restore stock
+      //Restore stock
       await Variant.findByIdAndUpdate(item.variant_id, {
         $inc: { stock_quantity: item.quantity },
       });
@@ -206,7 +205,7 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
       item.cancellationReason = reason || "Item cancelled by user";
       item.cancelledAt = new Date();
       
-      // Add to status history if the field exists
+      //Add to status history if the field exists
       if (!item.statusHistory) {
         item.statusHistory = [];
       }
@@ -215,7 +214,7 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
         reason: reason || "Item cancelled by user",
       });
 
-      // Add to cancelled items if the array exists
+      //Add to cancelled items if the array exists
       if (!order.cancelledItems) {
         order.cancelledItems = [];
       }
@@ -228,7 +227,7 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
     }
   }
 
-  // Check if all items are cancelled
+  //Check if all items are cancelled
   const allCancelled = order.items.every((item) => (item.status || item.item_status) === "Cancelled");
   if (allCancelled) {
     order.order_status = "Cancelled";
@@ -330,15 +329,6 @@ const returnOrderItem = async (userId, orderId, itemId, reason) => {
   return updatedOrder;
 };
 
-export default {
-  getOrders,
-  getOrderDetails,
-  cancelOrderItem,
-  cancelEntireOrder,
-  cancelOrderItems,
-  returnOrderItem,
-};
-
 // Migration function to fix existing orders without returnRequests field
 const fixExistingOrders = async () => {
   try {
@@ -354,4 +344,11 @@ const fixExistingOrders = async () => {
   }
 };
 
-export { fixExistingOrders };
+export default {
+  getOrders,
+  getOrderDetails,
+  cancelOrderItem,
+  cancelEntireOrder,
+  cancelOrderItems,
+  returnOrderItem,
+};

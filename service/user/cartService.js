@@ -12,7 +12,7 @@ const getCart = async (userId) => {
         path: "product_id",
         populate: { path: "category" },
       },
-    });
+    });  // Nested population : needed to run availability checks on each item
 
   if (!cart) {
     cart = new Cart({ user_id: userId, items: [] });
@@ -25,12 +25,13 @@ const getCart = async (userId) => {
   const validItems = [];
   let cartModified = false;
 
+  //Needed to run availability checks on each item to safely splice items without messing up the loop index
   for (let i = cart.items.length - 1; i >= 0; i--) {
     const item = cart.items[i];
     const variant = item.variant_id;
     const product = variant?.product_id;
 
-    // If variant or product is completely deleted from database
+    //deleted product, unlisted product, inactive category are pushed unavailableItems
     if (!variant || !product) {
       unavailableItems.push({
         productName: product?.productName || "Unknown Product",
@@ -41,7 +42,6 @@ const getCart = async (userId) => {
       continue;
     }
 
-    // Check if product is unlisted (status is "Out Of Stock" at product level)
     if (product.status === "Out Of Stock") {
       unavailableItems.push({
         productName: product.productName,
@@ -52,7 +52,6 @@ const getCart = async (userId) => {
       continue;
     }
 
-    // Check if category is inactive
     if (product.category && product.category.status === "Inactive") {
       unavailableItems.push({
         productName: product.productName,
@@ -63,10 +62,9 @@ const getCart = async (userId) => {
       continue;
     }
 
-    // Check if quantity needs adjustment due to stock changes
+    //Handles the case where stock dropped after the item was added to cart
     if (item.quantity > variant.stock_quantity) {
       if (variant.stock_quantity === 0) {
-        // Mark as out of stock but keep in cart
         item.isOutOfStock = true;
         adjustmentWarnings.push({
           productName: product.productName,
@@ -75,7 +73,6 @@ const getCart = async (userId) => {
        validItems.push(item);
   continue;
       } else {
-        // Adjust quantity to available stock
         adjustmentWarnings.push({
           productName: product.productName,
           reason: `Quantity reduced from ${item.quantity} to ${variant.stock_quantity} (available stock)`,
@@ -88,7 +85,6 @@ const getCart = async (userId) => {
       continue;
     }
 
-    // Mark as out of stock if variant is unavailable
     if (variant.status !== "Available" || variant.stock_quantity === 0) {
       item.isOutOfStock = true;
       validItems.push(item);
@@ -96,15 +92,14 @@ const getCart = async (userId) => {
     }
 
     item.isOutOfStock = false;
-    validItems.push(item);
+    validItems.push(item);  //still keeps it in the valid items list,so user can see it and decide to remove it
   }
 
-  // Save cart if modified
   if (cartModified) {
     await cart.save();
   }
 
-  // Convert to plain objects for response
+  //Converts Mongoose documents to plain JS objects for safe use in the view
   const itemsLean = validItems.map(item => ({
     ...item.toObject(),
     variant_id: item.variant_id.toObject ? item.variant_id.toObject() : item.variant_id,
@@ -136,6 +131,7 @@ const addToCart = async (userId, variantId, quantity = 1) => {
     populate: { path: "category" },
   });
 
+  //unlisted product, inactive category, unavailable variant, zero stock arent added
   if (!variant) {
     throw new Error("Product variant not found");
   }
@@ -146,12 +142,10 @@ const addToCart = async (userId, variantId, quantity = 1) => {
     throw new Error("Product not found");
   }
 
-  // Check if product is unlisted
   if (product.status === "Out Of Stock") {
     throw new Error("This product is no longer available");
   }
 
-  // Check if category is inactive
   if (product.category && product.category.status === "Inactive") {
     throw new Error("This product category is no longer active");
   }
@@ -170,6 +164,7 @@ const addToCart = async (userId, variantId, quantity = 1) => {
     cart = new Cart({ user_id: userId, items: [] });
   }
 
+  //If item already exists, increases the quantity
   const existingItem = cart.items.find(
     (item) => item.variant_id.toString() === variantId
   );
@@ -270,7 +265,7 @@ const removeFromCart = async (userId, variantId) => {
 
   cart.items = cart.items.filter(
     (item) => item.variant_id.toString() !== variantId
-  );
+  );  //creates a new array excluding the target item and saves
 
   await cart.save();
   return cart;

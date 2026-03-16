@@ -115,7 +115,7 @@ router.post('/orders/:orderId/items/:itemId/cancel', orderController.cancelOrder
 router.post('/orders/:orderId/cancel-items', orderController.cancelOrderItemsPost)
 router.post('/orders/:orderId/return-item', orderController.returnOrderItemPost)
 router.get('/orders/:orderId/invoice', orderController.downloadInvoiceGet)
-router.get('/fix-orders', orderController.fixOrdersGet)
+
 
 
 export default router;

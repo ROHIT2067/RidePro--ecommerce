@@ -481,7 +481,26 @@
                   ? item.variant_id.images[0]
                   : null;
 
-                const itemStatus = item.status || 'Pending';
+                // Determine item status based on priority:
+                // 1. If item is cancelled, show "Cancelled"
+                // 2. If item has approved return, show "Returned"
+                // 3. If item has pending return, show "Return Requested"
+                // 4. Otherwise, show the overall order status
+                let itemStatus;
+                const isCancelled = order.cancelledItems && order.cancelledItems.some(function(cancelledItem) {
+                  return cancelledItem.itemId && cancelledItem.itemId.toString() === itemIdStr;
+                });
+
+                if (isCancelled) {
+                  itemStatus = 'Cancelled';
+                } else if (hasApprovedReturn) {
+                  itemStatus = 'Returned';
+                } else if (hasPendingReturn) {
+                  itemStatus = 'Return Requested';
+                } else {
+                  // Use overall order status for non-cancelled, non-returned items
+                  itemStatus = order.order_status || 'Pending';
+                }
               %>
               <tr data-item-id="<%= item._id %>">
 
