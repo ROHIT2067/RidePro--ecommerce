@@ -38,6 +38,7 @@ router.post('/editProduct/:id',upload.any(),productController.editProductPost)
 // Order Management
 router.get('/orders', blockIfLoggedIn, orderController.ordersGet)
 router.get('/orders/:id', blockIfLoggedIn, orderController.orderDetailsGet)
+router.get('/orders/:id/invoice', orderController.downloadInvoiceGet)
 router.post('/orders/update-status', orderController.updateOrderStatusPost)
 router.post('/orders/items/:itemId/approve-return', orderController.approveReturnPost)
 router.post('/orders/items/:itemId/reject-return', orderController.rejectReturnPost)

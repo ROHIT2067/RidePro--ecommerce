@@ -403,9 +403,14 @@
 
     <div class="page-header">
       <h1 class="page-title">Order #<%= order.order_id %></h1>
-      <a href="/admin/orders" class="btn btn-secondary">
-        <i class="fa fa-arrow-left"></i> Back to Orders
-      </a>
+      <div style="display: flex; gap: 12px;">
+        <a href="/admin/orders/<%= order._id %>/invoice" class="btn btn-secondary">
+          <i class="fa fa-download"></i> Download Invoice
+        </a>
+        <a href="/admin/orders" class="btn btn-secondary">
+          <i class="fa fa-arrow-left"></i> Back to Orders
+        </a>
+      </div>
     </div>
 
     <div class="order-grid">
