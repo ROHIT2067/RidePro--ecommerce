@@ -62,6 +62,7 @@ const homeGet = async (req, res) => {
 const signUppost = async (req, res) => {
   try {
     const otp = await userService.signup(req.body);
+    console.log("Generated OTP for signup:", otp);
     req.session.userOtp = otp;
     req.session.userData = req.body;
 
@@ -112,6 +113,7 @@ const verifyOtpPost = async (req, res) => {
 const resendOtpPost = async (req, res) => {
   try {
     const otp = await userService.resendOtp(req.session.userData);
+    console.log("Resent OTP:", otp);
     req.session.userOtp = otp;
 
     res.status(200).json({ success: true, message: "OTP Send Successfully" });
@@ -175,7 +177,7 @@ const forgotPasswordPost = async (req, res) => {
   try {
     const { email } = req.body;
     const otp = await userService.forgotPassword(email);
-
+    console.log("Generated OTP for forgot password:", otp);
     req.session.userOtp = otp;
     req.session.email = email;
     return res.redirect("/verify-password");
@@ -223,6 +225,7 @@ const passwordVerifyPost = async (req, res) => {
 const resendOtpPassPost = async (req, res) => {
   try {
     const otp = await userService.resendPasswordOtp(req.session.email);
+    console.log("Resent OTP for forgot password:", otp);
     req.session.userOtp = otp;
 
     res.status(200).json({ success: true, message: "OTP Send Successfully" });

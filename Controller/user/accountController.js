@@ -97,7 +97,7 @@ const emailVerifyPost = async (req, res) => {
 
     req.session.userOtp = otp;
     req.session.email = email;
-    console.log("Otp is ", otp);
+    console.log("Generated OTP for email change:", otp);
     return res.redirect("/emailOtp");
   } catch (error) {
     console.error("Email verify post error:", error);
@@ -168,7 +168,7 @@ const resendEmailPost = async (req, res) => {
     const otp = await accountService.resendEmailOtp(req.session.email);
     req.session.userOtp = otp;
 
-    console.log("New Otp : ", otp);
+    console.log("Resent OTP for email change:", otp);
     res.status(200).json({ success: true, message: "OTP Send Successfully" });
   } catch (error) {
     console.error("Error resending email OTP:", error);
