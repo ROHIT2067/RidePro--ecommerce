@@ -1,4 +1,5 @@
 import addressService from "../../service/user/addressService.js";
+import { AddAddressSchema, EditAddressSchema } from "../../schemas/index.js";
 
 const addressGet = async (req, res) => {
   try {
@@ -40,8 +41,16 @@ const addressAddGet = (req, res) => {
 
 const addressAddPost = async (req, res) => {
   try {
+    const result = AddAddressSchema.safeParse(req.body);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0] || "Validation failed";
+      req.session.flash = { error: firstError };
+      return res.redirect("/account/address/add");
+    }
+
     const userId = req.session.user;
-    await addressService.addAddress(userId, req.body);
+    await addressService.addAddress(userId, result.data);
 
     return res.redirect("/account/address");
   } catch (error) {
@@ -87,10 +96,19 @@ const addressEditGet = async (req, res) => {
 
 const addressEditPost = async (req, res) => {
   try {
+    const validationData = { ...req.body, addressId: req.params.id };
+    const result = EditAddressSchema.safeParse(validationData);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0] || "Validation failed";
+      req.session.flash = { error: firstError };
+      return res.redirect(`/account/address/edit/${req.params.id}`);
+    }
+
     const userId = req.session.user;
     const addressId = req.params.id;
 
-    await addressService.updateAddress(userId, addressId, req.body);
+    await addressService.updateAddress(userId, addressId, result.data);
 
     return res.redirect("/account/address/");
   } catch (error) {

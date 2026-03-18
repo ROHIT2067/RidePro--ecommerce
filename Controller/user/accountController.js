@@ -1,4 +1,5 @@
 import accountService from "../../service/user/accountService.js";
+import { ChangePasswordSchema } from "../../schemas/index.js";
 
 const changePassGet = (req, res) => {
   if (req.session.admin) {
@@ -38,7 +39,15 @@ const accoutGet = async (req, res) => {
 
 const changePassPost = async (req, res) => {
   try {
-    await accountService.updatePassword(req.session.user, req.body);
+    const result = ChangePasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0] || "Validation failed";
+      req.session.flash = { newPassErr: firstError };
+      return res.redirect("/account/password");
+    }
+
+    await accountService.updatePassword(req.session.user, result.data);
     req.session.flash = { success: "Password changed successfully!" };
     return res.redirect("/account/password");
   } catch (error) {

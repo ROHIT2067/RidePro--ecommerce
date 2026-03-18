@@ -1,5 +1,6 @@
 import checkoutService from "../../service/user/checkoutService.js";
 import addressService from "../../service/user/addressService.js";
+import { AddAddressSchema, EditAddressSchema } from "../../schemas/index.js";
 
 const checkoutGet = async (req, res) => {
   try {
@@ -48,8 +49,15 @@ const addAddressPost = async (req, res) => {
       return res.status(401).json({ success: false, message: "Please login to add address" });
     }
 
+    const result = AddAddressSchema.safeParse(req.body);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0] || "Validation failed";
+      return res.status(400).json({ success: false, message: firstError });
+    }
+
     const userId = req.session.user;
-    await addressService.addAddress(userId, req.body);
+    await addressService.addAddress(userId, result.data);
 
     return res.json({
       success: true,
@@ -70,14 +78,22 @@ const editAddressPost = async (req, res) => {
       return res.status(401).json({ success: false, message: "Please login to edit address" });
     }
 
-    const userId = req.session.user;
     const { addressId, ...addressData } = req.body;
 
     if (!addressId) {
       return res.status(400).json({ success: false, message: "Address ID is required" });
     }
 
-    await addressService.updateAddress(userId, addressId, addressData);
+    const validationData = { ...addressData, addressId };
+    const result = EditAddressSchema.safeParse(validationData);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0] || "Validation failed";
+      return res.status(400).json({ success: false, message: firstError });
+    }
+
+    const userId = req.session.user;
+    await addressService.updateAddress(userId, addressId, result.data);
 
     return res.json({
       success: true,

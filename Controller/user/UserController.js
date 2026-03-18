@@ -1,4 +1,5 @@
 import userService from "../../service/user/userService.js";
+import { SignUpSchema, ForgotPasswordSchema, ResetPasswordSchema, VerifyOtpSchema, LoginSchema } from "../../schemas/index.js";
 
 const landingPageGet = async (req, res) => {
   try {
@@ -61,10 +62,18 @@ const homeGet = async (req, res) => {
 
 const signUppost = async (req, res) => {
   try {
-    const otp = await userService.signup(req.body);
+    const result = SignUpSchema.safeParse(req.body);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0] || "Validation failed";
+      req.session.flash = { serverError: firstError };
+      return res.redirect("/signup");
+    }
+
+    const otp = await userService.signup(result.data);
     console.log("Generated OTP for signup:", otp);
     req.session.userOtp = otp;
-    req.session.userData = req.body;
+    req.session.userData = result.data;
 
     res.redirect("/verify-otp");
   } catch (error) {
@@ -89,7 +98,14 @@ const verifyOtpGet = (req, res) => {
 
 const verifyOtpPost = async (req, res) => {
   try {
-    const { otp } = req.body;
+    const result = VerifyOtpSchema.safeParse(req.body);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0] || "Validation failed";
+      return res.status(400).json({ success: false, message: firstError });
+    }
+
+    const { otp } = result.data;
     const user = await userService.verifyOtp(
       otp,
       req.session.userOtp,
@@ -126,7 +142,15 @@ const resendOtpPost = async (req, res) => {
 
 const loginPost = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const result = LoginSchema.safeParse(req.body);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0] || "Validation failed";
+      req.session.loginErr = firstError;
+      return res.redirect("/login");
+    }
+
+    const { email, password } = result.data;
     const user = await userService.authenticateUser(email, password);
 
     req.session.role = user.role;
@@ -175,7 +199,15 @@ const forgotPasswordGet = (req, res) => {
 
 const forgotPasswordPost = async (req, res) => {
   try {
-    const { email } = req.body;
+    const result = ForgotPasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0] || "Validation failed";
+      req.session.loginErr = firstError;
+      return res.redirect("/login");
+    }
+
+    const { email } = result.data;
     const otp = await userService.forgotPassword(email);
     console.log("Generated OTP for forgot password:", otp);
     req.session.userOtp = otp;
@@ -206,7 +238,14 @@ const passwordVerifyGet = (req, res) => {
 
 const passwordVerifyPost = async (req, res) => {
   try {
-    const { otp } = req.body;
+    const result = VerifyOtpSchema.safeParse(req.body);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0] || "Validation failed";
+      return res.status(400).json({ success: false, message: firstError });
+    }
+
+    const { otp } = result.data;
     await userService.verifyPasswordOtp(otp, req.session.userOtp);
 
     req.session.isverified = true;
@@ -253,7 +292,14 @@ const resetPassGet = (req, res) => {
 
 const resetPassPost = async (req, res) => {
   try {
-    const { newPassword } = req.body;
+    const result = ResetPasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0] || "Validation failed";
+      return res.render("reset-password", { error: firstError });
+    }
+
+    const { newPassword } = result.data;
     await userService.resetPassword(
       req.session.email,
       newPassword,
