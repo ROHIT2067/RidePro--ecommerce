@@ -173,6 +173,22 @@ const orderSchema = new Schema(
       type: Number,
       required: true,
     },
+    coupon_discount: {
+      type: Number,
+      default: 0,
+    },
+    coupon_details: {
+      couponId: {
+        type: Schema.Types.ObjectId,
+        ref: "Coupon",
+      },
+      code: String,
+      discountAmount: Number,
+    },
+    final_amount: {
+      type: Number,
+      required: true,
+    },
     order_date: {
       type: Date,
       default: Date.now,

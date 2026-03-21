@@ -2,6 +2,7 @@ import Order from "../../Models/OrderModel.js";
 import Cart from "../../Models/CartModel.js";
 import Address from "../../Models/AddressModel.js";
 import Variant from "../../Models/VariantModel.js";
+import couponService from "../admin/couponService.js";
 
 const getCheckoutData = async (userId, selectedAddressId) => {
   // Get cart with populated data
@@ -129,7 +130,7 @@ const generateOrderId = () => {
   return `${timestampSuffix}${randomDigits}`;
 };
 
-const placeOrder = async (userId, addressId) => {
+const placeOrder = async (userId, addressId, appliedCoupon = null) => {
   // Get checkout data
   const checkoutData = await getCheckoutData(userId, addressId);
 
@@ -138,6 +139,24 @@ const placeOrder = async (userId, addressId) => {
   }
 
   const { items, selectedAddress, subtotal, shippingCost, totalAmount } = checkoutData;
+
+  // Calculate final amount with coupon discount
+  let finalAmount = totalAmount;
+  let couponDiscount = 0;
+  let couponDetails = null;
+
+  if (appliedCoupon) {
+    couponDiscount = appliedCoupon.discountAmount;
+    finalAmount = totalAmount - couponDiscount;
+    couponDetails = {
+      couponId: appliedCoupon.couponId,
+      code: appliedCoupon.code,
+      discountAmount: couponDiscount
+    };
+
+    // Mark coupon as used
+    await couponService.useCoupon(appliedCoupon.couponId, userId);
+  }
 
   // Prepare order items with product details
   const orderItems = items.map((item) => {
@@ -187,6 +206,9 @@ const placeOrder = async (userId, addressId) => {
     subtotal,
     shipping_cost: shippingCost,
     total_amount: totalAmount,
+    coupon_discount: couponDiscount,
+    coupon_details: couponDetails,
+    final_amount: finalAmount,
   });
 
   await order.save();

@@ -1,4 +1,5 @@
 import cartService from "../../service/user/cartService.js";
+import couponService from "../../service/admin/couponService.js";
 
 const cartGet = async (req, res) => {
   try {
@@ -16,10 +17,42 @@ const cartGet = async (req, res) => {
     const checkoutError = req.session.checkoutError;
     delete req.session.checkoutError;
 
+    // Get applied coupon from session
+    let appliedCoupon = req.session.appliedCoupon || null;
+    let finalTotal = cartData.totalPrice + 118; // Add delivery charge
+    let couponDiscount = 0;
+
+    // Validate applied coupon if it exists
+    if (appliedCoupon) {
+      try {
+        const orderAmount = cartData.totalPrice + 118;
+        const couponResult = await couponService.applyCoupon(appliedCoupon.code, orderAmount, userId);
+        
+        // Update coupon data if validation passes
+        appliedCoupon = {
+          code: couponResult.coupon.code,
+          discountAmount: couponResult.discountAmount,
+          couponId: couponResult.coupon._id
+        };
+        req.session.appliedCoupon = appliedCoupon;
+        
+        couponDiscount = appliedCoupon.discountAmount;
+        finalTotal = orderAmount - couponDiscount;
+      } catch (error) {
+        // Coupon is no longer valid, remove it
+        console.log("Removing invalid coupon:", error.message);
+        delete req.session.appliedCoupon;
+        appliedCoupon = null;
+      }
+    }
+
     return res.render("cart", {
       items: cartData.items,
       cartCount: cartData.cartCount,
       totalPrice: cartData.totalPrice,
+      finalTotal: finalTotal,
+      appliedCoupon: appliedCoupon,
+      couponDiscount: couponDiscount,
       hasOutOfStock: cartData.hasOutOfStock,
       unavailableItems: cartData.unavailableItems || [],
       adjustmentWarnings: cartData.adjustmentWarnings || [],
@@ -76,6 +109,18 @@ const updateCartPost = async (req, res) => {
 
     const result = await cartService.updateCartQuantity(userId, variantId, qty);
 
+    // Re-validate applied coupon if it exists
+    if (req.session.appliedCoupon) {
+      try {
+        const orderAmount = result.cartTotal + 118; // Add delivery cost
+        await couponService.applyCoupon(req.session.appliedCoupon.code, orderAmount, userId);
+      } catch (error) {
+        // Coupon is no longer valid, remove it
+        console.log("Removing invalid coupon after cart update:", error.message);
+        delete req.session.appliedCoupon;
+      }
+    }
+
     return res.json({
       success: true,
       message: "Cart updated",
@@ -127,10 +172,67 @@ const clearCartPost = async (req, res) => {
   }
 };
 
+const applyCouponPost = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const userId = req.session.user;
+    const { couponCode } = req.body;
+
+    if (!couponCode) {
+      return res.status(400).json({ success: false, message: "Coupon code is required" });
+    }
+
+    // Get cart total
+    const cartData = await cartService.getCart(userId);
+    const orderAmount = cartData.totalPrice + 118; // Add delivery charge
+
+    // Apply coupon
+    const couponResult = await couponService.applyCoupon(couponCode, orderAmount, userId);
+
+    // Store coupon in session
+    req.session.appliedCoupon = {
+      code: couponResult.coupon.code,
+      discountAmount: couponResult.discountAmount,
+      couponId: couponResult.coupon._id
+    };
+
+    return res.json({
+      success: true,
+      message: `Coupon applied! You saved ₹${couponResult.discountAmount}`,
+      discountAmount: couponResult.discountAmount,
+      finalAmount: couponResult.finalAmount
+    });
+  } catch (error) {
+    console.error("Apply Coupon Error:", error);
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const removeCouponPost = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    // Remove coupon from session
+    delete req.session.appliedCoupon;
+
+    return res.json({ success: true, message: "Coupon removed" });
+  } catch (error) {
+    console.error("Remove Coupon Error:", error);
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 export default {
   cartGet,
   addToCartPost,
   updateCartPost,
   removeFromCartPost,
   clearCartPost,
+  applyCouponPost,
+  removeCouponPost,
 };

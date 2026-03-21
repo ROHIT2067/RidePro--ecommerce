@@ -834,19 +834,31 @@
                               <span class="label">Delivery</span>
                               <span class="value" id="summary-delivery">₹118</span>
                             </div>
+                            <% if (typeof appliedCoupon !== 'undefined' && appliedCoupon) { %>
+                            <div class="summary-row discount-row">
+                              <span class="label">Coupon Discount (<%= appliedCoupon.code %>)</span>
+                              <span class="value discount-amount" style="color: var(--success);">- ₹<%= appliedCoupon.discountAmount.toLocaleString('en-IN') %></span>
+                            </div>
+                            <% } %>
                             <div class="divider"></div>
                             <div class="coupon-wrap">
                               <span class="coupon-label">Have a coupon?</span>
+                              <% if (typeof appliedCoupon !== 'undefined' && appliedCoupon) { %>
+                              <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(22, 163, 74, 0.1); border: 1px solid rgba(22, 163, 74, 0.3); border-radius: 7px; padding: 0.6rem 0.9rem; margin-bottom: 0.5rem;">
+                                <span style="color: var(--success); font-size: 0.84rem; font-weight: 600;"><%= appliedCoupon.code %> Applied</span>
+                                <button onclick="removeCoupon()" style="background: none; border: none; color: var(--success); cursor: pointer; font-size: 0.8rem;">Remove</button>
+                              </div>
+                              <% } else { %>
                               <div class="coupon-input-row">
                                 <input type="text" class="coupon-input" id="couponInput" placeholder="Enter code" />
                                 <button class="coupon-apply" onclick="applyCoupon()">Apply</button>
                               </div>
+                              <% } %>
                               <div class="coupon-msg" id="couponMsg"></div>
                             </div>
                             <div class="summary-row total">
                               <span class="label">Total</span>
-                              <span class="value" id="summary-total">₹<%= (totalPrice + 118).toLocaleString('en-IN') %>
-                                  </span>
+                              <span class="value" id="summary-total">₹<%= (typeof finalTotal !== 'undefined' ? finalTotal : totalPrice + 118).toLocaleString('en-IN') %></span>
                             </div>
 
                             <button class="btn-checkout" onclick="window.location.href='/checkout'" <%=(items.length===0
@@ -1015,12 +1027,70 @@
           }
         });
 
+        // Auto-uppercase coupon input
+        const couponInput = document.getElementById('couponInput');
+        if (couponInput) {
+          couponInput.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase();
+          });
+        }
+
         function applyCoupon() {
-          const code = document.getElementById('couponInput').value.trim().toUpperCase();
+          const code = document.getElementById('couponInput').value.trim();
           const msg = document.getElementById('couponMsg');
-          if (!code) { msg.textContent = 'Please enter a coupon code.'; msg.className = 'coupon-msg error'; return; }
-          msg.textContent = 'Coupon feature coming soon!';
-          msg.className = 'coupon-msg error';
+          
+          if (!code) { 
+            msg.textContent = 'Please enter a coupon code.'; 
+            msg.className = 'coupon-msg error'; 
+            return; 
+          }
+
+          // Show loading state
+          const applyBtn = document.querySelector('.coupon-apply');
+          const originalText = applyBtn.textContent;
+          applyBtn.textContent = 'Applying...';
+          applyBtn.disabled = true;
+
+          fetch('/cart/apply-coupon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ couponCode: code })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              showToast(data.message, 'success');
+              setTimeout(() => location.reload(), 800);
+            } else {
+              msg.textContent = data.message;
+              msg.className = 'coupon-msg error';
+            }
+          })
+          .catch(() => {
+            msg.textContent = 'Something went wrong. Please try again.';
+            msg.className = 'coupon-msg error';
+          })
+          .finally(() => {
+            applyBtn.textContent = originalText;
+            applyBtn.disabled = false;
+          });
+        }
+
+        function removeCoupon() {
+          fetch('/cart/remove-coupon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              showToast(data.message, 'success');
+              setTimeout(() => location.reload(), 400);
+            }
+          })
+          .catch(() => {
+            showToast('Something went wrong', 'error');
+          });
         }
       </script>
 

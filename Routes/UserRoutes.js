@@ -90,6 +90,8 @@ router.post('/cart/add', cartController.addToCartPost)
 router.post('/cart/update', cartController.updateCartPost)
 router.post('/cart/remove', cartController.removeFromCartPost)
 router.post('/cart/clear', cartController.clearCartPost)
+router.post('/cart/apply-coupon', cartController.applyCouponPost)
+router.post('/cart/remove-coupon', cartController.removeCouponPost)
 
 // Wishlist Management
 router.get('/wishlist', wishlistController.wishlistGet)

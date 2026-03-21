@@ -186,10 +186,16 @@
           <span class="label">Shipping</span>
           <span class="value"><%= shippingCost === 0 ? 'FREE' : '₹' + shippingCost.toLocaleString('en-IN') %></span>
         </div>
+        <% if (typeof appliedCoupon !== 'undefined' && appliedCoupon) { %>
+        <div class="summary-row discount-row">
+          <span class="label">Coupon Discount (<%= appliedCoupon.code %>)</span>
+          <span class="value discount-amount" style="color: var(--success);">- ₹<%= appliedCoupon.discountAmount.toLocaleString('en-IN') %></span>
+        </div>
+        <% } %>
         <div class="divider"></div>
         <div class="summary-row total">
           <span class="label">Total</span>
-          <span class="value">₹<%= totalAmount.toLocaleString('en-IN') %></span>
+          <span class="value">₹<%= (typeof finalTotal !== 'undefined' ? finalTotal : totalAmount).toLocaleString('en-IN') %></span>
         </div>
         <button class="btn-place-order" onclick="placeOrder()">
           <i class="fa fa-check-circle"></i> Place Order

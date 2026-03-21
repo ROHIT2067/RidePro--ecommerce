@@ -1,6 +1,7 @@
 import Variant from "../../Models/VariantModel.js";
 import Product from "../../Models/ProductModel.js";
 import Category from "../../Models/CategoryModel.js";
+import Coupon from "../../Models/CouponModel.js";
 
 const getProductsList = async (query) => {
     let search = query.search || "";
@@ -125,12 +126,69 @@ const getProductDetails = async (id) => {
         }),
     );
 
+    // Get the highest value active coupon
+    const activeCoupons = await Coupon.find({
+        status: 'active',
+        expiryDate: { $gte: new Date() },
+        $or: [
+            { usageLimit: null },
+            { $expr: { $lt: ['$usageCount', '$usageLimit'] } }
+        ]
+    }).sort({ discountValue: -1 });
+
+    let bestCoupon = null;
+    if (activeCoupons.length > 0) {
+        // Find the coupon with highest effective discount
+        const productPrice = selectedVariant ? selectedVariant.price : 0;
+        const deliveryCost = 118;
+        const totalOrderValue = productPrice + deliveryCost;
+        let maxDiscount = 0;
+        
+        for (const coupon of activeCoupons) {
+            // Check if total order value meets minimum and maximum order requirements
+            if (totalOrderValue >= coupon.minimumOrderAmount && 
+                (!coupon.maximumOrderAmount || totalOrderValue <= coupon.maximumOrderAmount)) {
+                
+                let effectiveDiscount = 0;
+                
+                if (coupon.discountType === 'percentage') {
+                    // Calculate percentage discount on total order value
+                    effectiveDiscount = (totalOrderValue * coupon.discountValue) / 100;
+                    // Apply maximum discount cap if exists
+                    if (coupon.maximumDiscountCap) {
+                        effectiveDiscount = Math.min(effectiveDiscount, coupon.maximumDiscountCap);
+                    }
+                } else {
+                    // Fixed amount discount
+                    effectiveDiscount = coupon.discountValue;
+                }
+                
+                // Ensure discount doesn't exceed total order value
+                effectiveDiscount = Math.min(effectiveDiscount, totalOrderValue);
+                
+                if (effectiveDiscount > maxDiscount) {
+                    maxDiscount = effectiveDiscount;
+                    bestCoupon = {
+                        code: coupon.code,
+                        discountType: coupon.discountType,
+                        discountValue: coupon.discountValue,
+                        minimumOrderAmount: coupon.minimumOrderAmount,
+                        maximumOrderAmount: coupon.maximumOrderAmount,
+                        maximumDiscountCap: coupon.maximumDiscountCap,
+                        effectiveDiscount: effectiveDiscount
+                    };
+                }
+            }
+        }
+    }
+
     return {
         product,
         variants,
         selectedVariant,
         isAvailable,
         relatedProducts,
+        bestCoupon,
         reviews: [], // Placeholder for later
     };
 };

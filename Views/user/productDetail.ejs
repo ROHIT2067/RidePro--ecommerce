@@ -434,14 +434,33 @@
       <span class="price-off" id="priceOff"><%= discountPct %>% OFF</span>
     </div>
 
+    <% if (typeof bestCoupon !== 'undefined' && bestCoupon) { %>
     <div class="coupon-row">
-      <div class="coupon-chip" onclick="copyCoupon('RIDEPRO10')">
+      <div class="coupon-chip" onclick="copyCoupon('<%= bestCoupon.code %>')">
         <i class="fa fa-ticket" style="color:var(--accent)"></i>
-        Use <span class="coupon-code">RIDEPRO10</span> — 10% off on orders above ₹3,000
+        Use <span class="coupon-code"><%= bestCoupon.code %></span> — 
+        <% if (bestCoupon.discountType === 'percentage') { %>
+          <%= bestCoupon.discountValue %>% off
+          <% if (bestCoupon.maximumDiscountCap) { %>
+            (up to ₹<%= bestCoupon.maximumDiscountCap.toLocaleString('en-IN') %>)
+          <% } %>
+        <% } else { %>
+          ₹<%= bestCoupon.discountValue.toLocaleString('en-IN') %> off
+        <% } %>
+        <% if (bestCoupon.minimumOrderAmount > 0 || bestCoupon.maximumOrderAmount) { %>
+          <% if (bestCoupon.minimumOrderAmount > 0 && bestCoupon.maximumOrderAmount) { %>
+            on orders between ₹<%= bestCoupon.minimumOrderAmount.toLocaleString('en-IN') %> - ₹<%= bestCoupon.maximumOrderAmount.toLocaleString('en-IN') %>
+          <% } else if (bestCoupon.minimumOrderAmount > 0) { %>
+            on orders above ₹<%= bestCoupon.minimumOrderAmount.toLocaleString('en-IN') %>
+          <% } else if (bestCoupon.maximumOrderAmount) { %>
+            on orders up to ₹<%= bestCoupon.maximumOrderAmount.toLocaleString('en-IN') %>
+          <% } %>
+        <% } %>
         <i class="fa fa-copy" style="font-size:0.68rem"></i>
       </div>
       <span class="coupon-msg" id="couponMsg">✓ Copied!</span>
     </div>
+    <% } %>
 
     <% if (!isAvailable) { %>
     <div class="unavail-box">

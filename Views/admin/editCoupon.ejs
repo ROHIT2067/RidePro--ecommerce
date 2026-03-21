@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Coupon — Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f6fa;
+      display: flex;
+      min-height: 100vh;
+      color: #2c3e50;
+    }
+    .sidebar { width: 250px; background-color: #ffffff; border-right: 1px solid #e5e7eb; padding: 20px 0; position: fixed; height: 100vh; overflow-y: auto; }
+    .logo { padding: 0 20px 30px; display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; color: #1a1a1a; }
+    .logo i { font-size: 24px; }
+    .nav-menu { list-style: none; }
+    .nav-item { margin-bottom: 5px; }
+    .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: #6b7280; text-decoration: none; transition: all 0.3s ease; font-size: 14px; }
+    .nav-link:hover { background-color: #f9fafb; color: #1a1a1a; }
+    .nav-link.active { background-color: #f3f4f6; color: #1a1a1a; font-weight: 500; border-left: 3px solid #3b82f6; }
+    .nav-link i { width: 20px; text-align: center; font-size: 16px; }
+    .main-content { margin-left: 250px; flex: 1; padding: 30px 40px; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6b7280; }
+    .breadcrumb-separator { color: #d1d5db; }
+    .breadcrumb-active { color: #2c3e50; font-weight: 500; }
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+    .alert-error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .alert-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+    .form-card { background: #fff; border-radius: 12px; padding: 32px 36px 36px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); max-width: 860px; }
+    .form-card-header { margin-bottom: 28px; }
+    .form-card-header h2 { font-size: 1.3rem; font-weight: 700; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+    .form-group label { font-size: 13px; font-weight: 500; color: #2c3e50; }
+    .form-group input, .form-group select {
+      padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: #f9fafb; color: #2c3e50; font-family: inherit; transition: border-color 0.2s, background 0.2s; width: 100%;
+    }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #3b82f6; background: #fff; }
+    .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px; }
+    .btn-group { display: flex; gap: 12px; margin-top: 20px; }
+    .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; transition: background 0.2s; text-decoration: none; display: inline-block; text-align: center; }
+    .btn-primary { background-color: #3b82f6; color: #fff; }
+    .btn-primary:hover { background-color: #2563eb; }
+    .btn-secondary { background-color: #6b7280; color: #fff; }
+    .btn-secondary:hover { background-color: #4b5563; }
+    @media (max-width: 1024px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">
+      <i class="fas fa-bolt"></i>
+      <span>Admin</span>
+    </div>
+    <ul class="nav-menu">
+      <li class="nav-item"><a href="/admin/dashboard" class="nav-link"><i class="fas fa-th-large"></i><span>Dashboard</span></a></li>
+      <li class="nav-item"><a href="/admin/products"  class="nav-link"><i class="fas fa-box"></i><span>Products</span></a></li>
+      <li class="nav-item"><a href="/admin/orders"    class="nav-link"><i class="fas fa-shopping-cart"></i><span>Orders</span></a></li>
+      <li class="nav-item"><a href="/admin/customers" class="nav-link"><i class="fas fa-users"></i><span>Customers</span></a></li>
+      <li class="nav-item"><a href="/admin/reports"   class="nav-link"><i class="fas fa-star"></i><span>Sales Report</span></a></li>
+      <li class="nav-item"><a href="/admin/category"  class="nav-link"><i class="fas fa-folder"></i><span>Category</span></a></li>
+      <li class="nav-item"><a href="/admin/offers"    class="nav-link active"><i class="fas fa-tag"></i><span>Offers & Coupons</span></a></li>
+      <li class="nav-item"><a href="/admin/logout"    class="nav-link"><i class="fas fa-cog"></i><span>Log Out</span></a></li>
+    </ul>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <nav class="breadcrumb">
+        <span>Admin</span>
+        <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right" style="font-size:11px"></i></span>
+        <a href="/admin/offers" style="color: #6b7280; text-decoration: none;">Offers & Coupons</a>
+        <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right" style="font-size:11px"></i></span>
+        <span class="breadcrumb-active">Edit Coupon</span>
+      </nav>
+    </div>
+
+    <% if (typeof successMsg !== 'undefined' && successMsg) { %>
+      <div class="alert alert-success"><%= successMsg %></div>
+    <% } %>
+    <% if (typeof errorMsg !== 'undefined' && errorMsg) { %>
+      <div class="alert alert-error"><%= errorMsg %></div>
+    <% } %>
+
+    <div class="form-card">
+      <div class="form-card-header">
+        <h2>Edit Coupon</h2>
+      </div>
+      
+      <form method="POST" action="/admin/coupons/edit/<%= coupon._id %>">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="code">Coupon Code *</label>
+            <input type="text" id="code" name="code" value="<%= coupon.code %>" required />
+          </div>
+          <div class="form-group">
+            <label for="discountType">Discount Type *</label>
+            <select id="discountType" name="discountType" required>
+              <option value="percentage" <%= coupon.discountType === 'percentage' ? 'selected' : '' %>>Percentage (%)</option>
+              <option value="flat" <%= coupon.discountType === 'flat' ? 'selected' : '' %>>Flat (₹)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="discountValue">Discount Value *</label>
+            <input type="number" id="discountValue" name="discountValue" value="<%= coupon.discountValue %>" min="1" required />
+          </div>
+          <div class="form-group">
+            <label for="minimumOrderAmount">Min Order Amount (₹)</label>
+            <input type="number" id="minimumOrderAmount" name="minimumOrderAmount" value="<%= coupon.minimumOrderAmount %>" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="maximumOrderAmount">Max Order Amount (₹)</label>
+            <input type="number" id="maximumOrderAmount" name="maximumOrderAmount" value="<%= coupon.maximumOrderAmount || '' %>" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="maximumDiscountCap">Max Discount Cap (₹)</label>
+            <input type="number" id="maximumDiscountCap" name="maximumDiscountCap" value="<%= coupon.maximumDiscountCap || '' %>" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="usageLimit">Total Usage Limit</label>
+            <input type="number" id="usageLimit" name="usageLimit" value="<%= coupon.usageLimit || '' %>" min="1" />
+          </div>
+          <div class="form-group">
+            <label for="perUserLimit">Per User Limit</label>
+            <input type="number" id="perUserLimit" name="perUserLimit" value="<%= coupon.perUserLimit %>" min="1" />
+          </div>
+          <div class="form-group">
+            <label for="expiryDate">Expiry Date *</label>
+            <input type="date" id="expiryDate" name="expiryDate" value="<%= new Date(coupon.expiryDate).toISOString().split('T')[0] %>" required />
+          </div>
+        </div>
+        
+        <div class="btn-group">
+          <button type="submit" class="btn btn-primary">Update Coupon</button>
+          <a href="/admin/offers" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('expiryDate').min = today;
+  </script>
+</body>
+</html>

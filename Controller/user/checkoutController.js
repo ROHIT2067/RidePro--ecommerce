@@ -1,5 +1,6 @@
 import checkoutService from "../../service/user/checkoutService.js";
 import addressService from "../../service/user/addressService.js";
+import couponService from "../../service/admin/couponService.js";
 import { AddAddressSchema, EditAddressSchema } from "../../schemas/index.js";
 
 const checkoutGet = async (req, res) => {
@@ -28,6 +29,31 @@ const checkoutGet = async (req, res) => {
       });
     }
 
+    // Get applied coupon from session and validate it
+    let appliedCoupon = req.session.appliedCoupon || null;
+    let finalTotal = checkoutData.totalAmount;
+
+    if (appliedCoupon) {
+      try {
+        const couponResult = await couponService.applyCoupon(appliedCoupon.code, checkoutData.totalAmount, userId);
+        
+        // Update coupon data if validation passes
+        appliedCoupon = {
+          code: couponResult.coupon.code,
+          discountAmount: couponResult.discountAmount,
+          couponId: couponResult.coupon._id
+        };
+        req.session.appliedCoupon = appliedCoupon;
+        
+        finalTotal = checkoutData.totalAmount - appliedCoupon.discountAmount;
+      } catch (error) {
+        // Coupon is no longer valid, remove it
+        console.log("Removing invalid coupon at checkout:", error.message);
+        delete req.session.appliedCoupon;
+        appliedCoupon = null;
+      }
+    }
+
     return res.render("checkout", {
       items: checkoutData.items,
       addresses: checkoutData.addresses,
@@ -35,6 +61,8 @@ const checkoutGet = async (req, res) => {
       subtotal: checkoutData.subtotal,
       shippingCost: checkoutData.shippingCost,
       totalAmount: checkoutData.totalAmount,
+      appliedCoupon: appliedCoupon,
+      finalTotal: finalTotal,
     });
   } catch (error) {
     console.error("Checkout Get Error:", error);
@@ -121,7 +149,15 @@ const placeOrderPost = async (req, res) => {
       return res.status(400).json({ success: false, message: "Please select a delivery address" });
     }
 
-    const order = await checkoutService.placeOrder(userId, addressId);
+    // Get applied coupon from session
+    const appliedCoupon = req.session.appliedCoupon || null;
+
+    const order = await checkoutService.placeOrder(userId, addressId, appliedCoupon);
+
+    // Clear applied coupon from session after successful order
+    if (appliedCoupon) {
+      delete req.session.appliedCoupon;
+    }
 
     return res.json({
       success: true,
