@@ -25,8 +25,11 @@ export const calculateProductPrice = async (product, variantPrice, categoryId) =
 
     let bestDiscount = 0;
     let appliedOffer = null;
-
-    // Calculate product offer discount
+    let offerSource = null;
+    
+    // Calculate best product offer
+    let bestProductOffer = null;
+    let bestProductDiscount = 0;
     for (const offer of productOffers) {
       let discount = 0;
       if (offer.discountType === 'percentage') {
@@ -35,13 +38,19 @@ export const calculateProductPrice = async (product, variantPrice, categoryId) =
         discount = offer.discountValue;
       }
       
-      if (discount > bestDiscount) {
-        bestDiscount = discount;
-        appliedOffer = offer;
+      if (discount > bestProductDiscount) {
+        bestProductDiscount = discount;
+        bestProductOffer = {
+          ...offer.toObject(),
+          calculatedDiscount: discount,
+          effectiveDiscountPercent: Math.round((discount / variantPrice) * 100)
+        };
       }
     }
 
-    // Calculate category offer discount
+    // Calculate best category offer
+    let bestCategoryOffer = null;
+    let bestCategoryDiscount = 0;
     for (const offer of categoryOffers) {
       let discount = 0;
       if (offer.discountType === 'percentage') {
@@ -50,10 +59,25 @@ export const calculateProductPrice = async (product, variantPrice, categoryId) =
         discount = offer.discountValue;
       }
       
-      if (discount > bestDiscount) {
-        bestDiscount = discount;
-        appliedOffer = offer;
+      if (discount > bestCategoryDiscount) {
+        bestCategoryDiscount = discount;
+        bestCategoryOffer = {
+          ...offer.toObject(),
+          calculatedDiscount: discount,
+          effectiveDiscountPercent: Math.round((discount / variantPrice) * 100)
+        };
       }
+    }
+
+    // Determine which offer to apply (biggest discount)
+    if (bestProductDiscount > bestCategoryDiscount) {
+      bestDiscount = bestProductDiscount;
+      appliedOffer = bestProductOffer;
+      offerSource = 'product';
+    } else if (bestCategoryDiscount > 0) {
+      bestDiscount = bestCategoryDiscount;
+      appliedOffer = bestCategoryOffer;
+      offerSource = 'category';
     }
 
     const finalPrice = Math.max(0, variantPrice - bestDiscount);
@@ -63,7 +87,15 @@ export const calculateProductPrice = async (product, variantPrice, categoryId) =
       discountAmount: bestDiscount,
       finalPrice: finalPrice,
       appliedOffer: appliedOffer,
-      hasDiscount: bestDiscount > 0
+      offerSource: offerSource,
+      hasDiscount: bestDiscount > 0,
+      // Return both offers for display
+      productOffer: bestProductOffer,
+      categoryOffer: bestCategoryOffer,
+      availableOffers: {
+        product: bestProductOffer,
+        category: bestCategoryOffer
+      }
     };
   } catch (error) {
     console.error("Error calculating product price:", error);
@@ -72,7 +104,11 @@ export const calculateProductPrice = async (product, variantPrice, categoryId) =
       discountAmount: 0,
       finalPrice: variantPrice,
       appliedOffer: null,
-      hasDiscount: false
+      offerSource: null,
+      hasDiscount: false,
+      productOffer: null,
+      categoryOffer: null,
+      availableOffers: { product: null, category: null }
     };
   }
 };

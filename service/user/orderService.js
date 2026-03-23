@@ -1,6 +1,7 @@
 import Order from "../../Models/OrderModel.js";
 import Variant from "../../Models/VariantModel.js";
 import User from "../../Models/UserModel.js";
+import { creditWallet } from "../../utils/walletHelper.js";
 
 const getOrders = async (userId, page = 1, limit = 10, search = "") => {
   const skip = (page - 1) * limit;
@@ -85,6 +86,24 @@ const cancelOrderItem = async (userId, orderId, itemId, reason) => {
     $inc: { stock_quantity: item.quantity },
   });
 
+  // Calculate refund amount for this item
+  const refundAmount = item.totalPrice || (item.price * item.quantity);
+
+  // Process refund if payment was made via wallet or online
+  if (order.payment_method === 'wallet' || order.payment_method === 'online') {
+    await creditWallet(
+      userId, 
+      refundAmount, 
+      `Refund for cancelled item in order #${order.order_id}`, 
+      order._id
+    );
+
+    // Update order refund details
+    order.refundAmount = (order.refundAmount || 0) + refundAmount;
+    order.refundStatus = 'completed';
+    order.refundedAt = new Date();
+  }
+
   //Update item status
   item.status = item.status ? "Cancelled" : undefined;
   item.item_status = "Cancelled"; 
@@ -131,6 +150,29 @@ const cancelEntireOrder = async (userId, orderId, reason) => {
 
   if (!["Pending", "Confirmed"].includes(order.order_status)) {
     throw new Error(`Cannot cancel order when status is: ${order.order_status}`);
+  }
+
+  // Calculate total refund amount for non-cancelled items
+  let totalRefundAmount = 0;
+  const itemsToCancel = order.items.filter(item => (item.status || item.item_status) !== "Cancelled");
+  
+  for (const item of itemsToCancel) {
+    totalRefundAmount += item.totalPrice || (item.price * item.quantity);
+  }
+
+  // Process refund if payment was made via wallet or online
+  if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online')) {
+    await creditWallet(
+      userId, 
+      totalRefundAmount, 
+      `Refund for cancelled order #${order.order_id}`, 
+      order._id
+    );
+
+    // Update order refund details
+    order.refundAmount = totalRefundAmount;
+    order.refundStatus = 'completed';
+    order.refundedAt = new Date();
   }
 
   //Skips items already cancelled & restores the stock
@@ -190,6 +232,7 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
   }
 
   let cancelledCount = 0;
+  let totalRefundAmount = 0;
 
   //Only processes items that exist and aren't already cancelled
   for (const itemId of itemIds) {
@@ -199,6 +242,10 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
       await Variant.findByIdAndUpdate(item.variant_id, {
         $inc: { stock_quantity: item.quantity },
       });
+
+      // Calculate refund amount for this item
+      const itemRefundAmount = item.totalPrice || (item.price * item.quantity);
+      totalRefundAmount += itemRefundAmount;
 
       item.status = item.status ? "Cancelled" : undefined;
       item.item_status = "Cancelled"; // Keep backward compatibility
@@ -225,6 +272,21 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
       
       cancelledCount++;
     }
+  }
+
+  // Process refund if payment was made via wallet or online
+  if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online')) {
+    await creditWallet(
+      userId, 
+      totalRefundAmount, 
+      `Refund for cancelled items in order #${order.order_id}`, 
+      order._id
+    );
+
+    // Update order refund details
+    order.refundAmount = (order.refundAmount || 0) + totalRefundAmount;
+    order.refundStatus = 'completed';
+    order.refundedAt = new Date();
   }
 
   //Check if all items are cancelled

@@ -2,7 +2,9 @@ import Order from "../../Models/OrderModel.js";
 import Cart from "../../Models/CartModel.js";
 import Address from "../../Models/AddressModel.js";
 import Variant from "../../Models/VariantModel.js";
+import User from "../../Models/UserModel.js";
 import couponService from "../admin/couponService.js";
+import { debitWallet } from "../../utils/walletHelper.js";
 
 const getCheckoutData = async (userId, selectedAddressId) => {
   // Get cart with populated data
@@ -130,7 +132,7 @@ const generateOrderId = () => {
   return `${timestampSuffix}${randomDigits}`;
 };
 
-const placeOrder = async (userId, addressId, appliedCoupon = null) => {
+const placeOrder = async (userId, addressId, appliedCoupon = null, paymentMethod = 'COD') => {
   // Get checkout data
   const checkoutData = await getCheckoutData(userId, addressId);
 
@@ -156,6 +158,18 @@ const placeOrder = async (userId, addressId, appliedCoupon = null) => {
 
     // Mark coupon as used
     await couponService.useCoupon(appliedCoupon.couponId, userId);
+  }
+
+  // Handle wallet payment
+  if (paymentMethod === 'wallet') {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (user.wallet.balance < finalAmount) {
+      throw new Error("Insufficient wallet balance");
+    }
   }
 
   // Prepare order items with product details
@@ -200,8 +214,8 @@ const placeOrder = async (userId, addressId, appliedCoupon = null) => {
       country: selectedAddress.country,
       pincode: selectedAddress.pincode,
     },
-    payment_method: "COD",
-    payment_status: "Pending",
+    payment_method: paymentMethod,
+    payment_status: paymentMethod === 'wallet' ? 'Paid' : 'Pending',
     order_status: "Pending",
     subtotal,
     shipping_cost: shippingCost,
@@ -212,6 +226,16 @@ const placeOrder = async (userId, addressId, appliedCoupon = null) => {
   });
 
   await order.save();
+
+  // Process wallet payment after order is saved
+  if (paymentMethod === 'wallet') {
+    await debitWallet(
+      userId, 
+      finalAmount, 
+      `Payment for order #${order.order_id}`, 
+      order._id
+    );
+  }
 
   // Update stock quantities
   for (const item of items) {

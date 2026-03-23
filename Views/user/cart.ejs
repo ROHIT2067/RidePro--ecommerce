@@ -781,7 +781,14 @@
                                       <div class="item-price" id="total-<%= variant._id %>">₹<%=
                                           itemTotal.toLocaleString('en-IN') %>
                                       </div>
-                                      <div class="item-unit-price">₹<%= item.price.toLocaleString('en-IN') %> each</div>
+                                      <% if (item.originalPrice && item.finalPrice < item.originalPrice) { %>
+                                        <div class="item-unit-price">
+                                          ₹<%= item.finalPrice.toLocaleString('en-IN') %> each 
+                                          <span style="text-decoration: line-through; color: #f87171; margin-left: 0.5rem;">₹<%= item.originalPrice.toLocaleString('en-IN') %></span>
+                                        </div>
+                                      <% } else { %>
+                                        <div class="item-unit-price">₹<%= item.price.toLocaleString('en-IN') %> each</div>
+                                      <% } %>
                                       <% if (stock> 0 && stock <= 5) { %>
                                           <div class="stock-warn"><i class="fa fa-circle-exclamation"></i> Only <%=
                                               stock %>

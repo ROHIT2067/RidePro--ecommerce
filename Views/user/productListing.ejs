@@ -792,7 +792,7 @@
                   <p>Try adjusting your filters or search query.</p>
                 </div>
                 <% } else { %>
-                  <% productsData.forEach(({ product, minVarPrice, maxVarPrice, firstImage })=> { %>
+                  <% productsData.forEach(({ product, minVarPrice, maxVarPrice, firstImage, discountedMinPrice, hasOffer })=> { %>
                     <a href="/product/<%= product._id %>" class="product-card">
                       <div class="product-img-wrap">
                         <% if (firstImage) { %>
@@ -806,7 +806,8 @@
                                 <span class="product-badge">New</span>
                                 <% } %>
                                   <span
-                                    class="product-status-badge <%= product.status === 'Available' ? 'available' : 'out' %>">
+                                    class="product-status-badge <%= product.status === 'Available' ? 'available' : 'out' %>"
+                                    style="display: none;">
                                     <%= product.status==='Available' ? 'In Stock' : 'Out of Stock' %>
                                   </span>
                       </div>
@@ -819,17 +820,15 @@
                         </div>
                         <div class="product-footer">
                           <div>
-                            <div class="product-price">₹<%= minVarPrice.toLocaleString('en-IN') %>
-                            </div>
-                            <% if (maxVarPrice> minVarPrice) { %>
-                              <div class="product-price-range">up to ₹<%= maxVarPrice.toLocaleString('en-IN') %>
-                              </div>
-                              <% } %>
-                          </div>
-                          <div class="product-rating">
-                            <i class="fa fa-star"></i>
-                            <%= product.rating %>
-                              <span>(<%= product.review_count %>)</span>
+                            <% if (hasOffer && discountedMinPrice < minVarPrice) { %>
+                              <div class="product-price">₹<%= discountedMinPrice.toLocaleString('en-IN') %></div>
+                              <div class="product-price-range" style="text-decoration: line-through; color: #f87171;">₹<%= minVarPrice.toLocaleString('en-IN') %></div>
+                            <% } else { %>
+                              <div class="product-price">₹<%= minVarPrice.toLocaleString('en-IN') %></div>
+                            <% } %>
+                            <% if (maxVarPrice > minVarPrice) { %>
+                              <div class="product-price-range">up to ₹<%= maxVarPrice.toLocaleString('en-IN') %></div>
+                            <% } %>
                           </div>
                         </div>
                       </div>

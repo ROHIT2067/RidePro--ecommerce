@@ -83,6 +83,52 @@
     @media (max-width: 768px) {
       .offer-form-grid, .coupon-form-grid { grid-template-columns: 1fr; }
     }
+
+    /* Searchable dropdown styles */
+    .search-select-wrapper {
+      position: relative;
+    }
+    .search-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+    .search-dropdown.show {
+      display: block;
+    }
+    .dropdown-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #2c3e50;
+      border-bottom: 1px solid #f3f4f6;
+      transition: background 0.15s;
+    }
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+    .dropdown-item:hover {
+      background: #f9fafb;
+    }
+    .dropdown-item.selected {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+    .dropdown-no-results {
+      padding: 10px 14px;
+      font-size: 14px;
+      color: #9ca3af;
+      text-align: center;
+    }
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.5); z-index: 1000;
@@ -281,14 +327,18 @@
             </div>
             <div class="form-group conditional-fields" id="productField">
               <label for="productSelect">Select Product *</label>
-              <select id="productSelect" name="targetId">
-                <option value="" disabled selected>Choose product</option>
-                <% if (typeof products !== 'undefined' && products) { %>
-                  <% products.forEach(product => { %>
-                    <option value="<%= product._id %>"><%= product.productName %></option>
-                  <% }) %>
-                <% } %>
-              </select>
+              <div class="search-select-wrapper">
+                <input type="text" id="productSearchInput" placeholder="Search products..." autocomplete="off" />
+                <select id="productSelect" name="targetId" style="display: none;">
+                  <option value="" disabled selected>Choose product</option>
+                  <% if (typeof products !== 'undefined' && products) { %>
+                    <% products.forEach(product => { %>
+                      <option value="<%= product._id %>" data-name="<%= product.productName.toLowerCase() %>"><%= product.productName %></option>
+                    <% }) %>
+                  <% } %>
+                </select>
+                <div class="search-dropdown" id="productDropdown"></div>
+              </div>
             </div>
             <div class="form-group conditional-fields" id="categoryField">
               <label for="categorySelect">Select Category *</label>
@@ -680,6 +730,77 @@
     document.getElementById('offerStartDate').min = today;
     document.getElementById('offerEndDate').min   = today;
     document.getElementById('couponExpiryDate').min = today;
+
+    // Initialize searchable product dropdown
+    initializeProductSearch();
+
+    function initializeProductSearch() {
+      const searchInput = document.getElementById('productSearchInput');
+      const dropdown = document.getElementById('productDropdown');
+      const hiddenSelect = document.getElementById('productSelect');
+      
+      if (!searchInput || !dropdown || !hiddenSelect) return;
+
+      const products = Array.from(hiddenSelect.options).slice(1).map(option => ({
+        value: option.value,
+        name: option.textContent,
+        searchName: option.getAttribute('data-name')
+      }));
+
+      searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        
+        if (query === '') {
+          dropdown.classList.remove('show');
+          return;
+        }
+
+        const filtered = products.filter(product => 
+          product.searchName.includes(query)
+        );
+
+        if (filtered.length === 0) {
+          dropdown.innerHTML = '<div class="dropdown-no-results">No products found</div>';
+        } else {
+          dropdown.innerHTML = filtered.map(product => 
+            `<div class="dropdown-item" data-value="${product.value}">${product.name}</div>`
+          ).join('');
+        }
+
+        dropdown.classList.add('show');
+      });
+
+      searchInput.addEventListener('focus', function() {
+        if (this.value.trim() !== '') {
+          dropdown.classList.add('show');
+        }
+      });
+
+      dropdown.addEventListener('click', function(e) {
+        if (e.target.classList.contains('dropdown-item')) {
+          const value = e.target.getAttribute('data-value');
+          const name = e.target.textContent;
+          
+          searchInput.value = name;
+          hiddenSelect.value = value;
+          dropdown.classList.remove('show');
+        }
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.classList.remove('show');
+        }
+      });
+
+      // Clear selection when input is cleared
+      searchInput.addEventListener('keyup', function() {
+        if (this.value.trim() === '') {
+          hiddenSelect.value = '';
+        }
+      });
+    }
 
     // Auto switch to coupons tab if ?tab=coupons in URL
     const urlParams = new URLSearchParams(window.location.search);

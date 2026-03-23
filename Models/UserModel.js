@@ -58,8 +58,35 @@ const userSchema = new mongoose.Schema(
       },
     ],
     wallet: {
-      type: Number,
-      default: 0,
+      balance: {
+        type: Number,
+        default: 50000,
+        min: 0,
+      },
+      transactions: [{
+        type: {
+          type: String,
+          enum: ['credit', 'debit'],
+          required: true,
+        },
+        amount: {
+          type: Number,
+          required: true,
+        },
+        description: {
+          type: String,
+          required: true,
+        },
+        orderId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Order',
+          default: null,
+        },
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+      }],
     },
     createdOn: {
       type: Date,
@@ -92,4 +119,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-export default mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
+
+export default User;

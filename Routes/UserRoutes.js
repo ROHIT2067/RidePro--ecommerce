@@ -11,6 +11,7 @@ import cartController from "../Controller/user/cartController.js";
 import wishlistController from "../Controller/user/wishlistController.js";
 import checkoutController from "../Controller/user/checkoutController.js";
 import orderController from "../Controller/user/orderController.js";
+import walletController from "../Controller/user/walletController.js";
 
 router.get("/", blockIfLoggedIn, userController.landingPageGet);
 router.get("/home", userController.homeGet);
@@ -117,6 +118,10 @@ router.post('/orders/:orderId/items/:itemId/cancel', orderController.cancelOrder
 router.post('/orders/:orderId/cancel-items', orderController.cancelOrderItemsPost)
 router.post('/orders/:orderId/return-item', orderController.returnOrderItemPost)
 router.get('/orders/:orderId/invoice', orderController.downloadInvoiceGet)
+
+// Wallet Management
+router.get('/wallet', walletController.walletGet)
+router.get('/account/wallet', walletController.walletGet)
 
 
 

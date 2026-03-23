@@ -1,8 +1,25 @@
 import Cart from "../../Models/CartModel.js";
 import Product from "../../Models/ProductModel.js";
 import Variant from "../../Models/VariantModel.js";
+import { calculateProductPrice } from "../../utils/priceCalculator.js";
 
 const MAX_QUANTITY_PER_ITEM = 5;
+
+// Helper function to get offer-discounted price for a variant
+const getOfferPrice = async (variant) => {
+  try {
+    const product = variant.product_id;
+    if (!product || !product.category) {
+      return variant.price; // Return original price if no product/category info
+    }
+    
+    const priceCalc = await calculateProductPrice(product, variant.price, product.category._id);
+    return priceCalc.finalPrice;
+  } catch (error) {
+    console.error("Error calculating offer price:", error);
+    return variant.price; // Fallback to original price
+  }
+};
 
 const getCart = async (userId) => {
   let cart = await Cart.findOne({ user_id: userId })
@@ -100,18 +117,26 @@ const getCart = async (userId) => {
   }
 
   //Converts Mongoose documents to plain JS objects for safe use in the view
-  const itemsLean = validItems.map(item => ({
-    ...item.toObject(),
-    variant_id: item.variant_id.toObject ? item.variant_id.toObject() : item.variant_id,
+  const itemsLean = await Promise.all(validItems.map(async (item) => {
+    const offerPrice = await getOfferPrice(item.variant_id);
+    return {
+      ...item.toObject(),
+      variant_id: item.variant_id.toObject ? item.variant_id.toObject() : item.variant_id,
+      offerPrice: offerPrice,
+      originalPrice: item.price,
+      finalPrice: offerPrice // Use offer price for calculations
+    };
   }));
 
   const cartCount = validItems.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = validItems.reduce((sum, item) => {
+  const totalPrice = await validItems.reduce(async (sumPromise, item) => {
+    const sum = await sumPromise;
     if (!item.isOutOfStock) {
-      return sum + item.price * item.quantity;
+      const offerPrice = await getOfferPrice(item.variant_id);
+      return sum + offerPrice * item.quantity;
     }
     return sum;
-  }, 0);
+  }, Promise.resolve(0));
 
   const hasOutOfStock = validItems.some((item) => item.isOutOfStock);
 
@@ -169,6 +194,8 @@ const addToCart = async (userId, variantId, quantity = 1) => {
     (item) => item.variant_id.toString() === variantId
   );
 
+  const offerPrice = await getOfferPrice(variant);
+
   if (existingItem) {
     const newQuantity = existingItem.quantity + quantity;
 
@@ -181,7 +208,7 @@ const addToCart = async (userId, variantId, quantity = 1) => {
     }
 
     existingItem.quantity = newQuantity;
-    existingItem.price = variant.price;
+    existingItem.price = offerPrice; // Store offer price
   } else {
     if (quantity > MAX_QUANTITY_PER_ITEM) {
       throw new Error(`Maximum ${MAX_QUANTITY_PER_ITEM} items allowed per product`);
@@ -195,7 +222,7 @@ const addToCart = async (userId, variantId, quantity = 1) => {
       product_id: product._id,
       variant_id: variant._id,
       quantity,
-      price: variant.price,
+      price: offerPrice, // Store offer price
     });
   }
 
@@ -212,7 +239,10 @@ const updateCartQuantity = async (userId, variantId, quantity) => {
     throw new Error(`Maximum ${MAX_QUANTITY_PER_ITEM} items allowed per product`);
   }
 
-  const variant = await Variant.findById(variantId);
+  const variant = await Variant.findById(variantId).populate({
+    path: "product_id",
+    populate: { path: "category" },
+  });
 
   if (!variant) {
     throw new Error("Product variant not found");
@@ -236,20 +266,35 @@ const updateCartQuantity = async (userId, variantId, quantity) => {
     throw new Error("Item not found in cart");
   }
 
+  const offerPrice = await getOfferPrice(variant);
+  
   item.quantity = quantity;
-  item.price = variant.price;
+  item.price = offerPrice; // Update with current offer price
 
   await cart.save();
 
-  // Calculate totals using the variant we already fetched
-  const itemTotal = item.price * item.quantity;
-  const cartTotal = cart.items.reduce((sum, cartItem) => {
-    // For other items, use their stored price
+  // Calculate totals using offer price
+  const itemTotal = offerPrice * quantity;
+  
+  // Recalculate cart total with offer prices for all items
+  let cartTotal = 0;
+  for (const cartItem of cart.items) {
     if (cartItem.variant_id.toString() === variantId) {
-      return sum + item.price * item.quantity;
+      cartTotal += offerPrice * quantity;
+    } else {
+      // Get fresh offer price for other items too
+      const otherVariant = await Variant.findById(cartItem.variant_id).populate({
+        path: "product_id",
+        populate: { path: "category" },
+      });
+      if (otherVariant) {
+        const otherOfferPrice = await getOfferPrice(otherVariant);
+        cartTotal += otherOfferPrice * cartItem.quantity;
+      } else {
+        cartTotal += cartItem.price * cartItem.quantity;
+      }
     }
-    return sum + cartItem.price * cartItem.quantity;
-  }, 0);
+  }
 
   const cartCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
 

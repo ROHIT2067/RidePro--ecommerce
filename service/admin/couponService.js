@@ -1,4 +1,5 @@
 import Coupon from "../../Models/CouponModel.js";
+import { couponSchema } from "../../schemas/index.js";
 
 const getCoupons = async (query) => {
     const page = parseInt(query.page) || 1;
@@ -25,49 +26,35 @@ const getCoupons = async (query) => {
 };
 
 const createCoupon = async (couponData) => {
-    // Validation
-    if (!couponData.code || !couponData.discountType || !couponData.discountValue || !couponData.expiryDate) {
-        throw new Error("All required fields must be filled");
+    // Validate input data with Zod schema
+    const validation = couponSchema.safeParse(couponData);
+    if (!validation.success) {
+        const errors = validation.error.errors.map(err => err.message).join(', ');
+        throw new Error(errors);
     }
 
-    if (new Date(couponData.expiryDate) <= new Date()) {
-        throw new Error("Expiry date must be in the future");
-    }
+    const validatedData = validation.data;
 
-    if (couponData.discountValue <= 0) {
-        throw new Error("Discount value must be positive");
-    }
-
-    if (couponData.discountType === 'percentage' && couponData.discountValue > 100) {
-        throw new Error("Percentage discount cannot exceed 100%");
-    }
-
-    // Check if coupon code already exists
-    const existingCoupon = await Coupon.findOne({ code: couponData.code.toUpperCase() });
+    // Check if coupon code already exists (case-insensitive)
+    const existingCoupon = await Coupon.findOne({ 
+        code: validatedData.code 
+    });
+    
     if (existingCoupon) {
-        throw new Error("Coupon code already exists");
+        throw new Error("Coupon code already exists. Please choose a different code.");
     }
 
-    // Validate minimum vs maximum order amounts
-    if (couponData.minimumOrderAmount && couponData.maximumOrderAmount) {
-        if (parseFloat(couponData.minimumOrderAmount) >= parseFloat(couponData.maximumOrderAmount)) {
-            throw new Error("Minimum order amount must be less than maximum order amount");
-        }
-    }
+    // Additional business logic validations
+    await validateCouponBusinessRules(validatedData);
 
-    const processedData = {
-        code: couponData.code.toUpperCase(),
-        discountType: couponData.discountType,
-        discountValue: parseFloat(couponData.discountValue),
-        minimumOrderAmount: parseFloat(couponData.minimumOrderAmount) || 0,
-        maximumOrderAmount: couponData.maximumOrderAmount ? parseFloat(couponData.maximumOrderAmount) : null,
-        maximumDiscountCap: couponData.maximumDiscountCap ? parseFloat(couponData.maximumDiscountCap) : null,
-        usageLimit: couponData.usageLimit ? parseInt(couponData.usageLimit) : null,
-        perUserLimit: parseInt(couponData.perUserLimit) || 1,
-        expiryDate: new Date(couponData.expiryDate)
-    };
+    // Create coupon with validated data
+    const coupon = new Coupon({
+        ...validatedData,
+        status: 'active',
+        usageCount: 0,
+        usedBy: []
+    });
 
-    const coupon = new Coupon(processedData);
     await coupon.save();
     return coupon;
 };
@@ -82,7 +69,40 @@ const updateCoupon = async (couponId, updateData) => {
     if (updateData.status === 'toggle') {
         coupon.status = coupon.status === 'active' ? 'inactive' : 'active';
     } else {
-        // Update other fields
+        // Validate updated data with Zod schema for full updates
+        if (updateData.code || updateData.discountType || updateData.discountValue || updateData.expiryDate) {
+            const validation = couponSchema.safeParse({
+                code: updateData.code || coupon.code,
+                discountType: updateData.discountType || coupon.discountType,
+                discountValue: updateData.discountValue || coupon.discountValue,
+                minimumOrderAmount: updateData.minimumOrderAmount !== undefined ? updateData.minimumOrderAmount : coupon.minimumOrderAmount,
+                maximumOrderAmount: updateData.maximumOrderAmount !== undefined ? updateData.maximumOrderAmount : coupon.maximumOrderAmount,
+                maximumDiscountCap: updateData.maximumDiscountCap !== undefined ? updateData.maximumDiscountCap : coupon.maximumDiscountCap,
+                usageLimit: updateData.usageLimit !== undefined ? updateData.usageLimit : coupon.usageLimit,
+                perUserLimit: updateData.perUserLimit || coupon.perUserLimit,
+                expiryDate: updateData.expiryDate || coupon.expiryDate
+            });
+
+            if (!validation.success) {
+                const errors = validation.error.errors.map(err => err.message).join(', ');
+                throw new Error(errors);
+            }
+
+            // Check for duplicate coupon code (excluding current coupon)
+            if (updateData.code && updateData.code.toUpperCase() !== coupon.code) {
+                const existingCoupon = await Coupon.findOne({ 
+                    code: updateData.code.toUpperCase(),
+                    _id: { $ne: couponId }
+                });
+                
+                if (existingCoupon) {
+                    throw new Error("Coupon code already exists. Please choose a different code.");
+                }
+            }
+        }
+
+        // Update fields with individual validations
+        if (updateData.code) coupon.code = updateData.code.toUpperCase();
         if (updateData.discountValue) {
             if (updateData.discountValue <= 0) {
                 throw new Error("Discount value must be positive");
@@ -93,14 +113,16 @@ const updateCoupon = async (couponId, updateData) => {
             coupon.discountValue = parseFloat(updateData.discountValue);
         }
         if (updateData.minimumOrderAmount !== undefined) coupon.minimumOrderAmount = parseFloat(updateData.minimumOrderAmount) || 0;
+        if (updateData.maximumOrderAmount !== undefined) coupon.maximumOrderAmount = updateData.maximumOrderAmount ? parseFloat(updateData.maximumOrderAmount) : null;
         if (updateData.maximumDiscountCap !== undefined) coupon.maximumDiscountCap = updateData.maximumDiscountCap ? parseFloat(updateData.maximumDiscountCap) : null;
         if (updateData.usageLimit !== undefined) coupon.usageLimit = updateData.usageLimit ? parseInt(updateData.usageLimit) : null;
         if (updateData.perUserLimit) coupon.perUserLimit = parseInt(updateData.perUserLimit);
         if (updateData.expiryDate) {
-            if (new Date(updateData.expiryDate) <= new Date()) {
+            const expiryDate = new Date(updateData.expiryDate);
+            if (expiryDate <= new Date()) {
                 throw new Error("Expiry date must be in the future");
             }
-            coupon.expiryDate = new Date(updateData.expiryDate);
+            coupon.expiryDate = expiryDate;
         }
         if (updateData.status) coupon.status = updateData.status;
     }
@@ -227,6 +249,63 @@ const updateCouponById = async (couponId, updateData) => {
 
     await coupon.save();
     return coupon;
+};
+
+// Validate coupon business rules
+const validateCouponBusinessRules = async (couponData) => {
+    // Validate flat discount doesn't exceed max order amount
+    if (couponData.discountType === 'flat' && couponData.maximumOrderAmount) {
+        if (couponData.discountValue > couponData.maximumOrderAmount) {
+            throw new Error("Flat discount value cannot exceed maximum order amount");
+        }
+    }
+
+    // Validate coupon duration (minimum 1 day, maximum 2 years)
+    const now = new Date();
+    const expiryDate = new Date(couponData.expiryDate);
+    const durationDays = (expiryDate - now) / (1000 * 60 * 60 * 24);
+    
+    if (durationDays < 1) {
+        throw new Error("Coupon must be valid for at least 1 day");
+    }
+    
+    if (durationDays > 730) { // 2 years
+        throw new Error("Coupon validity cannot exceed 2 years");
+    }
+
+    // Validate usage limits are reasonable
+    if (couponData.usageLimit && couponData.usageLimit > 50000) {
+        throw new Error("Total usage limit cannot exceed 50,000 to prevent system abuse");
+    }
+
+    if (couponData.perUserLimit > 100) {
+        throw new Error("Per user limit cannot exceed 100 uses");
+    }
+
+    // Validate discount caps for percentage discounts
+    if (couponData.discountType === 'percentage' && couponData.maximumDiscountCap) {
+        if (couponData.maximumDiscountCap < 10) {
+            throw new Error("Maximum discount cap should be at least ₹10 for percentage discounts");
+        }
+        if (couponData.maximumDiscountCap > 10000) {
+            throw new Error("Maximum discount cap cannot exceed ₹10,000");
+        }
+    }
+
+    // Validate minimum order amount is reasonable
+    if (couponData.minimumOrderAmount > 50000) {
+        throw new Error("Minimum order amount cannot exceed ₹50,000");
+    }
+
+    // For flat discounts, ensure they're not too small or too large
+    if (couponData.discountType === 'flat') {
+        if (couponData.discountValue < 10) {
+            throw new Error("Flat discount should be at least ₹10");
+        }
+        if (couponData.discountValue > 5000) {
+            throw new Error("Flat discount cannot exceed ₹5,000");
+        }
+    }
 };
 
 export default {

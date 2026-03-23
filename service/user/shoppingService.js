@@ -2,6 +2,7 @@ import Variant from "../../Models/VariantModel.js";
 import Product from "../../Models/ProductModel.js";
 import Category from "../../Models/CategoryModel.js";
 import Coupon from "../../Models/CouponModel.js";
+import { calculateProductPrice } from "../../utils/priceCalculator.js";
 
 const getProductsList = async (query) => {
     let search = query.search || "";
@@ -60,18 +61,39 @@ const getProductsList = async (query) => {
             const minVarPrice = prices.length ? Math.min(...prices) : 0;
             const maxVarPrice = prices.length ? Math.max(...prices) : 0;
             const firstImage = variants[0]?.images?.[0] || null;
-            return { product, minVarPrice, maxVarPrice, firstImage };
+
+            // Calculate offer-discounted price for the minimum variant
+            let discountedMinPrice = minVarPrice;
+            let hasOffer = false;
+            if (variants.length > 0 && minVarPrice > 0) {
+                const minPriceVariant = variants.find(v => v.price === minVarPrice);
+                if (minPriceVariant) {
+                    const categoryId = product.category?._id || product.category;
+                    const priceCalc = await calculateProductPrice(product, minVarPrice, categoryId);
+                    discountedMinPrice = priceCalc.finalPrice;
+                    hasOffer = priceCalc.hasDiscount;
+                }
+            }
+
+            return { 
+                product, 
+                minVarPrice, 
+                maxVarPrice, 
+                firstImage,
+                discountedMinPrice,
+                hasOffer
+            };
         }),
     );
 
     const priceFiltered = productsWithPrice.filter(
-        ({ minVarPrice }) => minVarPrice >= minPrice && minVarPrice <= maxPrice,
+        ({ discountedMinPrice }) => discountedMinPrice >= minPrice && discountedMinPrice <= maxPrice,
     );
 
     if (sort === "priceLow")
-        priceFiltered.sort((a, b) => a.minVarPrice - b.minVarPrice);
+        priceFiltered.sort((a, b) => a.discountedMinPrice - b.discountedMinPrice);
     if (sort === "priceHigh")
-        priceFiltered.sort((a, b) => b.minVarPrice - a.minVarPrice);
+        priceFiltered.sort((a, b) => b.discountedMinPrice - a.discountedMinPrice);
 
     const totalProducts = priceFiltered.length;
     const totalPages = Math.ceil(totalProducts / limit);
@@ -100,8 +122,27 @@ const getProductDetails = async (id) => {
         throw new Error("Category is not active");
 
     const variants = await Variant.find({ product_id: id });
-    const selectedVariant =
-        variants.find((v) => v.stock_quantity > 0) || variants[0] || null;
+    
+    // Calculate offer prices for all variants
+    const variantsWithOffers = await Promise.all(
+        variants.map(async (variant) => {
+            const priceCalc = await calculateProductPrice(product, variant.price, product.category._id);
+            return {
+                ...variant.toObject(),
+                originalPrice: variant.price,
+                finalPrice: priceCalc.finalPrice,
+                discountAmount: priceCalc.discountAmount,
+                appliedOffer: priceCalc.appliedOffer,
+                offerSource: priceCalc.offerSource,
+                hasDiscount: priceCalc.hasDiscount,
+                productOffer: priceCalc.productOffer,
+                categoryOffer: priceCalc.categoryOffer,
+                availableOffers: priceCalc.availableOffers
+            };
+        })
+    );
+
+    const selectedVariantWithOffer = variantsWithOffers.find((v) => v.stock_quantity > 0) || variantsWithOffers[0] || null;
     const isAvailable =
         product.status === "Available" &&
         variants.some((v) => v.stock_quantity > 0);
@@ -118,15 +159,28 @@ const getProductDetails = async (id) => {
         relatedRaw.map(async (rp) => {
             const vars = await Variant.find({ product_id: rp._id });
             const prices = vars.map((v) => v.price).filter(Boolean);
+            const minVarPrice = prices.length ? Math.min(...prices) : 0;
+            
+            // Calculate offer-discounted price
+            let discountedPrice = minVarPrice;
+            let hasOffer = false;
+            if (minVarPrice > 0) {
+                const priceCalc = await calculateProductPrice(rp, minVarPrice, rp.category._id);
+                discountedPrice = priceCalc.finalPrice;
+                hasOffer = priceCalc.hasDiscount;
+            }
+
             return {
                 product: rp,
-                minVarPrice: prices.length ? Math.min(...prices) : 0,
+                minVarPrice,
+                discountedPrice,
+                hasOffer,
                 firstImage: vars[0]?.images?.[0] || null,
             };
         }),
     );
 
-    // Get the highest value active coupon
+    // Get the highest value active coupon (use final price after offers)
     const activeCoupons = await Coupon.find({
         status: 'active',
         expiryDate: { $gte: new Date() },
@@ -137,9 +191,9 @@ const getProductDetails = async (id) => {
     }).sort({ discountValue: -1 });
 
     let bestCoupon = null;
-    if (activeCoupons.length > 0) {
+    if (activeCoupons.length > 0 && selectedVariantWithOffer) {
         // Find the coupon with highest effective discount
-        const productPrice = selectedVariant ? selectedVariant.price : 0;
+        const productPrice = selectedVariantWithOffer.finalPrice; // Use discounted price
         const deliveryCost = 118;
         const totalOrderValue = productPrice + deliveryCost;
         let maxDiscount = 0;
@@ -184,8 +238,8 @@ const getProductDetails = async (id) => {
 
     return {
         product,
-        variants,
-        selectedVariant,
+        variants: variantsWithOffers,
+        selectedVariant: selectedVariantWithOffer,
         isAvailable,
         relatedProducts,
         bestCoupon,

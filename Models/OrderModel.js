@@ -147,7 +147,7 @@ const orderSchema = new Schema(
     },
     payment_method: {
       type: String,
-      enum: ["COD"],
+      enum: ["COD", "wallet", "online"],
       default: "COD",
     },
     payment_status: {
@@ -188,6 +188,19 @@ const orderSchema = new Schema(
     final_amount: {
       type: Number,
       required: true,
+    },
+    refundAmount: {
+      type: Number,
+      default: 0,
+    },
+    refundStatus: {
+      type: String,
+      enum: ['pending', 'completed', 'not_applicable'],
+      default: 'not_applicable',
+    },
+    refundedAt: {
+      type: Date,
+      default: null,
     },
     order_date: {
       type: Date,

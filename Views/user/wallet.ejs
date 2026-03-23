@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wallet - RidePro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/profile.css">
+    <link rel="stylesheet" href="/styles/header.css">
+    <link rel="stylesheet" href="/styles/footer.css">
+    <style>
+        .wallet-balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+            text-align: center;
+        }
+        
+        .balance-amount {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .balance-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .wallet-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        
+        .transactions-section {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        
+        .transactions-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        
+        .transactions-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .transaction-item {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+        
+        .transaction-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-info {
+            flex: 1;
+        }
+        
+        .transaction-description {
+            font-weight: 500;
+            color: #111827;
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+        
+        .transaction-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        
+        .transaction-date {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .transaction-order {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .transaction-order a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .transaction-order a:hover {
+            text-decoration: underline;
+        }
+        
+        .transaction-amount {
+            text-align: right;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .transaction-amount.credit {
+            color: #059669;
+        }
+        
+        .transaction-amount.debit {
+            color: #dc2626;
+        }
+        
+        .transaction-type {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+            margin-top: 0.25rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6b7280;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.3;
+            color: #9ca3af;
+        }
+        
+        .empty-state h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state p {
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .btn-shop {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-shop:hover {
+            background-color: #2563eb;
+        }
+        
+        @media (max-width: 768px) {
+            .balance-amount {
+                font-size: 2.5rem;
+            }
+            
+            .wallet-icon {
+                font-size: 2rem;
+            }
+            
+            .transaction-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+            
+            .transaction-amount {
+                text-align: left;
+                align-self: flex-end;
+            }
+            
+            .transaction-meta {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <%- include('partials/header') %>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-header">
+            <div class="breadcrumb">
+                <a href="/">RidePro</a> &gt; <a href="/account">My Account</a> &gt; Wallet
+            </div>
+            <h1>My Account</h1>
+        </div>
+
+        <div class="account-layout">
+            <!-- Sidebar -->
+            <%- include('partials/sidebar') %>
+
+            <!-- Wallet Content -->
+            <div class="account-main">
+                <div class="profile-header">
+                    <h2>My Wallet</h2>
+                </div>
+
+                <!-- Wallet Balance Card -->
+                <div class="wallet-balance-card">
+                    <i class="fas fa-wallet wallet-icon"></i>
+                    <div class="balance-label">Available Balance</div>
+                    <div class="balance-amount">₹<%= balance.toLocaleString('en-IN') %></div>
+                </div>
+
+                <!-- Transaction History -->
+                <div class="transactions-section">
+                    <div class="transactions-header">
+                        <h3>
+                            <i class="fas fa-history"></i>
+                            Transaction History
+                        </h3>
+                    </div>
+                    
+                    <% if (transactions && transactions.length > 0) { %>
+                        <% transactions.forEach(transaction => { %>
+                            <div class="transaction-item">
+                                <div class="transaction-info">
+                                    <div class="transaction-description">
+                                        <%= transaction.description %>
+                                    </div>
+                                    <div class="transaction-meta">
+                                        <div class="transaction-date">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <%= new Date(transaction.date).toLocaleDateString('en-IN', { 
+                                                year: 'numeric', 
+                                                month: 'short', 
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            }) %>
+                                        </div>
+                                        <% if (transaction.orderId) { %>
+                                            <div class="transaction-order">
+                                                <i class="fas fa-receipt"></i>
+                                                <a href="/orders/<%= transaction.orderId %>">View Order</a>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                                <div class="transaction-amount <%= transaction.type %>">
+                                    <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= transaction.amount.toLocaleString('en-IN') %>
+                                    <div class="transaction-type">
+                                        <%= transaction.type %>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="empty-state">
+                            <i class="fas fa-receipt"></i>
+                            <h4>No Transactions Yet</h4>
+                            <p>Your transaction history will appear here once you start using your wallet.</p>
+                            <a href="/products" class="btn-shop">
+                                <i class="fas fa-shopping-bag"></i>
+                                Start Shopping
+                            </a>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <%- include('partials/footer') %>
+</body>
+
+</html>

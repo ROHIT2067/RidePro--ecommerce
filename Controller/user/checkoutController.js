@@ -1,6 +1,7 @@
 import checkoutService from "../../service/user/checkoutService.js";
 import addressService from "../../service/user/addressService.js";
 import couponService from "../../service/admin/couponService.js";
+import User from "../../Models/UserModel.js";
 import { AddAddressSchema, EditAddressSchema } from "../../schemas/index.js";
 
 const checkoutGet = async (req, res) => {
@@ -27,6 +28,25 @@ const checkoutGet = async (req, res) => {
         unavailableItems: checkoutData.unavailableItems || [],
         adjustmentWarnings: [],
       });
+    }
+
+    // Get user's wallet balance
+    const user = await User.findById(userId).select('wallet');
+    let walletBalance = 0; // Start with 0, will be set based on actual wallet data
+    
+    if (user && user.wallet) {
+      if (typeof user.wallet === 'number') {
+        walletBalance = user.wallet;
+        // Update user with new wallet structure
+        await User.findByIdAndUpdate(userId, {
+          wallet: {
+            balance: user.wallet,
+            transactions: []
+          }
+        });
+      } else {
+        walletBalance = user.wallet.balance || 0;
+      }
     }
 
     // Get applied coupon from session and validate it
@@ -63,6 +83,7 @@ const checkoutGet = async (req, res) => {
       totalAmount: checkoutData.totalAmount,
       appliedCoupon: appliedCoupon,
       finalTotal: finalTotal,
+      walletBalance: walletBalance,
     });
   } catch (error) {
     console.error("Checkout Get Error:", error);
@@ -143,16 +164,25 @@ const placeOrderPost = async (req, res) => {
     }
 
     const userId = req.session.user;
-    const { addressId } = req.body;
+    const { addressId, paymentMethod } = req.body;
 
     if (!addressId) {
       return res.status(400).json({ success: false, message: "Please select a delivery address" });
     }
 
+    if (!paymentMethod) {
+      return res.status(400).json({ success: false, message: "Please select a payment method" });
+    }
+
+    // Validate payment method
+    if (!['COD', 'wallet', 'online'].includes(paymentMethod)) {
+      return res.status(400).json({ success: false, message: "Invalid payment method" });
+    }
+
     // Get applied coupon from session
     const appliedCoupon = req.session.appliedCoupon || null;
 
-    const order = await checkoutService.placeOrder(userId, addressId, appliedCoupon);
+    const order = await checkoutService.placeOrder(userId, addressId, appliedCoupon, paymentMethod);
 
     // Clear applied coupon from session after successful order
     if (appliedCoupon) {

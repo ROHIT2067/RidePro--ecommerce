@@ -1,6 +1,7 @@
 import Order from "../../Models/OrderModel.js";
 import User from "../../Models/UserModel.js";
 import Variant from "../../Models/VariantModel.js";
+import { creditWallet } from "../../utils/walletHelper.js";
 
 const getOrders = async (query) => {
   let search = query.search || "";
@@ -146,6 +147,20 @@ const approveReturn = async (itemId) => {
   await Variant.findByIdAndUpdate(item.variant_id, {
     $inc: { stock_quantity: item.quantity }
   });
+
+  // Calculate refund amount and credit to wallet
+  const refundAmount = item.totalPrice || (item.price * item.quantity);
+  await creditWallet(
+    order.user_id, 
+    refundAmount, 
+    `Refund for returned item in order #${order.order_id}`, 
+    order._id
+  );
+
+  // Update order refund details
+  order.refundAmount = (order.refundAmount || 0) + refundAmount;
+  order.refundStatus = 'completed';
+  order.refundedAt = new Date();
 
   //Updates the item's status, records the return timestamp, and appends to its status history log
   item.status = item.status ? "Returned" : undefined;

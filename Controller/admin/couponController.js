@@ -1,4 +1,5 @@
 import couponService from "../../service/admin/couponService.js";
+import { couponSchema } from "../../schemas/index.js";
 
 // Note: Coupons are displayed on the same page as offers (/admin/offers)
 // So we don't need a separate couponsGet method here
@@ -79,7 +80,18 @@ const editCouponPost = async (req, res) => {
 
 const createCouponPost = async (req, res) => {
   try {
-    const coupon = await couponService.createCoupon(req.body);
+    // Validate request body
+    const validation = couponSchema.safeParse(req.body);
+    if (!validation.success) {
+      const errors = validation.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: errors
+      });
+    }
+
+    const coupon = await couponService.createCoupon(validation.data);
 
     res.json({
       success: true,
@@ -97,6 +109,30 @@ const createCouponPost = async (req, res) => {
 const updateCouponPost = async (req, res) => {
   try {
     const { couponId } = req.params;
+    
+    // For status toggle, skip validation
+    if (req.body.status === 'toggle') {
+      const coupon = await couponService.updateCoupon(couponId, req.body);
+      return res.json({
+        success: true,
+        message: "Coupon status updated successfully",
+        coupon
+      });
+    }
+
+    // For other updates, validate with Zod schema if it's a full update
+    if (req.body.code || req.body.discountType || req.body.discountValue || req.body.expiryDate) {
+      const validation = couponSchema.safeParse(req.body);
+      if (!validation.success) {
+        const errors = validation.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors
+        });
+      }
+    }
+
     const coupon = await couponService.updateCoupon(couponId, req.body);
 
     res.json({

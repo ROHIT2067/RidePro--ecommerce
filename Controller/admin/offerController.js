@@ -1,4 +1,5 @@
 import offerService from "../../service/admin/offerService.js";
+import { offerSchema } from "../../schemas/index.js";
 import couponService from "../../service/admin/couponService.js";
 import Product from "../../Models/ProductModel.js";
 import Category from "../../Models/CategoryModel.js";
@@ -38,7 +39,18 @@ const createOfferPost = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const offer = await offerService.createOffer(req.body);
+    // Validate request body with Zod schema
+    const validation = offerSchema.safeParse(req.body);
+    if (!validation.success) {
+      const errors = validation.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: errors
+      });
+    }
+
+    const offer = await offerService.createOffer(validation.data);
 
     res.json({
       success: true,
@@ -60,7 +72,29 @@ const updateOfferPost = async (req, res) => {
     }
 
     const { offerId } = req.params;
-    const offer = await offerService.updateOffer(offerId, req.body);
+    
+    // For status toggle, skip validation
+    if (req.body.status === 'toggle') {
+      const offer = await offerService.updateOffer(offerId, req.body);
+      return res.json({
+        success: true,
+        message: "Offer status updated successfully",
+        offer
+      });
+    }
+
+    // For other updates, validate with Zod schema
+    const validation = offerSchema.safeParse(req.body);
+    if (!validation.success) {
+      const errors = validation.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: errors
+      });
+    }
+
+    const offer = await offerService.updateOffer(offerId, validation.data);
 
     res.json({
       success: true,

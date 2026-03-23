@@ -423,15 +423,20 @@
     <div class="divider"></div>
 
     <%
-      const dummyOriginal = selectedVariant ? Math.round(selectedVariant.price * 1.2) : 0;
-      const displayOriginal = (selectedVariant && selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price)
-        ? selectedVariant.originalPrice : dummyOriginal;
-      const discountPct = selectedVariant ? Math.round((1 - selectedVariant.price / displayOriginal) * 100) : 0;
+      const displayOriginal = selectedVariant ? selectedVariant.originalPrice : 0;
+      const displayFinal = selectedVariant ? selectedVariant.finalPrice : 0;
+      const hasRealDiscount = selectedVariant && selectedVariant.hasDiscount;
+      const discountPct = hasRealDiscount ? Math.round((1 - displayFinal / displayOriginal) * 100) : 0;
     %>
     <div class="price-row">
-      <span class="price-current" id="priceMain">₹<%= selectedVariant ? selectedVariant.price.toLocaleString('en-IN') : '—' %></span>
-      <span class="price-original" id="priceOrig">₹<%= displayOriginal.toLocaleString('en-IN') %></span>
-      <span class="price-off" id="priceOff"><%= discountPct %>% OFF</span>
+      <span class="price-current" id="priceMain">₹<%= selectedVariant ? selectedVariant.finalPrice.toLocaleString('en-IN') : '—' %></span>
+      <% if (hasRealDiscount) { %>
+        <span class="price-original" id="priceOrig">₹<%= displayOriginal.toLocaleString('en-IN') %></span>
+        <span class="price-off" id="priceOff"><%= discountPct %>% OFF</span>
+      <% } else { %>
+        <span class="price-original" id="priceOrig" style="display: none;"></span>
+        <span class="price-off" id="priceOff" style="display: none;"></span>
+      <% } %>
     </div>
 
     <% if (typeof bestCoupon !== 'undefined' && bestCoupon) { %>
@@ -566,10 +571,10 @@
       <% if (selectedVariant) { %>
         <% if (selectedVariant.size)  { %><tr><td>Size</td><td><%= selectedVariant.size %></td></tr><% } %>
         <% if (selectedVariant.color) { %><tr><td>Color</td><td><%= selectedVariant.color %></td></tr><% } %>
-        <tr><td>Price</td><td>₹<%= selectedVariant.price.toLocaleString('en-IN') %></td></tr>
-        <% if (selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price) { %>
+        <tr><td>Price</td><td>₹<%= selectedVariant.finalPrice.toLocaleString('en-IN') %></td></tr>
+        <% if (selectedVariant.hasDiscount) { %>
           <tr><td>Original Price</td><td>₹<%= selectedVariant.originalPrice.toLocaleString('en-IN') %></td></tr>
-          <tr><td>Discount</td><td><%= Math.round((1 - selectedVariant.price / selectedVariant.originalPrice) * 100) %>% off</td></tr>
+          <tr><td>Discount</td><td><%= Math.round((1 - selectedVariant.finalPrice / selectedVariant.originalPrice) * 100) %>% off</td></tr>
         <% } %>
         <tr><td>Stock</td><td><%= selectedVariant.stock_quantity > 0 ? selectedVariant.stock_quantity + ' units available' : 'Out of Stock' %></td></tr>
       <% } %>
@@ -582,7 +587,7 @@
 <div class="related-wrap">
   <h2 class="section-title">You May Also <em>Like</em></h2>
   <div class="related-grid">
-    <% relatedProducts.forEach(function(item) { var rp = item.product; var minVarPrice = item.minVarPrice; var firstImage = item.firstImage; %>
+    <% relatedProducts.forEach(function(item) { var rp = item.product; var minVarPrice = item.minVarPrice; var discountedPrice = item.discountedPrice; var hasOffer = item.hasOffer; var firstImage = item.firstImage; %>
       <a href="/product/<%= rp._id %>" class="product-card">
         <div class="product-img-wrap">
           <% if (firstImage) { %>
@@ -595,7 +600,11 @@
         <div class="rcard-info">
           <div class="rcard-cat"><%= rp.category ? rp.category.name : '' %></div>
           <div class="rcard-name"><%= rp.productName %></div>
-          <div class="rcard-price">₹<%= minVarPrice.toLocaleString('en-IN') %></div>
+          <% if (hasOffer && discountedPrice < minVarPrice) { %>
+            <div class="rcard-price">₹<%= discountedPrice.toLocaleString('en-IN') %> <span style="text-decoration: line-through; color: #f87171; font-size: 0.8em;">₹<%= minVarPrice.toLocaleString('en-IN') %></span></div>
+          <% } else { %>
+            <div class="rcard-price">₹<%= minVarPrice.toLocaleString('en-IN') %></div>
+          <% } %>
         </div>
       </a>
     <% }); %>
@@ -727,17 +736,18 @@ function applyVariant(v) {
 
   // Price
   var pm = document.getElementById('priceMain');
-  if (pm) pm.textContent = '₹' + v.price.toLocaleString('en-IN');
+  if (pm) pm.textContent = '₹' + v.finalPrice.toLocaleString('en-IN');
 
   var po = document.getElementById('priceOrig');
   var pf = document.getElementById('priceOff');
 
-  var origPrice = (v.originalPrice && v.originalPrice > v.price)
-    ? v.originalPrice
-    : Math.round(v.price * 1.2);
-
-  if (po) { po.textContent = '₹' + origPrice.toLocaleString('en-IN'); po.style.display = ''; }
-  if (pf) { pf.textContent = Math.round((1 - v.price / origPrice) * 100) + '% OFF'; pf.style.display = ''; }
+  if (v.hasDiscount) {
+    if (po) { po.textContent = '₹' + v.originalPrice.toLocaleString('en-IN'); po.style.display = ''; }
+    if (pf) { pf.textContent = Math.round((1 - v.finalPrice / v.originalPrice) * 100) + '% OFF'; pf.style.display = ''; }
+  } else {
+    if (po) po.style.display = 'none';
+    if (pf) pf.style.display = 'none';
+  }
 
   // Stock pill
   var pill = document.getElementById('stockPill');
