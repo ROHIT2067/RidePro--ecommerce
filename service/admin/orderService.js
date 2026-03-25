@@ -148,8 +148,13 @@ const approveReturn = async (itemId) => {
     $inc: { stock_quantity: item.quantity }
   });
 
-  // Calculate refund amount and credit to wallet
-  const refundAmount = item.totalPrice || (item.price * item.quantity);
+  // Calculate refund amount accounting for coupon discount
+  const itemValue = item.totalPrice || (item.price * item.quantity);
+  const totalOrderValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
+  
+  // Calculate proportional coupon discount for this item
+  const proportionalDiscount = (order.coupon_discount || 0) * (itemValue / totalOrderValue);
+  const refundAmount = itemValue - proportionalDiscount;
   await creditWallet(
     order.user_id, 
     refundAmount, 
@@ -178,15 +183,48 @@ const approveReturn = async (itemId) => {
   returnRequest.status = "approved";
   returnRequest.processedAt = new Date();
 
-  //Check if all return requests are approved to update order status
-  const allReturnRequestsApproved = order.returnRequests.every(req => 
-    req.status === "approved" || req.status === "rejected"
+  // Determine the correct order status based on actual item states
+  const nonCancelledItems = order.items.filter(orderItem => 
+    (orderItem.status || orderItem.item_status) !== "Cancelled"
   );
   
-  const hasApprovedReturns = order.returnRequests.some(req => req.status === "approved");
+  const returnedItems = nonCancelledItems.filter(orderItem => 
+    (orderItem.status || orderItem.item_status) === "Returned"
+  );
   
-  if (allReturnRequestsApproved && hasApprovedReturns) {
+  const deliveredItems = nonCancelledItems.filter(orderItem => 
+    (orderItem.status || orderItem.item_status) === "Delivered"
+  );
+  
+  const returnRequestedItems = nonCancelledItems.filter(orderItem => 
+    (orderItem.status || orderItem.item_status) === "Return Requested"
+  );
+
+  // Determine order status based on item states
+  if (returnedItems.length === nonCancelledItems.length) {
+    // All non-cancelled items are returned
     order.order_status = "Returned";
+    
+    // Refund shipping cost for fully returned order
+    const shippingRefund = order.shipping_cost;
+    await creditWallet(
+      order.user_id, 
+      shippingRefund, 
+      `Shipping refund for fully returned order #${order.order_id}`, 
+      order._id
+    );
+    
+    // Update order refund details
+    order.refundAmount = (order.refundAmount || 0) + shippingRefund;
+  } else if (returnedItems.length > 0) {
+    // Some items are returned, some are not
+    order.order_status = "Partially Returned";
+  } else if (returnRequestedItems.length > 0) {
+    // Some items still have pending return requests
+    order.order_status = "Return Requested";
+  } else {
+    // All items are delivered (no returns)
+    order.order_status = "Delivered";
   }
 
   await order.save();
@@ -218,6 +256,54 @@ const rejectReturn = async (itemId, reason) => {
   returnRequest.adminReason = reason.trim();
   returnRequest.processedAt = new Date();
 
+  // Update the corresponding item status back to delivered
+  const item = order.items.id(itemId);
+  if (item && (item.status || item.item_status) === "Return Requested") {
+    item.status = item.status ? "Delivered" : undefined;
+    item.item_status = "Delivered";
+    
+    // Add to status history
+    if (!item.statusHistory) {
+      item.statusHistory = [];
+    }
+    item.statusHistory.push({
+      status: "Delivered",
+      reason: "Return request rejected by admin",
+    });
+  }
+
+  // Determine the correct order status based on actual item states
+  const nonCancelledItems = order.items.filter(orderItem => 
+    (orderItem.status || orderItem.item_status) !== "Cancelled"
+  );
+  
+  const returnedItems = nonCancelledItems.filter(orderItem => 
+    (orderItem.status || orderItem.item_status) === "Returned"
+  );
+  
+  const deliveredItems = nonCancelledItems.filter(orderItem => 
+    (orderItem.status || orderItem.item_status) === "Delivered"
+  );
+  
+  const returnRequestedItems = nonCancelledItems.filter(orderItem => 
+    (orderItem.status || orderItem.item_status) === "Return Requested"
+  );
+
+  // Determine order status based on item states
+  if (returnedItems.length === nonCancelledItems.length) {
+    // All non-cancelled items are returned
+    order.order_status = "Returned";
+  } else if (returnedItems.length > 0) {
+    // Some items are returned, some are not
+    order.order_status = "Partially Returned";
+  } else if (returnRequestedItems.length > 0) {
+    // Some items still have pending return requests
+    order.order_status = "Return Requested";
+  } else {
+    // All items are delivered (no returns)
+    order.order_status = "Delivered";
+  }
+
   await order.save();
   return { success: true };
 };
@@ -236,28 +322,50 @@ const approveOrderReturn = async (orderId) => {
     throw new Error("Order is not in return requested status");
   }
 
+  // Calculate total refund amount (what user actually paid)
+  // For full order return, refund the final amount (includes coupon discount calculation)
+  const totalRefundAmount = order.final_amount || (order.total_amount - (order.coupon_discount || 0));
+
+  // Process refund if payment was made via wallet or online
+  if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online')) {
+    await creditWallet(
+      order.user_id, 
+      totalRefundAmount, 
+      `Refund for returned order #${order.order_id}`, 
+      order._id
+    );
+
+    // Update order refund details
+    order.refundAmount = totalRefundAmount;
+    order.refundStatus = 'completed';
+    order.refundedAt = new Date();
+  }
+
   // Update order status to "Returned"
   order.order_status = "Returned";
   
-  // Update all items to "Returned" status and increment stock
+  // Update all non-cancelled items to "Returned" status and increment stock
   for (const item of order.items) {
-    // Increment stock for each returned item
-    await Variant.findByIdAndUpdate(item.variant_id, {
-      $inc: { stock_quantity: item.quantity }
-    });
+    const itemStatus = item.status || item.item_status || 'Pending';
+    if (itemStatus !== 'Cancelled') {
+      // Increment stock for each returned item
+      await Variant.findByIdAndUpdate(item.variant_id, {
+        $inc: { stock_quantity: item.quantity }
+      });
 
-    item.status = item.status ? "Returned" : undefined;
-    item.item_status = "Returned"; // Keep backward compatibility
-    item.returned_at = new Date();
-    
-    // Add to status history
-    if (!item.statusHistory) {
-      item.statusHistory = [];
+      item.status = item.status ? "Returned" : undefined;
+      item.item_status = "Returned"; // Keep backward compatibility
+      item.returned_at = new Date();
+      
+      // Add to status history
+      if (!item.statusHistory) {
+        item.statusHistory = [];
+      }
+      item.statusHistory.push({
+        status: "Returned",
+        reason: "Order return approved by admin",
+      });
     }
-    item.statusHistory.push({
-      status: "Returned",
-      reason: "Order return approved by admin",
-    });
   }
 
   // Update all return requests to approved
@@ -268,12 +376,14 @@ const approveOrderReturn = async (orderId) => {
     if (req.status === "pending") {
       req.status = "approved";
       req.processedAt = new Date();
+      // Update refund amount to reflect the total refund for full order return
+      req.refundAmount = totalRefundAmount;
     }
   });
 
   await order.save();
   
-  return { success: true };
+  return { success: true, refundAmount: totalRefundAmount };
 };
 
 const rejectOrderReturn = async (orderId, reason) => {

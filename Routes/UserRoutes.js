@@ -117,6 +117,7 @@ router.post('/orders/:orderId/cancel', orderController.cancelOrderPost)
 router.post('/orders/:orderId/items/:itemId/cancel', orderController.cancelOrderItemPost)
 router.post('/orders/:orderId/cancel-items', orderController.cancelOrderItemsPost)
 router.post('/orders/:orderId/return-item', orderController.returnOrderItemPost)
+router.post('/orders/:orderId/return', orderController.returnEntireOrderPost)
 router.get('/orders/:orderId/invoice', orderController.downloadInvoiceGet)
 
 // Wallet Management

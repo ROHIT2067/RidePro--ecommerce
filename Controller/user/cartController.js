@@ -203,7 +203,8 @@ const applyCouponPost = async (req, res) => {
       success: true,
       message: `Coupon applied! You saved ₹${couponResult.discountAmount}`,
       discountAmount: couponResult.discountAmount,
-      finalAmount: couponResult.finalAmount
+      finalAmount: couponResult.finalAmount,
+      warning: "Note: Orders with coupon discounts do not allow individual item cancellation or returns. Only full order cancellation/return is available to ensure fair refund calculation."
     });
   } catch (error) {
     console.error("Apply Coupon Error:", error);

@@ -184,6 +184,31 @@ const returnOrderItemPost = async (req, res) => {
   }
 };
 
+const returnEntireOrderPost = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: "Please login" });
+    }
+
+    const userId = req.session.user;
+    const orderId = req.params.orderId;
+    const { reason } = req.body;
+
+    await orderService.returnEntireOrder(userId, orderId, reason);
+
+    return res.json({
+      success: true,
+      message: "Return request submitted successfully",
+    });
+  } catch (error) {
+    console.error("Return Entire Order Error:", error);
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const downloadInvoiceGet = async (req, res) => {
   try {
     if (!req.session.user) {
@@ -306,10 +331,22 @@ const downloadInvoiceGet = async (req, res) => {
     doc.text(`₹${order.shipping_cost.toFixed(2)}`, 480, yPosition);
     yPosition += 15;
 
+    // Show coupon discount if applicable
+    if (order.coupon_discount && order.coupon_discount > 0) {
+      doc.text("Coupon Discount:", 380, yPosition);
+      if (order.coupon_details && order.coupon_details.code) {
+        doc.text(`(${order.coupon_details.code})`, 380, yPosition + 10);
+        yPosition += 10;
+      }
+      doc.text(`-₹${order.coupon_discount.toFixed(2)}`, 480, yPosition);
+      yPosition += 15;
+    }
+
     doc.moveTo(380, yPosition).lineTo(550, yPosition).stroke();
     yPosition += 10;
 
-    const finalTotal = subtotalCalculated + order.shipping_cost;
+    // Use final_amount for the total (what customer actually paid), fallback to calculated total
+    const finalTotal = order.final_amount || (subtotalCalculated + order.shipping_cost - (order.coupon_discount || 0));
     doc.fontSize(12).text("Total Amount:", 380, yPosition);
     doc.text(`₹${finalTotal.toFixed(2)}`, 480, yPosition);
 
@@ -346,6 +383,7 @@ export default {
   cancelOrderItemPost,
   cancelOrderItemsPost,
   returnOrderItemPost,
+  returnEntireOrderPost,
   downloadInvoiceGet
 };
 

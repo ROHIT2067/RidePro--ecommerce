@@ -80,10 +80,10 @@ const editCouponPost = async (req, res) => {
 
 const createCouponPost = async (req, res) => {
   try {
-    // Validate request body
+    // Validate request body (schema will handle string-to-number conversion)
     const validation = couponSchema.safeParse(req.body);
     if (!validation.success) {
-      const errors = validation.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      const errors = validation.error?.issues?.map(err => `${err.path.join('.')}: ${err.message}`) || ['Validation failed'];
       return res.status(400).json({
         success: false,
         message: "Validation failed",
@@ -124,7 +124,7 @@ const updateCouponPost = async (req, res) => {
     if (req.body.code || req.body.discountType || req.body.discountValue || req.body.expiryDate) {
       const validation = couponSchema.safeParse(req.body);
       if (!validation.success) {
-        const errors = validation.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+        const errors = validation.error?.issues?.map(err => `${err.path.join('.')}: ${err.message}`) || ['Validation failed'];
         return res.status(400).json({
           success: false,
           message: "Validation failed",

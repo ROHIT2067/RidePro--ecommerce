@@ -5,6 +5,7 @@ import Variant from "../../Models/VariantModel.js";
 import User from "../../Models/UserModel.js";
 import couponService from "../admin/couponService.js";
 import { debitWallet } from "../../utils/walletHelper.js";
+import { calculateProductPrice } from "../../utils/priceCalculator.js";
 
 const getCheckoutData = async (userId, selectedAddressId) => {
   // Get cart with populated data
@@ -104,10 +105,18 @@ const getCheckoutData = async (userId, selectedAddressId) => {
     selectedAddress = addresses.find((a) => a.is_default) || addresses[0];
   }
 
-  // Calculate totals
-  const subtotal = validItems.reduce((sum, item) => {
-    return sum + item.price * item.quantity;
-  }, 0);
+  // Calculate totals using current offer prices
+  let subtotal = 0;
+  for (const item of validItems) {
+    const variant = item.variant_id;
+    const product = variant.product_id;
+    
+    // Get current offer price for each item
+    const priceCalc = await calculateProductPrice(product, variant.price, product.category._id);
+    const currentOfferPrice = priceCalc.finalPrice;
+    
+    subtotal += currentOfferPrice * item.quantity;
+  }
 
   const shippingCost = 118;
   const totalAmount = subtotal + shippingCost;
@@ -172,31 +181,35 @@ const placeOrder = async (userId, addressId, appliedCoupon = null, paymentMethod
     }
   }
 
-  // Prepare order items with product details
-  const orderItems = items.map((item) => {
+  // Prepare order items with current offer prices
+  const orderItems = await Promise.all(items.map(async (item) => {
     const variant = item.variant_id;
     const product = variant.product_id;
+
+    // Get current offer price for this item
+    const priceCalc = await calculateProductPrice(product, variant.price, product.category._id);
+    const currentOfferPrice = priceCalc.finalPrice;
 
     return {
       product_id: product._id,
       variant_id: variant._id,
       quantity: item.quantity,
-      price: item.price,
-      totalPrice: item.price * item.quantity, // Add totalPrice calculation
+      price: currentOfferPrice, // Use current offer price
+      totalPrice: currentOfferPrice * item.quantity, // Calculate with offer price
       productName: product.productName,
       variantDetails: {
         size: variant.size,
         color: variant.color,
         images: variant.images,
       },
-      status: "Pending", // Add default status
+      status: "Pending",
       statusHistory: [{
         status: "Pending",
         timestamp: new Date(),
         reason: "Order placed"
       }]
     };
-  });
+  }));
 
   // Create order
   const order = new Order({

@@ -49,6 +49,7 @@
     .status-cancelled { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
     .status-return-requested { background: rgba(255, 193, 7, 0.15); color: #ff6b35; border: 1px solid rgba(255, 193, 7, 0.3); }
     .status-returned { background: rgba(249, 115, 22, 0.15); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.3); }
+    .status-partially-returned { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
     .btn-view { padding: 0.65rem 1.5rem; background: var(--accent); color: #fff; text-decoration: none; border-radius: 8px; font-size: 0.84rem; font-weight: 600; transition: background 0.15s; display: inline-flex; align-items: center; gap: 0.5rem; }
     .btn-view:hover { background: var(--accent2); }
     .empty-orders { text-align: center; padding: 5rem 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius2); }
@@ -107,13 +108,13 @@
               <div class="order-id"><%= order.order_id %></div>
               <div class="order-date">Ordered on <%= new Date(order.order_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %></div>
             </div>
-            <span class="status-badge status-<%= order.order_status.toLowerCase() %>"><%= order.order_status %></span>
+            <span class="status-badge status-<%= order.order_status.toLowerCase().replace(/\s+/g, '-') %>"><%= order.order_status %></span>
           </div>
           <div class="order-body">
             <div class="order-info">
               <div class="info-item">
                 <span class="info-label">Total Amount</span>
-                <span class="info-value">₹<%= order.total_amount.toLocaleString('en-IN') %></span>
+                <span class="info-value">₹<%= (order.final_amount || order.total_amount).toLocaleString('en-IN') %></span>
               </div>
               <div class="info-item">
                 <span class="info-label">Items</span>

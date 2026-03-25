@@ -348,6 +348,12 @@
       border: 1px solid rgba(249, 115, 22, 0.3);
     }
 
+    .status-partially-returned {
+      background: rgba(168, 85, 247, 0.15);
+      color: #a855f7;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+
     #toast {
       position: fixed;
       bottom: 1.5rem;
@@ -464,7 +470,7 @@
         <div class="order-meta">
           <span>Ordered on <%= new Date(order.order_date).toLocaleDateString('en-IN', { day: 'numeric' , month: 'long' ,
               year: 'numeric' }) %></span>
-          <span class="status-badge status-<%= order.order_status.toLowerCase() %>">
+          <span class="status-badge status-<%= order.order_status.toLowerCase().replace(/\s+/g, '-') %>">
             <%= order.order_status %>
           </span>
         </div>
@@ -636,18 +642,36 @@
                                     <% } %>
 
                                       <% if (!isCancelled && ['Pending', 'Confirmed' ].includes(order.order_status)) { %>
-                                        <div class="item-actions">
-                                          <button class="btn-cancel-item" onclick="cancelItem('<%= item._id %>')">Cancel
-                                            Item</button>
-                                        </div>
+                                        <% if (!order.coupon_discount || order.coupon_discount === 0) { %>
+                                          <div class="item-actions">
+                                            <button class="btn-cancel-item" onclick="cancelItem('<%= item._id %>')">Cancel
+                                              Item</button>
+                                          </div>
+                                        <% } else { %>
+                                          <div style="margin-top: 8px; padding: 8px 12px; background: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.3); border-radius: 8px;">
+                                            <div style="font-size: 12px; color: #d97706;">
+                                              <i class="fa fa-info-circle" style="margin-right: 4px;"></i>
+                                              Individual item cancellation not available for orders with coupon discounts.
+                                            </div>
+                                          </div>
+                                        <% } %>
                                         <% } %>
 
                                           
-                                          <% if (!isCancelled && order.order_status === 'Delivered' && !itemReturnReq) { %>
-                                            <div class="item-actions">
-                                              <button class="btn-return-item"
-                                                onclick="returnItem('<%= item._id %>')">Return Item</button>
-                                            </div>
+                                          <% if (!isCancelled && (order.order_status === 'Delivered' || order.order_status === 'Partially Returned') && !itemReturnReq) { %>
+                                            <% if (!order.coupon_discount || order.coupon_discount === 0) { %>
+                                              <div class="item-actions">
+                                                <button class="btn-return-item"
+                                                  onclick="returnItem('<%= item._id %>')">Return Item</button>
+                                              </div>
+                                            <% } else { %>
+                                              <div style="margin-top: 8px; padding: 8px 12px; background: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.3); border-radius: 8px;">
+                                                <div style="font-size: 12px; color: #d97706;">
+                                                  <i class="fa fa-info-circle" style="margin-right: 4px;"></i>
+                                                  Individual item returns not available for orders with coupon discounts.
+                                                </div>
+                                              </div>
+                                            <% } %>
                                             <% } %>
                           </div>
                           <div class="item-price-qty">
@@ -695,10 +719,21 @@
                         <span class="label">Shipping</span>
                         <span class="value">₹<%= order.shipping_cost.toLocaleString('en-IN') %></span>
                       </div>
+                      <% if (order.coupon_discount && order.coupon_discount > 0) { %>
+                      <div class="summary-row discount">
+                        <span class="label">
+                          Coupon Discount
+                          <% if (order.coupon_details && order.coupon_details.code) { %>
+                            (<%= order.coupon_details.code %>)
+                          <% } %>
+                        </span>
+                        <span class="value" style="color: var(--success);">-₹<%= order.coupon_discount.toLocaleString('en-IN') %></span>
+                      </div>
+                      <% } %>
                       <div class="divider"></div>
                       <div class="summary-row total">
                         <span class="label">Total</span>
-                        <span class="value">₹<%= order.total_amount.toLocaleString('en-IN') %></span>
+                        <span class="value">₹<%= (order.final_amount || order.total_amount).toLocaleString('en-IN') %></span>
                       </div>
                       <div class="summary-row">
                         <span class="label">Payment Method</span>
@@ -721,7 +756,52 @@
                         <button class="btn btn-danger" onclick="cancelOrder()">
                           <i class="fa fa-times"></i> Cancel Order
                         </button>
+                        <% if (order.coupon_discount && order.coupon_discount > 0) { %>
+                          <div style="margin-top: 12px; padding: 10px 12px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px;">
+                            <div style="font-size: 12px; color: #2563eb; line-height: 1.4;">
+                              <i class="fa fa-info-circle" style="margin-right: 4px;"></i>
+                              Since this order has a coupon discount, only full order cancellation is available to ensure fair refund calculation.
+                            </div>
+                          </div>
                         <% } %>
+                      <% } %>
+
+                      <% if (order.order_status === 'Delivered' && !order.returnRequests?.some(req => req.status === 'pending' || req.status === 'approved')) { %>
+                        <button class="btn btn-secondary" onclick="returnOrder()">
+                          <i class="fa fa-undo"></i> Return Order
+                        </button>
+                        <% if (order.coupon_discount && order.coupon_discount > 0) { %>
+                          <div style="margin-top: 12px; padding: 10px 12px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px;">
+                            <div style="font-size: 12px; color: #2563eb; line-height: 1.4;">
+                              <i class="fa fa-info-circle" style="margin-right: 4px;"></i>
+                              Since this order has a coupon discount, only full order return is available to ensure fair refund calculation.
+                            </div>
+                          </div>
+                        <% } %>
+                      <% } %>
+
+                      <% if (order.order_status === 'Partially Returned' && !order.returnRequests?.some(req => req.status === 'pending')) { %>
+                        <% 
+                          // Check if there are any non-returned, non-cancelled items left
+                          const returnableItems = order.items.filter(item => {
+                            const itemStatus = item.status || item.item_status || 'Pending';
+                            return itemStatus !== 'Cancelled' && itemStatus !== 'Returned';
+                          });
+                        %>
+                        <% if (returnableItems.length > 0) { %>
+                          <button class="btn btn-secondary" onclick="returnOrder()">
+                            <i class="fa fa-undo"></i> Return Remaining Items
+                          </button>
+                          <% if (order.coupon_discount && order.coupon_discount > 0) { %>
+                            <div style="margin-top: 12px; padding: 10px 12px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px;">
+                              <div style="font-size: 12px; color: #2563eb; line-height: 1.4;">
+                                <i class="fa fa-info-circle" style="margin-right: 4px;"></i>
+                                Since this order has a coupon discount, only full order return is available to ensure fair refund calculation.
+                              </div>
+                            </div>
+                          <% } %>
+                        <% } %>
+                      <% } %>
                     </div>
                   </div>
                 </div>
@@ -787,6 +867,26 @@
               onclick="closeModal('returnItemModal')">Cancel</button>
             <button class="modal-btn" style="background: var(--accent); color: #fff;"
               onclick="confirmReturnItem()">Submit Return Request</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Return Order Modal -->
+      <div class="modal-overlay" id="returnOrderModal">
+        <div class="modal-box">
+          <h3 class="modal-title">Return Order</h3>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Reason for return (required)</label>
+              <textarea class="form-textarea" id="returnOrderReason" placeholder="Please provide a reason for returning the entire order..."
+                required></textarea>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="modal-btn" style="background: var(--surface3); color: var(--text);"
+              onclick="closeModal('returnOrderModal')">Cancel</button>
+            <button class="modal-btn" style="background: var(--accent); color: #fff;"
+              onclick="confirmReturnOrder()">Submit Return Request</button>
           </div>
         </div>
       </div>
@@ -983,6 +1083,35 @@
             showToast('Failed to submit return request', 'error');
           }
           closeModal('returnItemModal');
+        }
+
+        function returnOrder() {
+          showModal('returnOrderModal');
+        }
+
+        async function confirmReturnOrder() {
+          const reason = document.getElementById('returnOrderReason').value;
+          if (!reason.trim()) {
+            showToast('Please provide a reason for return', 'error');
+            return;
+          }
+          try {
+            const response = await fetch('/orders/<%= order._id %>/return', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reason })
+            });
+            const data = await response.json();
+            if (data.success) {
+              showToast('Return request submitted successfully');
+              setTimeout(() => window.location.reload(), 1500);
+            } else {
+              showToast(data.message, 'error');
+            }
+          } catch (error) {
+            showToast('Failed to submit return request', 'error');
+          }
+          closeModal('returnOrderModal');
         }
 
         function downloadInvoice() {

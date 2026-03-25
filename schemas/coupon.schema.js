@@ -9,20 +9,47 @@ const couponCodeSchema = z.string({
 .regex(/^[A-Za-z0-9_-]+$/, "Coupon code can only contain letters, numbers, hyphens (-) and underscores (_)")
 .transform(val => val.toUpperCase().trim());
 
+// Helper to convert string to number
+const numberFromString = z.union([z.number(), z.string()]).transform((val) => {
+  if (typeof val === 'string') {
+    const num = parseFloat(val);
+    return isNaN(num) ? undefined : num;
+  }
+  return val;
+});
+
+const intFromString = z.union([z.number(), z.string()]).transform((val) => {
+  if (typeof val === 'string') {
+    const num = parseInt(val);
+    return isNaN(num) ? undefined : num;
+  }
+  return val;
+});
+
 // Main coupon schema
 export const couponSchema = z.object({
   code: couponCodeSchema,
   discountType: z.enum(['percentage', 'flat'], {
     required_error: "Discount type is required"
   }),
-  discountValue: z.number({
-    required_error: "Discount value is required"
-  }).positive("Discount value must be greater than 0"),
-  minimumOrderAmount: z.number().min(0, "Minimum order amount cannot be negative").optional().default(0),
-  maximumOrderAmount: z.number().positive("Maximum order amount must be greater than 0").optional().nullable(),
-  maximumDiscountCap: z.number().positive("Maximum discount cap must be greater than 0").optional().nullable(),
-  usageLimit: z.number().positive("Total usage limit must be greater than 0").optional().nullable(),
-  perUserLimit: z.number().positive("Per user limit must be greater than 0").default(1),
+  discountValue: numberFromString.refine(val => val !== undefined && val > 0, {
+    message: "Discount value must be greater than 0"
+  }),
+  minimumOrderAmount: numberFromString.optional().default(0).refine(val => val >= 0, {
+    message: "Minimum order amount cannot be negative"
+  }),
+  maximumOrderAmount: numberFromString.optional().nullable().refine(val => val === null || val === undefined || val > 0, {
+    message: "Maximum order amount must be greater than 0"
+  }),
+  maximumDiscountCap: numberFromString.optional().nullable().refine(val => val === null || val === undefined || val > 0, {
+    message: "Maximum discount cap must be greater than 0"
+  }),
+  usageLimit: intFromString.optional().nullable().refine(val => val === null || val === undefined || val > 0, {
+    message: "Total usage limit must be greater than 0"
+  }),
+  perUserLimit: intFromString.optional().default(1).refine(val => val > 0, {
+    message: "Per user limit must be greater than 0"
+  }),
   expiryDate: z.string().or(z.date()).transform((val) => new Date(val))
 }).refine((data) => {
   if (data.discountType === 'percentage') {

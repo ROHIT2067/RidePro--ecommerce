@@ -119,11 +119,18 @@ const getCart = async (userId) => {
   //Converts Mongoose documents to plain JS objects for safe use in the view
   const itemsLean = await Promise.all(validItems.map(async (item) => {
     const offerPrice = await getOfferPrice(item.variant_id);
+    
+    // Update cart item price if it's different from current offer price
+    if (Math.abs(item.price - offerPrice) > 0.01) {
+      item.price = offerPrice;
+      cartModified = true;
+    }
+    
     return {
       ...item.toObject(),
       variant_id: item.variant_id.toObject ? item.variant_id.toObject() : item.variant_id,
       offerPrice: offerPrice,
-      originalPrice: item.price,
+      originalPrice: item.variant_id.price, // Use actual variant price as original
       finalPrice: offerPrice // Use offer price for calculations
     };
   }));

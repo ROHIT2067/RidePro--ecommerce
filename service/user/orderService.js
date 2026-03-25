@@ -73,6 +73,11 @@ const cancelOrderItem = async (userId, orderId, itemId, reason) => {
     throw new Error(`Cannot cancel items when order status is: ${order.order_status}`);
   }
 
+  // Prevent individual item cancellation for orders with coupon discounts
+  if (order.coupon_discount && order.coupon_discount > 0) {
+    throw new Error("Individual item cancellation is not allowed for orders with coupon discounts. Please cancel the entire order instead.");
+  }
+
   const item = order.items.id(itemId);  //finds a specific subdocument inside the items array by its _id
   if (!item) {
     throw new Error("Item not found in order");
@@ -86,8 +91,13 @@ const cancelOrderItem = async (userId, orderId, itemId, reason) => {
     $inc: { stock_quantity: item.quantity },
   });
 
-  // Calculate refund amount for this item
-  const refundAmount = item.totalPrice || (item.price * item.quantity);
+  // Calculate refund amount for this item (accounting for coupon discount)
+  const itemValue = item.totalPrice || (item.price * item.quantity);
+  const totalOrderValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
+  
+  // Calculate proportional coupon discount for this item
+  const proportionalDiscount = (order.coupon_discount || 0) * (itemValue / totalOrderValue);
+  const refundAmount = itemValue - proportionalDiscount;
 
   // Process refund if payment was made via wallet or online
   if (order.payment_method === 'wallet' || order.payment_method === 'online') {
@@ -132,6 +142,20 @@ const cancelOrderItem = async (userId, orderId, itemId, reason) => {
   const allCancelled = order.items.every((item) => (item.status || item.item_status) === "Cancelled");
   if (allCancelled) {
     order.order_status = "Cancelled";
+    
+    // If this was the last item and user paid for shipping, refund the shipping cost too
+    if (order.payment_method === 'wallet' || order.payment_method === 'online') {
+      const shippingRefund = order.shipping_cost;
+      await creditWallet(
+        userId, 
+        shippingRefund, 
+        `Shipping refund for fully cancelled order #${order.order_id}`, 
+        order._id
+      );
+      
+      // Update order refund details
+      order.refundAmount = (order.refundAmount || 0) + shippingRefund;
+    }
   }
 
   await order.save();
@@ -156,8 +180,21 @@ const cancelEntireOrder = async (userId, orderId, reason) => {
   let totalRefundAmount = 0;
   const itemsToCancel = order.items.filter(item => (item.status || item.item_status) !== "Cancelled");
   
-  for (const item of itemsToCancel) {
-    totalRefundAmount += item.totalPrice || (item.price * item.quantity);
+  // Check if this is a full order cancellation
+  const isFullOrderCancellation = itemsToCancel.length === order.items.length;
+  
+  if (isFullOrderCancellation) {
+    // For full order cancellation, refund the final amount (what user actually paid)
+    // Fallback to calculated amount if final_amount is not available
+    totalRefundAmount = order.final_amount || (order.total_amount - (order.coupon_discount || 0));
+  } else {
+    // For partial cancellation, calculate proportional refund
+    const totalItemsValue = order.items.reduce((sum, item) => sum + (item.totalPrice || (item.price * item.quantity)), 0);
+    const cancelledItemsValue = itemsToCancel.reduce((sum, item) => sum + (item.totalPrice || (item.price * item.quantity)), 0);
+    
+    // Calculate proportional refund including coupon discount
+    const proportionalDiscount = (order.coupon_discount || 0) * (cancelledItemsValue / totalItemsValue);
+    totalRefundAmount = cancelledItemsValue - proportionalDiscount;
   }
 
   // Process refund if payment was made via wallet or online
@@ -231,8 +268,14 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
     throw new Error(`Cannot cancel items when order status is: ${order.order_status}`);
   }
 
+  // Prevent individual item cancellation for orders with coupon discounts
+  if (order.coupon_discount && order.coupon_discount > 0) {
+    throw new Error("Individual item cancellation is not allowed for orders with coupon discounts. Please cancel the entire order instead.");
+  }
+
   let cancelledCount = 0;
-  let totalRefundAmount = 0;
+  let totalItemsValue = 0;
+  const totalOrderValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
 
   //Only processes items that exist and aren't already cancelled
   for (const itemId of itemIds) {
@@ -243,9 +286,9 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
         $inc: { stock_quantity: item.quantity },
       });
 
-      // Calculate refund amount for this item
-      const itemRefundAmount = item.totalPrice || (item.price * item.quantity);
-      totalRefundAmount += itemRefundAmount;
+      // Calculate item value for proportional discount calculation
+      const itemValue = item.totalPrice || (item.price * item.quantity);
+      totalItemsValue += itemValue;
 
       item.status = item.status ? "Cancelled" : undefined;
       item.item_status = "Cancelled"; // Keep backward compatibility
@@ -274,6 +317,24 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
     }
   }
 
+  // Calculate total refund amount accounting for coupon discount
+  let totalRefundAmount = 0;
+  if (totalItemsValue > 0) {
+    // Check if all items are being cancelled
+    const allItemsValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
+    const isAllItemsCancelled = Math.abs(totalItemsValue - allItemsValue) < 0.01;
+    
+    if (isAllItemsCancelled) {
+      // If all items are cancelled, refund the full final amount
+      // Fallback to calculated amount if final_amount is not available
+      totalRefundAmount = order.final_amount || (order.total_amount - (order.coupon_discount || 0));
+    } else {
+      // For partial cancellation, calculate proportional refund (no shipping refund)
+      const proportionalDiscount = (order.coupon_discount || 0) * (totalItemsValue / allItemsValue);
+      totalRefundAmount = totalItemsValue - proportionalDiscount;
+    }
+  }
+
   // Process refund if payment was made via wallet or online
   if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online')) {
     await creditWallet(
@@ -289,10 +350,26 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
     order.refundedAt = new Date();
   }
 
-  //Check if all items are cancelled
+  //Check if all items are cancelled after this operation
   const allCancelled = order.items.every((item) => (item.status || item.item_status) === "Cancelled");
   if (allCancelled) {
     order.order_status = "Cancelled";
+    
+    // If this operation resulted in all items being cancelled, but we calculated a partial refund
+    // (meaning not all items were cancelled in this single call), we need to refund shipping
+    const wasPartialCancellation = !isAllItemsCancelled;
+    if (wasPartialCancellation && (order.payment_method === 'wallet' || order.payment_method === 'online')) {
+      const shippingRefund = order.shipping_cost;
+      await creditWallet(
+        userId, 
+        shippingRefund, 
+        `Shipping refund for fully cancelled order #${order.order_id}`, 
+        order._id
+      );
+      
+      // Update order refund details
+      order.refundAmount = (order.refundAmount || 0) + shippingRefund;
+    }
   }
 
   await order.save();
@@ -313,6 +390,11 @@ const returnOrderItem = async (userId, orderId, itemId, reason) => {
     throw new Error("Return reason is required");
   }
 
+  // Prevent individual item returns for orders with coupon discounts
+  if (order.coupon_discount && order.coupon_discount > 0) {
+    throw new Error("Individual item returns are not allowed for orders with coupon discounts. Please contact customer support for assistance.");
+  }
+
   const item = order.items.id(itemId);
   if (!item) {
     throw new Error("Item not found in order");
@@ -324,9 +406,9 @@ const returnOrderItem = async (userId, orderId, itemId, reason) => {
     throw new Error("Cannot return cancelled items");
   }
 
-  // For delivered orders, allow return of any non-cancelled item
-  if (order.order_status !== "Delivered") {
-    throw new Error("Only items from delivered orders can be returned");
+  // For delivered or partially returned orders, allow return of any non-cancelled item
+  if (!["Delivered", "Partially Returned"].includes(order.order_status)) {
+    throw new Error("Only items from delivered or partially returned orders can be returned");
   }
 
 
@@ -391,6 +473,124 @@ const returnOrderItem = async (userId, orderId, itemId, reason) => {
   return updatedOrder;
 };
 
+const returnEntireOrder = async (userId, orderId, reason) => {
+  const order = await Order.findOne({
+    _id: orderId,
+    user_id: userId,
+  });
+
+  if (!order) {
+    throw new Error("Order not found");
+  }
+
+  if (!reason || reason.trim() === "") {
+    throw new Error("Return reason is required");
+  }
+
+  if (!["Delivered", "Partially Returned"].includes(order.order_status)) {
+    throw new Error("Only delivered or partially returned orders can be returned");
+  }
+
+  // Get all non-cancelled, non-returned items (items that can still be returned)
+  const returnableItems = order.items.filter(item => {
+    const itemStatus = item.status || item.item_status || 'Pending';
+    return itemStatus !== 'Cancelled' && itemStatus !== 'Returned';
+  });
+
+  if (returnableItems.length === 0) {
+    throw new Error("No items available for return");
+  }
+
+  // Check if any of the returnable items already have pending return requests
+  const returnableItemIds = returnableItems.map(item => item._id.toString());
+  const hasPendingReturns = order.returnRequests && order.returnRequests.some(req => 
+    req.status === 'pending' && returnableItemIds.includes(req.itemId.toString())
+  );
+
+  if (hasPendingReturns) {
+    throw new Error("Some items already have return requests. Please wait for them to be processed.");
+  }
+
+  // Calculate refund amount for remaining items
+  let totalRefundAmount;
+  
+  if (order.order_status === 'Delivered') {
+    // For fully delivered orders, refund the final amount (what user actually paid)
+    totalRefundAmount = order.final_amount || (order.total_amount - (order.coupon_discount || 0));
+  } else {
+    // For partially returned orders, calculate refund for remaining items
+    const returnableItemsValue = returnableItems.reduce((sum, item) => 
+      sum + (item.totalPrice || (item.price * item.quantity)), 0
+    );
+    
+    const totalOrderValue = order.items.reduce((sum, item) => 
+      sum + (item.totalPrice || (item.price * item.quantity)), 0
+    );
+    
+    // Calculate proportional coupon discount for remaining items
+    const proportionalDiscount = (order.coupon_discount || 0) * (returnableItemsValue / totalOrderValue);
+    totalRefundAmount = returnableItemsValue - proportionalDiscount;
+    
+    // Add shipping cost if all remaining items are being returned
+    const allRemainingItemsBeingReturned = returnableItems.length === order.items.filter(item => {
+      const itemStatus = item.status || item.item_status || 'Pending';
+      return itemStatus !== 'Cancelled' && itemStatus !== 'Returned';
+    }).length;
+    
+    if (allRemainingItemsBeingReturned) {
+      totalRefundAmount += order.shipping_cost;
+    }
+  }
+
+  // Create return requests for all returnable items
+  const returnRequests = returnableItems.map(item => ({
+    itemId: item._id,
+    reason: reason.trim(),
+    status: "pending",
+    refundAmount: totalRefundAmount, // Calculated refund amount for remaining items
+    requestedAt: new Date()
+  }));
+
+  // Update order with return requests
+  await Order.findByIdAndUpdate(
+    orderId,
+    {
+      $push: { 
+        returnRequests: { $each: returnRequests }
+      },
+      $set: {
+        order_status: "Return Requested"
+      }
+    },
+    { runValidators: true }
+  );
+
+  // Update all returnable items
+  for (const item of returnableItems) {
+    await Order.updateOne(
+      { _id: orderId, "items._id": item._id },
+      {
+        $set: {
+          "items.$.status": "Return Requested",
+          "items.$.item_status": "Return Requested",
+          "items.$.return_reason": reason,
+          "items.$.return_requested_at": new Date()
+        },
+        $push: {
+          "items.$.statusHistory": {
+            status: "Return Requested",
+            reason: reason,
+            timestamp: new Date()
+          }
+        }
+      }
+    );
+  }
+
+  const updatedOrder = await Order.findById(orderId);
+  return updatedOrder;
+};
+
 // Migration function to fix existing orders without returnRequests field
 const fixExistingOrders = async () => {
   try {
@@ -413,4 +613,5 @@ export default {
   cancelEntireOrder,
   cancelOrderItems,
   returnOrderItem,
+  returnEntireOrder,
 };

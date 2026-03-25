@@ -220,6 +220,12 @@
           <span class="label">Coupon Discount (<%= appliedCoupon.code %>)</span>
           <span class="value discount-amount" style="color: var(--success);">- ₹<%= appliedCoupon.discountAmount.toLocaleString('en-IN') %></span>
         </div>
+        <div style="margin: 12px 0; padding: 10px 12px; background: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.3); border-radius: 8px;">
+          <div style="font-size: 12px; color: #d97706; line-height: 1.4;">
+            <i class="fa fa-info-circle" style="margin-right: 4px;"></i>
+            <strong>Important:</strong> Orders with coupon discounts do not allow individual item cancellation or returns. Only full order cancellation/return is available.
+          </div>
+        </div>
         <% } %>
         <div class="divider"></div>
         <div class="summary-row total">

@@ -47,7 +47,7 @@ const orderItemSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ["Pending", "Confirmed", "Processing", "Shipped", "Out for Delivery", "Delivered", "Cancelled", "Return Requested", "Returned"],
+    enum: ["Pending", "Confirmed", "Processing", "Shipped", "Out for Delivery", "Delivered", "Cancelled", "Return Requested", "Returned", "Partially Returned"],
     default: "Pending",
   },
   statusHistory: {
@@ -157,7 +157,7 @@ const orderSchema = new Schema(
     },
     order_status: {
       type: String,
-      enum: ["Pending", "Confirmed", "Processing", "Shipped", "Out for Delivery", "Delivered", "Cancelled", "Return Requested", "Returned"],
+      enum: ["Pending", "Confirmed", "Processing", "Shipped", "Out for Delivery", "Delivered", "Cancelled", "Return Requested", "Returned", "Partially Returned"],
       default: "Pending",
     },
     subtotal: {
