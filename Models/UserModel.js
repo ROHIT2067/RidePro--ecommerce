@@ -102,8 +102,13 @@ const userSchema = new mongoose.Schema(
         default: null
       }
     },
-    referalCode: {
+    referralCode: {
       type: String,
+      unique: true,
+      sparse: true,
+      uppercase: true,
+      minlength: 6,
+      maxlength: 6
     },
     redeemed_user: {
       type: Boolean,

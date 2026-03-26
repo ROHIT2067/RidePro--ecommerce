@@ -14,7 +14,7 @@ const referralSchema = new mongoose.Schema({
   offerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Offer',
-    required: true
+    required: false
   },
   referralCode: {
     type: String,
@@ -26,7 +26,7 @@ const referralSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['pending', 'completed', 'expired'],
-    default: 'completed'
+    default: 'pending'
   },
   referrerRewardGiven: {
     type: Boolean,

@@ -45,7 +45,7 @@ const baseOfferSchema = z.object({
     .max(100, "Offer name must not exceed 100 characters")
     .trim(),
   
-  type: z.enum(['product', 'category', 'referral'], {
+  type: z.enum(['product', 'category'], {
     required_error: "Offer type is required"
   }),
   
@@ -68,29 +68,14 @@ export const categoryOfferSchema = baseOfferSchema.extend({
   }).min(1, "Please select a category")
 });
 
-// Referral offer schema
-export const referralOfferSchema = baseOfferSchema.extend({
-  type: z.literal('referral'),
-  referrerReward: z.number().min(0, "Referrer reward must be 0 or greater").max(1000, "Referrer reward cannot exceed ₹1,000").optional(),
-  refereeReward: z.number().min(0, "Referee reward must be 0 or greater").max(1000, "Referee reward cannot exceed ₹1,000").optional()
-}).refine((data) => {
-  // At least one reward must be specified for referral offers
-  return (data.referrerReward && data.referrerReward > 0) || (data.refereeReward && data.refereeReward > 0);
-}, {
-  message: "At least one reward (referrer or referee) must be greater than 0",
-  path: ["referrerReward"]
-});
-
 // Combined offer schema
 export const offerSchema = z.discriminatedUnion('type', [
   productOfferSchema,
-  categoryOfferSchema,
-  referralOfferSchema
+  categoryOfferSchema
 ]);
 
 export default {
   offerSchema,
   productOfferSchema,
-  categoryOfferSchema,
-  referralOfferSchema
+  categoryOfferSchema
 };

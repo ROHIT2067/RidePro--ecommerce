@@ -400,10 +400,14 @@ const returnOrderItem = async (userId, orderId, itemId, reason) => {
     throw new Error("Item not found in order");
   }
 
-  // Check if item is cancelled
+  // Check if item is cancelled or already returned
   const itemStatus = item.status || item.item_status || 'Pending';
   if (itemStatus === 'Cancelled') {
     throw new Error("Cannot return cancelled items");
+  }
+
+  if (itemStatus === 'Returned') {
+    throw new Error("This item has already been returned");
   }
 
   // For delivered or partially returned orders, allow return of any non-cancelled item
@@ -411,7 +415,29 @@ const returnOrderItem = async (userId, orderId, itemId, reason) => {
     throw new Error("Only items from delivered or partially returned orders can be returned");
   }
 
+  // Check if this item already has a pending or approved return request
+  const existingActiveReturnRequest = order.returnRequests && order.returnRequests.find(req => 
+    req.itemId.toString() === itemId.toString() && 
+    (req.status === 'pending' || req.status === 'approved')
+  );
 
+  if (existingActiveReturnRequest) {
+    if (existingActiveReturnRequest.status === 'pending') {
+      throw new Error("This item already has a pending return request. Please wait for it to be processed.");
+    } else if (existingActiveReturnRequest.status === 'approved') {
+      throw new Error("This item has already been approved for return.");
+    }
+  }
+
+  // Check if this item has a rejected return request (permanently blocked)
+  const rejectedReturnRequest = order.returnRequests && order.returnRequests.find(req => 
+    req.itemId.toString() === itemId.toString() && 
+    req.status === 'rejected'
+  );
+
+  if (rejectedReturnRequest) {
+    throw new Error("Return request for this item has been rejected and cannot be returned.");
+  }
 
   // Create return request using atomic operation
   const returnRequest = {
@@ -469,7 +495,6 @@ const returnOrderItem = async (userId, orderId, itemId, reason) => {
     await Order.findByIdAndUpdate(orderId, { order_status: "Return Requested" });
   }
 
-
   return updatedOrder;
 };
 
@@ -491,24 +516,31 @@ const returnEntireOrder = async (userId, orderId, reason) => {
     throw new Error("Only delivered or partially returned orders can be returned");
   }
 
-  // Get all non-cancelled, non-returned items (items that can still be returned)
+  // Get all non-cancelled, non-returned items that haven't been rejected (items that can still be returned)
   const returnableItems = order.items.filter(item => {
     const itemStatus = item.status || item.item_status || 'Pending';
-    return itemStatus !== 'Cancelled' && itemStatus !== 'Returned';
+    const hasRejectedReturnRequest = order.returnRequests && order.returnRequests.some(req => 
+      req.itemId.toString() === item._id.toString() && 
+      req.status === 'rejected'
+    );
+    return itemStatus !== 'Cancelled' && 
+           itemStatus !== 'Returned' && 
+           !hasRejectedReturnRequest;
   });
 
   if (returnableItems.length === 0) {
     throw new Error("No items available for return");
   }
 
-  // Check if any of the returnable items already have pending return requests
+  // Check if any of the returnable items already have pending or approved return requests
   const returnableItemIds = returnableItems.map(item => item._id.toString());
-  const hasPendingReturns = order.returnRequests && order.returnRequests.some(req => 
-    req.status === 'pending' && returnableItemIds.includes(req.itemId.toString())
+  const hasPendingOrApprovedReturns = order.returnRequests && order.returnRequests.some(req => 
+    (req.status === 'pending' || req.status === 'approved') && 
+    returnableItemIds.includes(req.itemId.toString())
   );
 
-  if (hasPendingReturns) {
-    throw new Error("Some items already have return requests. Please wait for them to be processed.");
+  if (hasPendingOrApprovedReturns) {
+    throw new Error("Some items already have pending or approved return requests. Please wait for them to be processed or contact customer support.");
   }
 
   // Calculate refund amount for remaining items

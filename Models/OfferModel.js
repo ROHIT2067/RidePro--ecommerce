@@ -8,7 +8,7 @@ const offerSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['product', 'category', 'referral'],
+    enum: ['product', 'category'],
     required: true
   },
   discountType: {
@@ -28,24 +28,6 @@ const offerSchema = new mongoose.Schema({
   targetModel: {
     type: String,
     enum: ['Product', 'Category']
-  },
-  referralCode: {
-    type: String,
-    unique: true,
-    sparse: true
-  },
-  referralToken: {
-    type: String,
-    unique: true,
-    sparse: true
-  },
-  referrerReward: {
-    type: Number,
-    default: 0
-  },
-  refereeReward: {
-    type: Number,
-    default: 0
   },
   startDate: {
     type: Date,

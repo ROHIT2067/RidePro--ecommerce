@@ -4,11 +4,19 @@ import { generateOtp } from "../../utils/otp.js";
 import { sendVerificationEmail } from "./mailService.js";
 import { securePassword } from "../../utils/passwordHash.js";
 import cloudinary from "../../Config/cloudinary.js";
+import { generateReferralCode } from "./referralService.js";
 
 const getProfileData = async (userId) => {
     const findUser = await userCollection.findById(userId).lean();
     if (!findUser) {
         throw new Error("User not found");
+    }
+
+    // Generate referral code if user doesn't have one (fallback)
+    let referralCode = findUser.referralCode;
+    if (!referralCode) {
+        referralCode = await generateReferralCode();
+        await userCollection.findByIdAndUpdate(userId, { referralCode });
     }
 
     const initials = findUser.username
@@ -22,6 +30,8 @@ const getProfileData = async (userId) => {
         name: findUser.username || "",
         initials: initials,
         avatar: findUser.avatar || { url: null, publicId: null },
+        referralCode: referralCode,
+        walletBalance: findUser.wallet?.balance || 0,
     };
 };
 

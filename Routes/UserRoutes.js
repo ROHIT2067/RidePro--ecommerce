@@ -12,6 +12,7 @@ import wishlistController from "../Controller/user/wishlistController.js";
 import checkoutController from "../Controller/user/checkoutController.js";
 import orderController from "../Controller/user/orderController.js";
 import walletController from "../Controller/user/walletController.js";
+import referralController from "../Controller/user/referralController.js";
 
 router.get("/", blockIfLoggedIn, userController.landingPageGet);
 router.get("/home", userController.homeGet);
@@ -123,6 +124,11 @@ router.get('/orders/:orderId/invoice', orderController.downloadInvoiceGet)
 // Wallet Management
 router.get('/wallet', walletController.walletGet)
 router.get('/account/wallet', walletController.walletGet)
+
+// Referral Management
+router.get('/referral', referralController.referralPageGet)
+router.get('/account/referral', referralController.referralPageGet)
+router.get('/api/referral/stats', referralController.getReferralStats)
 
 
 

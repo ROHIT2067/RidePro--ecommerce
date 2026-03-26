@@ -578,6 +578,18 @@
                         req.itemId.toString() === item._id.toString());
                         const itemStatus = item.status || item.item_status || 'Pending';
                         const isCancelled = itemStatus === 'Cancelled';
+                        const isReturned = itemStatus === 'Returned';
+                        // Check if there's ANY active return request for this item (pending or approved)
+                        const hasActiveReturnRequest = order.returnRequests && order.returnRequests.some(req => 
+                          req.itemId && req.itemId.toString() === item._id.toString() && 
+                          (req.status === 'pending' || req.status === 'approved')
+                        );
+                        
+                        // Check if this item has any rejected return request (permanently blocked)
+                        const hasRejectedReturnRequest = order.returnRequests && order.returnRequests.some(req => 
+                          req.itemId && req.itemId.toString() === item._id.toString() && 
+                          req.status === 'rejected'
+                        );
                         %>
                         <div class="order-item" data-item-id="<%= item._id %>" style="<%= isCancelled ? 'opacity: 0.7;' : '' %>">
                           <img src="<%= img %>" alt="<%= item.productName %>" class="item-img" style="<%= isCancelled ? 'filter: grayscale(50%);' : '' %>">
@@ -586,6 +598,9 @@
                               <%= item.productName %>
                               <% if (isCancelled) { %>
                                 <span style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-left: 8px;">[CANCELLED]</span>
+                              <% } %>
+                              <% if (isReturned) { %>
+                                <span style="color: #f97316; font-size: 0.8rem; font-weight: 600; margin-left: 8px;">[RETURNED]</span>
                               <% } %>
                             </div>
                             <div class="item-variant">
@@ -658,7 +673,7 @@
                                         <% } %>
 
                                           
-                                          <% if (!isCancelled && (order.order_status === 'Delivered' || order.order_status === 'Partially Returned') && !itemReturnReq) { %>
+                                          <% if (!isCancelled && !isReturned && (order.order_status === 'Delivered' || order.order_status === 'Partially Returned') && !hasActiveReturnRequest && !hasRejectedReturnRequest) { %>
                                             <% if (!order.coupon_discount || order.coupon_discount === 0) { %>
                                               <div class="item-actions">
                                                 <button class="btn-return-item"
@@ -672,7 +687,7 @@
                                                 </div>
                                               </div>
                                             <% } %>
-                                            <% } %>
+                                          <% } %>
                           </div>
                           <div class="item-price-qty">
                             <div class="item-price" style="<%= isCancelled ? 'text-decoration: line-through; color: var(--muted);' : '' %>">
@@ -782,10 +797,21 @@
 
                       <% if (order.order_status === 'Partially Returned' && !order.returnRequests?.some(req => req.status === 'pending')) { %>
                         <% 
-                          // Check if there are any non-returned, non-cancelled items left
+                          // Check if there are any non-returned, non-cancelled items left without active return requests or rejected requests
                           const returnableItems = order.items.filter(item => {
                             const itemStatus = item.status || item.item_status || 'Pending';
-                            return itemStatus !== 'Cancelled' && itemStatus !== 'Returned';
+                            const hasActiveReturnRequest = order.returnRequests && order.returnRequests.some(req => 
+                              req.itemId.toString() === item._id.toString() && 
+                              (req.status === 'pending' || req.status === 'approved')
+                            );
+                            const hasRejectedReturnRequest = order.returnRequests && order.returnRequests.some(req => 
+                              req.itemId.toString() === item._id.toString() && 
+                              req.status === 'rejected'
+                            );
+                            return itemStatus !== 'Cancelled' && 
+                                   itemStatus !== 'Returned' && 
+                                   !hasActiveReturnRequest &&
+                                   !hasRejectedReturnRequest;
                           });
                         %>
                         <% if (returnableItems.length > 0) { %>

@@ -6,6 +6,7 @@ import User from "../../Models/UserModel.js";
 import couponService from "../admin/couponService.js";
 import { debitWallet } from "../../utils/walletHelper.js";
 import { calculateProductPrice } from "../../utils/priceCalculator.js";
+import { processReferralRewards } from "./referralService.js";
 
 const getCheckoutData = async (userId, selectedAddressId) => {
   // Get cart with populated data
@@ -262,6 +263,14 @@ const placeOrder = async (userId, addressId, appliedCoupon = null, paymentMethod
     { user_id: userId },
     { $set: { items: [] } }
   );
+
+  // Process referral rewards for first purchase
+  try {
+    await processReferralRewards(userId);
+  } catch (error) {
+    console.error('Error processing referral rewards:', error);
+    // Don't fail the order if referral processing fails
+  }
 
   return order;
 };

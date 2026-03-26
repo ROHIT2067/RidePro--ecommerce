@@ -18,7 +18,13 @@ export const SignUpSchema = z.object({
   password: z.string()
     .min(1, 'Password is required')
     .min(8, 'Password must be at least 8 characters')
-    .max(128, 'Password must be at most 128 characters')
+    .max(128, 'Password must be at most 128 characters'),
+  
+  referralCode: z.string()
+    .optional()
+    .refine((val) => !val || (val.length === 6 && /^[A-Z0-9]+$/.test(val)), {
+      message: 'Referral code must be exactly 6 uppercase alphanumeric characters'
+    })
 });
 
 export const LoginSchema = z.object({

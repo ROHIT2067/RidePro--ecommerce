@@ -34,7 +34,7 @@ const createOffer = async (offerData) => {
     // Validate input data with Zod schema
     const validation = offerSchema.safeParse(offerData);
     if (!validation.success) {
-        const errors = validation.error.errors.map(err => err.message).join(', ');
+        const errors = validation.error.issues.map(err => err.message).join(', ');
         throw new Error(errors);
     }
 

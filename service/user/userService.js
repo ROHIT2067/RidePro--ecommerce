@@ -6,6 +6,7 @@ import { securePassword } from "../../utils/passwordHash.js";
 import Category from "../../Models/CategoryModel.js";
 import Product from "../../Models/ProductModel.js";
 import Variant from "../../Models/VariantModel.js";
+import { generateReferralCode, validateReferralCode, createReferralRecord } from "./referralService.js";
 
 const getHomeData = async () => {
     const categories = await Category.find({ status: "Active" });
@@ -33,10 +34,20 @@ const getHomeData = async () => {
 };
 
 const signup = async (userData) => {
-    const { email } = userData;
+    const { email, referralCode } = userData;
     const findUser = await userCollection.findOne({ email });
     if (findUser) {
         throw new Error("User already exists");
+    }
+
+    // Validate referral code if provided
+    let referrer = null;
+    if (referralCode) {
+        const validation = await validateReferralCode(referralCode);
+        if (!validation.valid) {
+            throw new Error(validation.message);
+        }
+        referrer = validation.referrer;
     }
 
     const otp = generateOtp();
@@ -46,24 +57,34 @@ const signup = async (userData) => {
         throw new Error("Failed to send email");
     }
 
-    return otp;
+    return { otp, referrer };
 };
 
-const verifyOtp = async (otp, sessionOtp, userData) => {
+const verifyOtp = async (otp, sessionOtp, userData, referrer = null) => {
     if (otp !== sessionOtp) {
         throw new Error("Invalid OTP, Please try again");
     }
 
     const hashedPassword = await securePassword(userData.password);
+    
+    // Generate unique referral code for new user
+    const userReferralCode = await generateReferralCode();
 
     const saveUser = new userCollection({
         username: userData.username,
         email: userData.email,
         phoneNumber: userData.phoneNumber,
         password: hashedPassword,
+        referralCode: userReferralCode
     });
 
     await saveUser.save();
+
+    // Create referral record if user signed up with a referral code
+    if (referrer && userData.referralCode) {
+        await createReferralRecord(referrer._id, saveUser._id, userData.referralCode);
+    }
+
     return saveUser;
 };
 

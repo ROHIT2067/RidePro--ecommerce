@@ -64,6 +64,14 @@
       <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
       <script>
+        // Check if this is a new OTP session and clear old timer
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('new') === '1') {
+          localStorage.removeItem('otpExpiry');
+          // Clean up URL without refreshing
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
         // ============================================
         // CONFIGURATION
         // ============================================
@@ -100,18 +108,16 @@
 
         // TIMER FUNCTIONS
 
-        function getOrInitExpiry() {
-          let expiry = localStorage.getItem("otpExpiry");
-
-          // If expiry doesn't exist, create it (first load only)
+        function getExpiry() {
+          const expiry = localStorage.getItem("otpExpiry");
           if (!expiry) {
-            expiry = Date.now() + (OTP_DURATION * 1000);
-            localStorage.setItem("otpExpiry", expiry);
+            // Create new timer only if none exists
+            const newExpiry = Date.now() + (OTP_DURATION * 1000);
+            localStorage.setItem("otpExpiry", newExpiry);
+            return newExpiry;
           }
-
           return Number(expiry);
         }
-
 
         function formatTime(seconds) {
           const m = Math.floor(seconds / 60);
@@ -119,7 +125,8 @@
           return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
         }
 
-        let expiry = getOrInitExpiry();
+        // Get existing timer or create new one if none exists
+        let expiry = getExpiry();
         let timerInterval;
 
         function updateTimer() {
@@ -128,20 +135,20 @@
           timerDisplay.textContent = formatTime(remaining);
 
           if (remaining <= 0) {
+            timerDisplay.textContent = "00:00";
             resendOtp.classList.remove("hidden");
             verifyBtn.disabled = true;
             clearInterval(timerInterval);
           }
         }
 
-
         function startTimer() {
           clearInterval(timerInterval); // Clear any existing interval
-          updateTimer(); // Update immediately
+          updateTimer(); // Update immediately to show correct time
           timerInterval = setInterval(updateTimer, 1000); // Then update every second
         }
 
-        // Start the timer when page loads
+        // Start the timer immediately when page loads
         startTimer();
 
 
@@ -196,7 +203,7 @@
                 return;
               }
 
-              // Success - clear localStorage and redirect
+              // Success - clear localStorage, then redirect
               localStorage.removeItem("otpExpiry");
               showToast("OTP verified successfully! Redirecting...", "success");
 
@@ -234,7 +241,7 @@
                 return;
               }
 
-              // Reset timer
+              // Reset timer with fresh expiry
               expiry = Date.now() + (OTP_DURATION * 1000);
               localStorage.setItem("otpExpiry", expiry);
 
@@ -263,7 +270,7 @@
             clearInterval(timerInterval);
           } else {
             // Recalculate and restart timer when page becomes visible
-            expiry = getOrInitExpiry();
+            expiry = getExpiry();
             startTimer();
           }
         });

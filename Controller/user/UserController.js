@@ -70,15 +70,25 @@ const signUppost = async (req, res) => {
       return res.redirect("/signup");
     }
 
-    const otp = await userService.signup(result.data);
-    console.log("Generated OTP for signup:", otp);
-    req.session.userOtp = otp;
+    const signupResult = await userService.signup(result.data);
+    console.log("Generated OTP for signup:", signupResult.otp || signupResult);
+    
+    // Handle both old and new return formats
+    if (typeof signupResult === 'object' && signupResult.otp) {
+      req.session.userOtp = signupResult.otp;
+      req.session.referrer = signupResult.referrer;
+    } else {
+      req.session.userOtp = signupResult;
+    }
+    
     req.session.userData = result.data;
 
-    res.redirect("/verify-otp");
+    res.redirect("/verify-otp?new=1");
   } catch (error) {
     console.error("Error in signup:", error);
-    if (error.message === "User already exists") {
+    if (error.message === "User already exists" || 
+        error.message.includes("referral code") || 
+        error.message.includes("Referral code")) {
       req.session.flash = { serverError: error.message };
       return res.redirect("/signup");
     }
@@ -110,11 +120,13 @@ const verifyOtpPost = async (req, res) => {
       otp,
       req.session.userOtp,
       req.session.userData,
+      req.session.referrer
     );
 
     req.session.user = user._id;
     delete req.session.userOtp;
     delete req.session.userData;
+    delete req.session.referrer;
 
     return res.json({ success: true, redirectUrl: "/" });
   } catch (error) {

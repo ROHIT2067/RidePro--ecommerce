@@ -25,7 +25,8 @@ export const creditWallet = async (userId, amount, description, orderId = null) 
     type: 'credit',
     amount,
     description,
-    orderId
+    orderId,
+    date: new Date()
   });
 
   await user.save();
@@ -61,7 +62,8 @@ export const debitWallet = async (userId, amount, description, orderId = null) =
     type: 'debit',
     amount,
     description,
-    orderId
+    orderId,
+    date: new Date()
   });
 
   await user.save();

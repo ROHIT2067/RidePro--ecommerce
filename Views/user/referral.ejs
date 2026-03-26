@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referral Program - RidePro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/profile.css">
+    <link rel="stylesheet" href="/styles/header.css">
+    <link rel="stylesheet" href="/styles/footer.css">
+    <style>
+        .referral-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+            text-align: center;
+        }
+        
+        .referral-code {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            letter-spacing: 0.2em;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+        }
+        
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .how-it-works {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .step-content h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        
+        .step-content p {
+            margin: 0;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .reward-highlight {
+            background: #f8f9ff;
+            border: 1px solid #e0e7ff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        
+        .reward-amount {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <%- include('partials/header') %>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-header">
+            <div class="breadcrumb">
+                <a href="/">RidePro</a> &gt; <a href="/account">My Account</a> &gt; Referral Program
+            </div>
+            <h1>My Account</h1>
+        </div>
+
+        <div class="account-layout">
+            <!-- Sidebar -->
+            <%- include('partials/sidebar') %>
+
+            <!-- Referral Content -->
+            <div class="account-main">
+                <div class="profile-header">
+                    <h2>Referral Program</h2>
+                </div>
+
+                <!-- Referral Code Card -->
+                <div class="referral-card">
+                    <i class="fas fa-gift" style="font-size: 2.5rem; margin-bottom: 1rem;"></i>
+                    <h3>Your Referral Code</h3>
+                    <div class="referral-code" id="referralCode"><%= user.referralCode || 'Loading...' %></div>
+                    <button class="copy-btn" onclick="copyReferralCode()">
+                        <i class="fas fa-copy"></i> Copy Code
+                    </button>
+                    <p style="margin-top: 1rem; opacity: 0.9;">
+                        Share this code with friends and earn rewards when they make their first purchase!
+                    </p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalReferrals">-</div>
+                        <div class="stat-label">Total Referrals</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completedReferrals">-</div>
+                        <div class="stat-label">Successful Referrals</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalEarned">₹-</div>
+                        <div class="stat-label">Total Earned</div>
+                    </div>
+                </div>
+
+                <!-- How It Works -->
+                <div class="how-it-works">
+                    <h3 style="margin-bottom: 1.5rem; color: #333;">How It Works</h3>
+                    
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Share Your Code</h4>
+                            <p>Share your unique referral code with friends and family who love motorcycles and riding gear.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Friend Signs Up</h4>
+                            <p>Your friend creates an account using your referral code during the signup process.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>First Purchase</h4>
+                            <p>When your friend makes their first purchase, both of you receive wallet credits!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="reward-highlight">
+                        <div class="reward-amount">You earn ₹150 • Your friend gets ₹100</div>
+                        <p style="margin: 0.5rem 0 0 0; color: #666;">Rewards are automatically added to your wallet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <%- include('partials/footer') %>
+
+    <script>
+        // Copy referral code to clipboard
+        function copyReferralCode() {
+            const code = document.getElementById('referralCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 2000);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+
+        // Load referral stats
+        async function loadReferralStats() {
+            try {
+                const response = await fetch('/api/referral/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.stats;
+                    document.getElementById('totalReferrals').textContent = stats.totalReferrals;
+                    document.getElementById('completedReferrals').textContent = stats.completedReferrals;
+                    document.getElementById('totalEarned').textContent = '₹' + stats.totalEarned.toLocaleString('en-IN');
+                }
+            } catch (error) {
+                console.error('Error loading referral stats:', error);
+            }
+        }
+
+        // Load stats on page load
+        document.addEventListener('DOMContentLoaded', loadReferralStats);
+    </script>
+</body>
+
+</html>

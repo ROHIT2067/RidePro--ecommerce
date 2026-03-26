@@ -39,10 +39,25 @@ const createOfferPost = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
+    // Transform form data to proper types
+    const formData = { ...req.body };
+    
+    // Convert string numbers to actual numbers
+    if (formData.discountValue) {
+      formData.discountValue = parseFloat(formData.discountValue);
+    }
+    
+    if (formData.maxUsage) {
+      formData.maxUsage = parseInt(formData.maxUsage);
+    } else if (formData.maxUsage === '') {
+      // Remove empty string maxUsage
+      delete formData.maxUsage;
+    }
+
     // Validate request body with Zod schema
-    const validation = offerSchema.safeParse(req.body);
+    const validation = offerSchema.safeParse(formData);
     if (!validation.success) {
-      const errors = validation.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      const errors = validation.error.issues.map(err => `${err.path.join('.')}: ${err.message}`);
       return res.status(400).json({
         success: false,
         message: "Validation failed",
@@ -86,7 +101,7 @@ const updateOfferPost = async (req, res) => {
     // For other updates, validate with Zod schema
     const validation = offerSchema.safeParse(req.body);
     if (!validation.success) {
-      const errors = validation.error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      const errors = validation.error.issues.map(err => `${err.path.join('.')}: ${err.message}`);
       return res.status(400).json({
         success: false,
         message: "Validation failed",
