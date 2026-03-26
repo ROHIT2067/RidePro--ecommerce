@@ -99,8 +99,8 @@ const cancelOrderItem = async (userId, orderId, itemId, reason) => {
   const proportionalDiscount = (order.coupon_discount || 0) * (itemValue / totalOrderValue);
   const refundAmount = itemValue - proportionalDiscount;
 
-  // Process refund if payment was made via wallet or online
-  if (order.payment_method === 'wallet' || order.payment_method === 'online') {
+  // Process refund if payment was made via wallet, online, or paypal
+  if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
     await creditWallet(
       userId, 
       refundAmount, 
@@ -144,7 +144,7 @@ const cancelOrderItem = async (userId, orderId, itemId, reason) => {
     order.order_status = "Cancelled";
     
     // If this was the last item and user paid for shipping, refund the shipping cost too
-    if (order.payment_method === 'wallet' || order.payment_method === 'online') {
+    if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
       const shippingRefund = order.shipping_cost;
       await creditWallet(
         userId, 
@@ -197,8 +197,8 @@ const cancelEntireOrder = async (userId, orderId, reason) => {
     totalRefundAmount = cancelledItemsValue - proportionalDiscount;
   }
 
-  // Process refund if payment was made via wallet or online
-  if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online')) {
+  // Process refund if payment was made via wallet, online, or paypal
+  if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal')) {
     await creditWallet(
       userId, 
       totalRefundAmount, 
@@ -335,8 +335,8 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
     }
   }
 
-  // Process refund if payment was made via wallet or online
-  if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online')) {
+  // Process refund if payment was made via wallet, online, or paypal
+  if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal')) {
     await creditWallet(
       userId, 
       totalRefundAmount, 
@@ -358,7 +358,7 @@ const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
     // If this operation resulted in all items being cancelled, but we calculated a partial refund
     // (meaning not all items were cancelled in this single call), we need to refund shipping
     const wasPartialCancellation = !isAllItemsCancelled;
-    if (wasPartialCancellation && (order.payment_method === 'wallet' || order.payment_method === 'online')) {
+    if (wasPartialCancellation && (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal')) {
       const shippingRefund = order.shipping_cost;
       await creditWallet(
         userId, 

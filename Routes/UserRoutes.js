@@ -108,6 +108,9 @@ router.get('/checkout', checkoutController.checkoutGet)
 router.post('/checkout/add-address', checkoutController.addAddressPost)
 router.post('/checkout/edit-address', checkoutController.editAddressPost)
 router.post('/checkout/place-order', checkoutController.placeOrderPost)
+router.get('/checkout/paypal/success', checkoutController.paypalSuccessGet)
+router.get('/checkout/paypal/cancel', checkoutController.paypalCancelGet)
+router.get('/payment-failed', checkoutController.paymentFailedGet)
 router.get('/order-success', checkoutController.orderSuccessGet)
 
 // Order Management

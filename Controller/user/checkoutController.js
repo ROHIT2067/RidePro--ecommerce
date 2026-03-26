@@ -3,6 +3,7 @@ import addressService from "../../service/user/addressService.js";
 import couponService from "../../service/admin/couponService.js";
 import User from "../../Models/UserModel.js";
 import { AddAddressSchema, EditAddressSchema } from "../../schemas/index.js";
+import { createPayPalOrder, capturePayPalOrder } from "../../utils/payPal.js";
 
 const checkoutGet = async (req, res) => {
   try {
@@ -175,12 +176,66 @@ const placeOrderPost = async (req, res) => {
     }
 
     // Validate payment method
-    if (!['COD', 'wallet', 'online'].includes(paymentMethod)) {
+    if (!['COD', 'wallet', 'online', 'paypal'].includes(paymentMethod)) {
       return res.status(400).json({ success: false, message: "Invalid payment method" });
     }
 
     // Get applied coupon from session
     const appliedCoupon = req.session.appliedCoupon || null;
+
+    // Handle PayPal payment
+    if (paymentMethod === 'paypal') {
+      // Get checkout data to calculate total
+      const checkoutData = await checkoutService.getCheckoutData(userId, addressId);
+      if (!checkoutData.success) {
+        return res.status(400).json({ success: false, message: "Unable to process checkout data" });
+      }
+
+      let finalTotal = checkoutData.totalAmount;
+      if (appliedCoupon) {
+        finalTotal = checkoutData.totalAmount - appliedCoupon.discountAmount;
+      }
+
+      // Create PayPal order
+      const paypalResult = await createPayPalOrder(finalTotal);
+      
+      if (!paypalResult.success) {
+        let errorReason = "paypal_error";
+        if (paypalResult.errorCode) {
+          switch (paypalResult.errorCode) {
+            case 400:
+              errorReason = "invalid_payment_method";
+              break;
+            case 422:
+              errorReason = "insufficient_funds";
+              break;
+            default:
+              errorReason = "paypal_error";
+          }
+        }
+        return res.status(400).json({ 
+          success: false, 
+          message: "PayPal payment initialization failed",
+          redirectUrl: `/payment-failed?reason=${errorReason}`
+        });
+      }
+
+      // Store order details in session for completion after PayPal approval
+      req.session.pendingPayPalOrder = {
+        userId,
+        addressId,
+        appliedCoupon,
+        paymentMethod: 'paypal',
+        paypalOrderId: paypalResult.orderId,
+        totalAmount: finalTotal
+      };
+
+      return res.json({
+        success: true,
+        paypalApprovalUrl: paypalResult.approvalUrl,
+        paypalOrderId: paypalResult.orderId
+      });
+    }
 
     const order = await checkoutService.placeOrder(userId, addressId, appliedCoupon, paymentMethod);
 
@@ -225,10 +280,146 @@ const orderSuccessGet = async (req, res) => {
   }
 };
 
+const paypalSuccessGet = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.redirect("/login");
+    }
+
+    if (!req.session.pendingPayPalOrder) {
+      return res.redirect("/payment-failed?reason=invalid_session");
+    }
+
+    const { token } = req.query;
+    const pendingOrder = req.session.pendingPayPalOrder;
+
+    if (!token) {
+      return res.redirect("/payment-failed?reason=missing_token");
+    }
+
+    if (token !== pendingOrder.paypalOrderId) {
+      return res.redirect("/payment-failed?reason=invalid_token");
+    }
+
+    // Capture PayPal payment
+    const captureResult = await capturePayPalOrder(token);
+    
+    if (!captureResult.success) {
+      console.error("PayPal capture failed:", captureResult.message);
+      // Clear session data
+      delete req.session.pendingPayPalOrder;
+      return res.redirect("/payment-failed?reason=payment_failed");
+    }
+
+    // Create order in database
+    const order = await checkoutService.placeOrder(
+      pendingOrder.userId,
+      pendingOrder.addressId,
+      pendingOrder.appliedCoupon,
+      'paypal',
+      {
+        paypalOrderId: token,
+        captureId: captureResult.captureId,
+        payerEmail: captureResult.payerEmail
+      }
+    );
+
+    // Clear session data
+    delete req.session.pendingPayPalOrder;
+    if (pendingOrder.appliedCoupon) {
+      delete req.session.appliedCoupon;
+    }
+
+    return res.redirect(`/order-success?orderId=${order.order_id}`);
+  } catch (error) {
+    console.error("PayPal Success Error:", error);
+    // Clear session data
+    if (req.session.pendingPayPalOrder) {
+      delete req.session.pendingPayPalOrder;
+    }
+    return res.redirect("/payment-failed?reason=payment_processing_failed");
+  }
+};
+
+const paypalCancelGet = async (req, res) => {
+  try {
+    // Clear pending PayPal order from session
+    if (req.session.pendingPayPalOrder) {
+      delete req.session.pendingPayPalOrder;
+    }
+    
+    return res.redirect("/payment-failed?reason=payment_cancelled");
+  } catch (error) {
+    console.error("PayPal Cancel Error:", error);
+    return res.redirect("/checkout");
+  }
+};
+
+const paymentFailedGet = async (req, res) => {
+  try {
+    if (req.session.admin) {
+      return res.redirect("/admin/dashboard");
+    }
+
+    // Clear any pending PayPal order from session
+    if (req.session.pendingPayPalOrder) {
+      delete req.session.pendingPayPalOrder;
+    }
+
+    const { reason } = req.query;
+    let failureReason = "Payment processing failed";
+
+    // Map error codes to user-friendly messages
+    switch (reason) {
+      case 'payment_failed':
+        failureReason = "PayPal payment could not be processed";
+        break;
+      case 'payment_cancelled':
+        failureReason = "Payment was cancelled by user";
+        break;
+      case 'payment_processing_failed':
+        failureReason = "Payment processing encountered an error";
+        break;
+      case 'insufficient_funds':
+        failureReason = "Insufficient funds in PayPal account";
+        break;
+      case 'invalid_payment_method':
+        failureReason = "Invalid or expired payment method";
+        break;
+      case 'paypal_error':
+        failureReason = "PayPal service temporarily unavailable";
+        break;
+      case 'invalid_session':
+        failureReason = "Payment session expired or invalid";
+        break;
+      case 'missing_token':
+        failureReason = "Payment verification failed - missing token";
+        break;
+      case 'invalid_token':
+        failureReason = "Payment verification failed - invalid token";
+        break;
+      default:
+        if (reason) {
+          failureReason = reason;
+        }
+    }
+
+    return res.render("payment-failed", {
+      reason: failureReason,
+    });
+  } catch (error) {
+    console.error("Payment Failed Get Error:", error);
+    return res.redirect("/checkout");
+  }
+};
+
 export default {
   checkoutGet,
   addAddressPost,
   editAddressPost,
   placeOrderPost,
   orderSuccessGet,
+  paypalSuccessGet,
+  paypalCancelGet,
+  paymentFailedGet,
 };

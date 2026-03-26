@@ -1,4 +1,5 @@
 import adminService from "../../service/admin/adminService.js";
+import dashboardService from "../../service/admin/dashboardService.js";
 
 const adminLoginGet = (req, res) => {
   if (!req.session.admin) {
@@ -43,15 +44,38 @@ const adminLoginPost = async (req, res) => {
   }
 };
 
-const adminDashboardGet = (req, res) => {
-  if (!req.session.admin) {
-    return res.redirect("/login");
-  }
+const adminDashboardGet = async (req, res) => {
+  try {
+    if (!req.session.admin) {
+      return res.redirect("/login");
+    }
 
-  return res.render("adminDashboard", {
-    success_msg: req.session.success_msg || "",
-    error_msg: req.session.error_msg || "",
-  });
+    // Get dashboard statistics
+    const dashboardData = await dashboardService.getDashboardStats();
+
+    return res.render("adminDashboard", {
+      success_msg: req.session.success_msg || "",
+      error_msg: req.session.error_msg || "",
+      ...dashboardData
+    });
+  } catch (error) {
+    console.error('Error loading dashboard:', error);
+    return res.render("adminDashboard", {
+      success_msg: "",
+      error_msg: "Error loading dashboard data",
+      // Fallback data
+      totalSales: 0,
+      customersCount: 0,
+      ordersCount: 0,
+      ordersPercentage: 0,
+      ordersLeft: 100,
+      bestSellingTotalSales: 0,
+      topCategories: [],
+      recentOrders: [],
+      salesChartData: Array(30).fill(0),
+      customersChartData: Array(30).fill(0)
+    });
+  }
 };
 
 const logOut = async (req, res) => {

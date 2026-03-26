@@ -4,12 +4,14 @@
     "dev": "nodemon app.js"
   },
   "dependencies": {
+    "@paypal/checkout-server-sdk": "^1.0.3",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
     "croppie": "^2.6.5",
     "dotenv": "^17.2.3",
     "ejs": "^4.0.1",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "method-override": "^3.0.0",

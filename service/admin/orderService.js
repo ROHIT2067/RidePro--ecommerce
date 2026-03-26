@@ -155,17 +155,21 @@ const approveReturn = async (itemId) => {
   // Calculate proportional coupon discount for this item
   const proportionalDiscount = (order.coupon_discount || 0) * (itemValue / totalOrderValue);
   const refundAmount = itemValue - proportionalDiscount;
-  await creditWallet(
-    order.user_id, 
-    refundAmount, 
-    `Refund for returned item in order #${order.order_id}`, 
-    order._id
-  );
+  
+  // Process refund for all paid orders (wallet, online, paypal)
+  if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
+    await creditWallet(
+      order.user_id, 
+      refundAmount, 
+      `Refund for returned item in order #${order.order_id}`, 
+      order._id
+    );
 
-  // Update order refund details
-  order.refundAmount = (order.refundAmount || 0) + refundAmount;
-  order.refundStatus = 'completed';
-  order.refundedAt = new Date();
+    // Update order refund details
+    order.refundAmount = (order.refundAmount || 0) + refundAmount;
+    order.refundStatus = 'completed';
+    order.refundedAt = new Date();
+  }
 
   //Updates the item's status, records the return timestamp, and appends to its status history log
   item.status = item.status ? "Returned" : undefined;
@@ -207,15 +211,17 @@ const approveReturn = async (itemId) => {
     
     // Refund shipping cost for fully returned order
     const shippingRefund = order.shipping_cost;
-    await creditWallet(
-      order.user_id, 
-      shippingRefund, 
-      `Shipping refund for fully returned order #${order.order_id}`, 
-      order._id
-    );
-    
-    // Update order refund details
-    order.refundAmount = (order.refundAmount || 0) + shippingRefund;
+    if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
+      await creditWallet(
+        order.user_id, 
+        shippingRefund, 
+        `Shipping refund for fully returned order #${order.order_id}`, 
+        order._id
+      );
+      
+      // Update order refund details
+      order.refundAmount = (order.refundAmount || 0) + shippingRefund;
+    }
   } else if (returnedItems.length > 0) {
     // Some items are returned, some are not
     order.order_status = "Partially Returned";
@@ -326,8 +332,8 @@ const approveOrderReturn = async (orderId) => {
   // For full order return, refund the final amount (includes coupon discount calculation)
   const totalRefundAmount = order.final_amount || (order.total_amount - (order.coupon_discount || 0));
 
-  // Process refund if payment was made via wallet or online
-  if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online')) {
+  // Process refund for all paid orders (wallet, online, paypal)
+  if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal')) {
     await creditWallet(
       order.user_id, 
       totalRefundAmount, 

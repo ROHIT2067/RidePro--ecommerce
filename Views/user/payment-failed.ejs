@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Failed — RidePro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/styles/header.css" />
+  <link rel="stylesheet" href="/styles/footer.css" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0d0d0d; --surface: #141414; --surface2: #1c1c1c; --surface3: #222;
+      --border: #2a2a2a; --border2: #333; --text: #f0f0f0; --muted: #888; --muted2: #555;
+      --accent: #e8411a; --accent2: #ff5733; --success: #16a34a; --danger: #ef4444;
+      --warning: #f59e0b; --font: 'DM Sans', sans-serif; --display: 'Bebas Neue', sans-serif;
+      --radius: 10px; --radius2: 14px;
+    }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; padding-top: 72px; }
+    .page-wrap { max-width: 800px; margin: 0 auto; padding: 3rem 2rem 5rem; text-align: center; }
+    .failure-icon { width: 120px; height: 120px; margin: 0 auto 2rem; background: linear-gradient(135deg, var(--danger), #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; color: #fff; box-shadow: 0 20px 40px rgba(239, 68, 68, 0.3); }
+    .failure-title { font-family: var(--display); font-size: 3rem; letter-spacing: 0.04em; margin-bottom: 1rem; color: var(--danger); }
+    .failure-subtitle { font-size: 1.1rem; color: var(--muted); margin-bottom: 2.5rem; line-height: 1.6; }
+    .failure-details { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius2); padding: 2rem; margin-bottom: 2.5rem; text-align: left; }
+    .failure-reason { font-size: 0.95rem; color: var(--text); margin-bottom: 1.5rem; }
+    .failure-reason strong { color: var(--danger); }
+    .failure-info { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+    .action-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+    .btn { padding: 0.9rem 2rem; border-radius: var(--radius); font-family: var(--font); font-size: 0.9rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s; cursor: pointer; border: none; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+    .btn-secondary:hover { background: var(--border2); }
+    .help-section { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius2); padding: 1.5rem; }
+    .help-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text); }
+    .help-list { list-style: none; text-align: left; }
+    .help-list li { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; padding-left: 1.2rem; position: relative; }
+    .help-list li::before { content: '•'; color: var(--accent); font-weight: bold; position: absolute; left: 0; }
+    @media (max-width: 600px) { 
+      .failure-title { font-size: 2.2rem; } 
+      .action-buttons { flex-direction: column; align-items: center; }
+      .btn { width: 100%; max-width: 280px; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <div class="page-wrap">
+    <div class="failure-icon">
+      <i class="fas fa-times"></i>
+    </div>
+    
+    <h1 class="failure-title">Payment Failed</h1>
+    <p class="failure-subtitle">We couldn't process your payment. Don't worry, no charges were made to your account.</p>
+    
+    <div class="failure-details">
+      <div class="failure-reason">
+        <strong>Reason:</strong> 
+        <% if (typeof reason !== 'undefined' && reason) { %>
+          <%= reason %>
+        <% } else { %>
+          Payment processing failed
+        <% } %>
+      </div>
+      <div class="failure-info">
+        Your order has not been placed and no payment has been charged. You can try again with a different payment method or contact our support team if you continue to experience issues.
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <a href="/checkout" class="btn btn-primary">
+        <i class="fas fa-redo"></i> Try Again
+      </a>
+      <a href="/cart" class="btn btn-secondary">
+        <i class="fas fa-shopping-cart"></i> Back to Cart
+      </a>
+    </div>
+
+    <div class="help-section">
+      <h3 class="help-title">Need Help?</h3>
+      <ul class="help-list">
+        <li>Check if your payment method has sufficient funds</li>
+        <li>Verify your billing information is correct</li>
+        <li>Try using a different payment method</li>
+        <li>Contact your bank if the issue persists</li>
+        <li>Reach out to our customer support for assistance</li>
+      </ul>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

@@ -147,13 +147,18 @@ const orderSchema = new Schema(
     },
     payment_method: {
       type: String,
-      enum: ["COD", "wallet", "online"],
+      enum: ["COD", "wallet", "online", "paypal"],
       default: "COD",
     },
     payment_status: {
       type: String,
       enum: ["Pending", "Paid", "Failed"],
       default: "Pending",
+    },
+    payment_details: {
+      paypalOrderId: String,
+      captureId: String,
+      payerEmail: String,
     },
     order_status: {
       type: String,

@@ -315,11 +315,11 @@
             </div>
             <div class="form-group">
               <label for="offerStartDate">Start Date *</label>
-              <input type="date" id="offerStartDate" name="startDate" required />
+              <input type="date" id="offerStartDate" name="startDate" required min="<%= new Date().toISOString().split('T')[0] %>" />
             </div>
             <div class="form-group">
               <label for="offerEndDate">End Date *</label>
-              <input type="date" id="offerEndDate" name="endDate" required />
+              <input type="date" id="offerEndDate" name="endDate" required min="<%= new Date().toISOString().split('T')[0] %>" max="<%= (() => { const date = new Date(); date.setMonth(date.getMonth() + 1); date.setDate(16); return date.toISOString().split('T')[0]; })() %>" />
             </div>
             <div class="form-group conditional-fields" id="productField">
               <label for="productSelect">Select Product *</label>
@@ -477,7 +477,7 @@
             </div>
             <div class="form-group">
               <label for="couponExpiryDate">Expiry Date *</label>
-              <input type="date" id="couponExpiryDate" name="expiryDate" required />
+              <input type="date" id="couponExpiryDate" name="expiryDate" required min="<%= new Date().toISOString().split('T')[0] %>" max="<%= (() => { const date = new Date(); date.setMonth(date.getMonth() + 1); date.setDate(16); return date.toISOString().split('T')[0]; })() %>" />
             </div>
           </div>
           <button type="submit" class="save-btn">ADD COUPON</button>

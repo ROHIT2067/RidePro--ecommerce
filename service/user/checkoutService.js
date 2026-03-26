@@ -142,7 +142,7 @@ const generateOrderId = () => {
   return `${timestampSuffix}${randomDigits}`;
 };
 
-const placeOrder = async (userId, addressId, appliedCoupon = null, paymentMethod = 'COD') => {
+const placeOrder = async (userId, addressId, appliedCoupon = null, paymentMethod = 'COD', paymentDetails = null) => {
   // Get checkout data
   const checkoutData = await getCheckoutData(userId, addressId);
 
@@ -180,6 +180,16 @@ const placeOrder = async (userId, addressId, appliedCoupon = null, paymentMethod
     if (user.wallet.balance < finalAmount) {
       throw new Error("Insufficient wallet balance");
     }
+  }
+
+  // Prepare payment details for order
+  let orderPaymentDetails = {};
+  if (paymentMethod === 'paypal' && paymentDetails) {
+    orderPaymentDetails = {
+      paypalOrderId: paymentDetails.paypalOrderId,
+      captureId: paymentDetails.captureId,
+      payerEmail: paymentDetails.payerEmail
+    };
   }
 
   // Prepare order items with current offer prices
@@ -229,7 +239,8 @@ const placeOrder = async (userId, addressId, appliedCoupon = null, paymentMethod
       pincode: selectedAddress.pincode,
     },
     payment_method: paymentMethod,
-    payment_status: paymentMethod === 'wallet' ? 'Paid' : 'Pending',
+    payment_status: (paymentMethod === 'wallet' || paymentMethod === 'paypal') ? 'Paid' : 'Pending',
+    payment_details: orderPaymentDetails,
     order_status: "Pending",
     subtotal,
     shipping_cost: shippingCost,

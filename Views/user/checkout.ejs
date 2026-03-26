@@ -201,6 +201,18 @@
               </div>
             </label>
           </div>
+
+          <!-- PayPal Payment Option -->
+          <div class="payment-option">
+            <label class="payment-method" style="cursor: pointer;">
+              <input type="radio" name="paymentMethod" value="paypal" style="margin-right: 0.8rem;">
+              <div class="payment-icon"><i class="fab fa-paypal"></i></div>
+              <div class="payment-info">
+                <div class="payment-name">PayPal</div>
+                <div class="payment-desc">Pay securely with PayPal (USD conversion applied)</div>
+              </div>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -312,6 +324,30 @@
   <div id="toast"></div>
 
   <script>
+    // Check for error messages in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    
+    if (error) {
+      let errorMessage = 'An error occurred';
+      switch (error) {
+        case 'payment_failed':
+          errorMessage = 'PayPal payment failed. Please try again.';
+          break;
+        case 'payment_cancelled':
+          errorMessage = 'PayPal payment was cancelled.';
+          break;
+        case 'payment_processing_failed':
+          errorMessage = 'Payment processing failed. Please try again.';
+          break;
+      }
+      showToast(errorMessage, 'error');
+      
+      // Clean URL by removing error parameter
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+
     // Address selection
     document.querySelectorAll('.address-card').forEach(card => {
       card.addEventListener('click', function() {
@@ -530,11 +566,23 @@
         const data = await response.json();
 
         if (data.success) {
-          window.location.href = `/order-success?orderId=${data.orderId}`;
+          // Handle PayPal payment
+          if (selectedPayment.value === 'paypal' && data.paypalApprovalUrl) {
+            // Redirect to PayPal for payment approval
+            window.location.href = data.paypalApprovalUrl;
+          } else {
+            // Regular order success
+            window.location.href = `/order-success?orderId=${data.orderId}`;
+          }
         } else {
-          showToast(data.message || 'Failed to place order', 'error');
-          btn.disabled = false;
-          btn.innerHTML = '<i class="fa fa-check-circle"></i> Place Order';
+          // Check if there's a specific redirect URL for payment failures
+          if (data.redirectUrl) {
+            window.location.href = data.redirectUrl;
+          } else {
+            showToast(data.message || 'Failed to place order', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa fa-check-circle"></i> Place Order';
+          }
         }
       } catch (error) {
         showToast('An error occurred. Please try again.', 'error');

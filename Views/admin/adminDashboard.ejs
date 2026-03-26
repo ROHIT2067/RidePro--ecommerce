@@ -373,7 +373,7 @@
       font-weight: 500;
     }
 
-    .status-processing {
+    .status-processing, .status-pending, .status-confirmed {
       background-color: #fef3c7;
       color: #92400e;
     }
@@ -381,6 +381,21 @@
     .status-delivered {
       background-color: #d1fae5;
       color: #065f46;
+    }
+
+    .status-cancelled {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-returned, .status-return-requested {
+      background-color: #fde68a;
+      color: #92400e;
+    }
+
+    .status-partially-returned {
+      background-color: #fed7aa;
+      color: #9a3412;
     }
 
     /* Responsive Design */
@@ -435,7 +450,7 @@
               <p class="subtitle">THIS MONTH</p>
             </div>
           </div>
-          <div class="stat-value">₹4,235</div>
+          <div class="stat-value">₹<%= totalSales.toLocaleString('en-IN') %></div>
           <div class="stat-chart">
             <canvas id="salesChart"></canvas>
           </div>
@@ -445,11 +460,11 @@
         <div class="stat-card">
           <div class="stat-header">
             <div class="stat-info">
-              <h3>Customers</h3>
+              <h3>New Signups</h3>
               <p class="subtitle">THIS MONTH</p>
             </div>
           </div>
-          <div class="stat-value">2,571</div>
+          <div class="stat-value"><%= customersCount %></div>
           <div class="stat-chart">
             <canvas id="customersChart"></canvas>
           </div>
@@ -460,15 +475,15 @@
           <div class="stat-header">
             <div class="stat-info">
               <h3>Orders</h3>
-              <p class="subtitle">MONTHLY GOALS: 1,000</p>
+              <p class="subtitle">MONTHLY GOALS: 100</p>
             </div>
           </div>
-          <div class="stat-value">734</div>
+          <div class="stat-value"><%= ordersCount %></div>
           <div class="progress-info">
             <div class="progress-bar-container">
-              <div class="progress-bar-fill" style="width: 73.4%;"></div>
+              <div class="progress-bar-fill" style="width: <%= ordersPercentage %>%;"></div>
             </div>
-            <p class="progress-text">266 Left</p>
+            <p class="progress-text"><%= ordersLeft %> Left</p>
           </div>
         </div>
       </div>
@@ -484,7 +499,7 @@
             </div>
           </div>
           
-          <div class="sales-total">₹2,40,000</div>
+          <div class="sales-total">₹<%= bestSellingTotalSales.toLocaleString('en-IN') %></div>
           <p class="total-label">Total Sales</p>
 
           <div class="doughnut-container">
@@ -492,27 +507,22 @@
           </div>
 
           <ul class="product-list">
-            <li class="product-item">
-              <span class="product-name">
-                <span class="product-bullet" style="background-color: #3b82f6;"></span>
-                JACKETS
-              </span>
-              <span class="product-sales">₹84000 Sales</span>
-            </li>
-            <li class="product-item">
-              <span class="product-name">
-                <span class="product-bullet" style="background-color: #8b5cf6;"></span>
-                GLOVES
-              </span>
-              <span class="product-sales">₹79000 Sales</span>
-            </li>
-            <li class="product-item">
-              <span class="product-name">
-                <span class="product-bullet" style="background-color: #e5e7eb;"></span>
-                BASIC GEARS
-              </span>
-              <span class="product-sales">₹74000 Sales</span>
-            </li>
+            <% if (topCategories && topCategories.length > 0) { %>
+              <% topCategories.forEach(category => { %>
+                <li class="product-item">
+                  <span class="product-name">
+                    <span class="product-bullet" style="background-color: <%= category.color %>;"></span>
+                    <%= category.categoryName.toUpperCase() %>
+                  </span>
+                  <span class="product-sales">₹<%= category.totalRevenue.toLocaleString('en-IN') %> Sales</span>
+                </li>
+              <% }) %>
+            <% } else { %>
+              <li class="product-item">
+                <span class="product-name">No sales data available</span>
+                <span class="product-sales">₹0 Sales</span>
+              </li>
+            <% } %>
           </ul>
         </div>
 
@@ -533,36 +543,24 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>DELTA GT JACKET</td>
-                <td>20 Mar, 2023</td>
-                <td>₹75.00</td>
-                <td><span class="status-badge status-processing">Processing</span></td>
-              </tr>
-              <tr>
-                <td>AIR GT GLOVES</td>
-                <td>19 Mar, 2023</td>
-                <td>₹22.00</td>
-                <td><span class="status-badge status-processing">Processing</span></td>
-              </tr>
-              <tr>
-                <td>PUFFER WINTER JACKET</td>
-                <td>7 Feb, 2023</td>
-                <td>₹57.00</td>
-                <td><span class="status-badge status-delivered">delivered</span></td>
-              </tr>
-              <tr>
-                <td>STEALTH AIR PRO PANTS</td>
-                <td>29 Jan, 2023</td>
-                <td>₹36.00</td>
-                <td><span class="status-badge status-delivered">delivered</span></td>
-              </tr>
-              <tr>
-                <td>DEFENDER HANDGUARDS</td>
-                <td>27 Jan, 2023</td>
-                <td>₹27.00</td>
-                <td><span class="status-badge status-delivered">delivered</span></td>
-              </tr>
+              <% if (recentOrders && recentOrders.length > 0) { %>
+                <% recentOrders.forEach(order => { %>
+                  <tr>
+                    <td><%= order.productName %></td>
+                    <td><%= new Date(order.orderDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %></td>
+                    <td>₹<%= order.totalAmount.toLocaleString('en-IN') %></td>
+                    <td>
+                      <span class="status-badge status-<%= order.status.toLowerCase().replace(' ', '-') %>">
+                        <%= order.status %>
+                      </span>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="4" style="text-align: center; color: #6b7280;">No recent orders</td>
+                </tr>
+              <% } %>
             </tbody>
           </table>
         </div>
@@ -571,6 +569,11 @@
   </div>
 
   <script>
+    // Get data from server
+    const salesData = <%- JSON.stringify(salesChartData) %>;
+    const customersData = <%- JSON.stringify(customersChartData) %>;
+    const topCategoriesData = <%- JSON.stringify(topCategories) %>;
+
     // Sales Chart (Bar Chart)
     const salesCtx = document.getElementById('salesChart').getContext('2d');
     new Chart(salesCtx, {
@@ -578,7 +581,7 @@
       data: {
         labels: Array(30).fill(''),
         datasets: [{
-          data: [20, 35, 28, 42, 38, 45, 32, 48, 55, 42, 38, 50, 45, 58, 48, 52, 45, 60, 55, 48, 52, 58, 65, 55, 62, 58, 68, 62, 70, 65],
+          data: salesData,
           backgroundColor: '#3b82f6',
           borderRadius: 2,
           barThickness: 4,
@@ -605,7 +608,7 @@
       data: {
         labels: Array(30).fill(''),
         datasets: [{
-          data: [30, 45, 35, 50, 40, 55, 45, 60, 50, 65, 55, 70, 60, 75, 65, 80, 70, 85, 75, 90, 80, 95, 85, 100, 90, 95, 88, 92, 95, 100],
+          data: customersData,
           borderColor: '#3b82f6',
           backgroundColor: 'transparent',
           tension: 0.4,
@@ -629,32 +632,49 @@
 
     // Doughnut Chart
     const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
-    new Chart(doughnutCtx, {
-      type: 'doughnut',
-      data: {
-        labels: ['JACKETS', 'GLOVES', 'BASIC GEARS'],
-        datasets: [{
-          data: [84000, 79000, 77000],
-          backgroundColor: ['#3b82f6', '#8b5cf6', '#e5e7eb'],
-          borderWidth: 0,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '70%',
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                return context.label + ': ₹' + context.parsed.toLocaleString();
+    
+    // Prepare doughnut chart data
+    const doughnutLabels = topCategoriesData.map(cat => cat.categoryName);
+    const doughnutData = topCategoriesData.map(cat => cat.totalRevenue);
+    const doughnutColors = topCategoriesData.map(cat => cat.color);
+    
+    // Show chart only if there's data
+    if (doughnutData.length > 0 && doughnutData.some(val => val > 0)) {
+      new Chart(doughnutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: doughnutLabels,
+          datasets: [{
+            data: doughnutData,
+            backgroundColor: doughnutColors,
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.label + ': ₹' + context.parsed.toLocaleString('en-IN');
+                }
               }
             }
           }
         }
-      }
-    });
+      });
+    } else {
+      // Show "No data" message if no sales data
+      const canvas = document.getElementById('doughnutChart');
+      const ctx = canvas.getContext('2d');
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#6b7280';
+      ctx.textAlign = 'center';
+      ctx.fillText('No sales data', canvas.width / 2, canvas.height / 2);
+    }
   </script>
 </body>
 </html>

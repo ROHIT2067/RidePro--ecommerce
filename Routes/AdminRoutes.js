@@ -8,6 +8,7 @@ import productController from "../Controller/admin/productController.js";
 import orderController from "../Controller/admin/orderController.js";
 import offerController from "../Controller/admin/offerController.js";
 import couponController from "../Controller/admin/couponController.js";
+import reportController from "../Controller/admin/reportController.js";
 import  upload  from '../middlewares/multer.js';
 
 
@@ -55,5 +56,9 @@ router.get('/coupons/edit/:id', requireAdmin, couponController.editCouponGet)
 router.post('/coupons/edit/:id', requireAdmin, couponController.editCouponPost)
 router.put('/coupons/:couponId', requireAdmin, couponController.updateCouponPost)
 router.delete('/coupons/:couponId', requireAdmin, couponController.deleteCouponPost)
+
+// Sales Report Management
+router.get('/reports', requireAdmin, reportController.getSalesReportPage)
+router.get('/reports/download', requireAdmin, reportController.downloadSalesReport)
 
 export default router;
