@@ -6,9 +6,7 @@ const productsGet = async (req, res) => {
       return res.redirect("/admin/dashboard");
     }
 
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
+    
 
     const data = await shoppingService.getProductsList(req.query);
 
@@ -24,9 +22,7 @@ const productDetailGet = async (req, res) => {
     if (req.session.admin) {
       return res.redirect("/admin/dashboard");
     }
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
+    
 
     const data = await shoppingService.getProductDetails(req.params.id);
 
