@@ -48,7 +48,7 @@ const createOfferPost = async (req, res) => {
     }
     
     if (formData.maxUsage) {
-      formData.maxUsage = parseInt(formData.maxUsage);
+      formData.maxUsage = parseInt(formData.maxUsage); 
     } else if (formData.maxUsage === '') {
       // Remove empty string maxUsage
       delete formData.maxUsage;

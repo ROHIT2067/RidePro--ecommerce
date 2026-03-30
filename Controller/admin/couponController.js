@@ -1,9 +1,6 @@
 import couponService from "../../service/admin/couponService.js";
 import { couponSchema } from "../../schemas/index.js";
 
-// Note: Coupons are displayed on the same page as offers (/admin/offers)
-// So we don't need a separate couponsGet method here
-
 const editCouponGet = async (req, res) => {
   try {
     const { id } = req.params;
@@ -27,47 +24,19 @@ const editCouponPost = async (req, res) => {
     const { id } = req.params;
     const { code, discountType, discountValue, minimumOrderAmount, maximumOrderAmount, maximumDiscountCap, expiryDate, usageLimit, perUserLimit } = req.body;
 
-    // Validation
-    if (!code || !discountType || !discountValue || !expiryDate) {
-      req.session.errorMsg = "All required fields must be filled";
-      return res.redirect(`/admin/coupons/edit/${id}`);
-    }
-
-    if (parseFloat(discountValue) <= 0) {
-      req.session.errorMsg = "Discount value must be positive";
-      return res.redirect(`/admin/coupons/edit/${id}`);
-    }
-
-    if (discountType === 'percentage' && parseFloat(discountValue) > 100) {
-      req.session.errorMsg = "Percentage discount cannot exceed 100%";
-      return res.redirect(`/admin/coupons/edit/${id}`);
-    }
-
-    if (new Date(expiryDate) <= new Date()) {
-      req.session.errorMsg = "Expiry date must be in the future";
-      return res.redirect(`/admin/coupons/edit/${id}`);
-    }
-
-    // Check if another coupon already has the same code (excluding current coupon)
-    const existingCoupon = await couponService.getCouponByCode(code.toUpperCase());
-    if (existingCoupon && existingCoupon._id.toString() !== id) {
-      req.session.errorMsg = "Coupon code already exists";
-      return res.redirect(`/admin/coupons/edit/${id}`);
-    }
-
     const updateData = {
-      code: code.toUpperCase(),
+      code: code.toUpperCase(),  //Consistent casing, to prevent duplicates
       discountType,
       discountValue: parseFloat(discountValue),
       minimumOrderAmount: parseFloat(minimumOrderAmount) || 0,
-      maximumOrderAmount: maximumOrderAmount ? parseFloat(maximumOrderAmount) : null,
+      maximumOrderAmount: maximumOrderAmount ? parseFloat(maximumOrderAmount) : null,  //null in mongoDB means no limit
       maximumDiscountCap: maximumDiscountCap ? parseFloat(maximumDiscountCap) : null,
       usageLimit: usageLimit ? parseInt(usageLimit) : null,
       perUserLimit: parseInt(perUserLimit) || 1,
       expiryDate: new Date(expiryDate)
     };
 
-    await couponService.updateCouponById(id, updateData);
+    await couponService.updateCoupon(id, updateData);
 
     req.session.successMsg = "Coupon updated successfully";
     res.redirect("/admin/offers");
@@ -80,7 +49,7 @@ const editCouponPost = async (req, res) => {
 
 const createCouponPost = async (req, res) => {
   try {
-    // Validate request body (schema will handle string-to-number conversion)
+    //Validate request body (schema will handle string-to-number conversion)
     const validation = couponSchema.safeParse(req.body);
     if (!validation.success) {
       const errors = validation.error?.issues?.map(err => `${err.path.join('.')}: ${err.message}`) || ['Validation failed'];
@@ -110,7 +79,7 @@ const updateCouponPost = async (req, res) => {
   try {
     const { couponId } = req.params;
     
-    // For status toggle, skip validation
+    //For status toggle, skip validation
     if (req.body.status === 'toggle') {
       const coupon = await couponService.updateCoupon(couponId, req.body);
       return res.json({

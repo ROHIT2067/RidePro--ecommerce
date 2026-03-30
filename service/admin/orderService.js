@@ -17,11 +17,11 @@ const getOrders = async (query) => {
   if (search) {
     const users = await User.find({
       username: { $regex: search, $options: "i" },
-    }).select("_id");
+    }).select("_id");  //Tells Mongoose to only return the _id field 
 
     const userIds = users.map((u) => u._id);  //makes an array of ids
 
-  //Checks if search matches either order_id,or user_id 
+  //Checks if search matches either order_id, or user_id 
     filter.$or = [
       { order_id: { $regex: search, $options: "i" } },
       { user_id: { $in: userIds } },
@@ -31,7 +31,7 @@ const getOrders = async (query) => {
   //Filter by status
   if (statusFilter) {
     filter.order_status = statusFilter;
-  }
+  }  //Direct user input added to the MongoDB filter as an exact match
 
   const orders = await Order.find(filter)
     .sort({ [sortBy]: sortOrder })  //[]->telling JS to use the value of the variable as the key
@@ -111,7 +111,7 @@ const getOrderDetails = async (orderId) => {
         ...req,
         itemId: req.itemId?.toString()
       }));
-    }   //Converts each itemId in returnRequests to a plain string[EJS template comparisons will fail if not converted]
+    }   //Converts each itemId in returnRequests to a plain string, frontend will fail if not converted
 
     return order;
   } catch (error) {
@@ -138,21 +138,21 @@ const approveReturn = async (itemId) => {
   const returnRequest = order.returnRequests.find(req => req.itemId.toString() === itemId);  
   if (!returnRequest) {
     throw new Error("Return request not found");
-  }//Finds the matching return request for this item and validates it actually exists and is still pending
+  }
 
   if (returnRequest.status !== "pending") {
     throw new Error("Return request is not pending");
-  }
+  }//if already approved/rejected, throws an error
 
   await Variant.findByIdAndUpdate(item.variant_id, {
     $inc: { stock_quantity: item.quantity }
-  });
+  });//automically increments stock_quantity by item.quantity
 
   // Calculate refund amount accounting for coupon discount
   const itemValue = item.totalPrice || (item.price * item.quantity);
   const totalOrderValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
   
-  // Calculate proportional coupon discount for this item
+  // Calculation for no coupon discount order
   const proportionalDiscount = (order.coupon_discount || 0) * (itemValue / totalOrderValue);
   const refundAmount = itemValue - proportionalDiscount;
   
@@ -314,140 +314,11 @@ const rejectReturn = async (itemId, reason) => {
   return { success: true };
 };
 
-const approveOrderReturn = async (orderId) => {
-  if (!orderId) {
-    throw new Error("Order ID is required");
-  }
-
-  const order = await Order.findById(orderId);
-  if (!order) {
-    throw new Error("Order not found");
-  }
-
-  if (order.order_status !== "Return Requested") {
-    throw new Error("Order is not in return requested status");
-  }
-
-  // Calculate total refund amount (what user actually paid)
-  // For full order return, refund the final amount (includes coupon discount calculation)
-  const totalRefundAmount = order.final_amount || (order.total_amount - (order.coupon_discount || 0));
-
-  // Process refund for all paid orders (wallet, online, paypal)
-  if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal')) {
-    await creditWallet(
-      order.user_id, 
-      totalRefundAmount, 
-      `Refund for returned order #${order.order_id}`, 
-      order._id
-    );
-
-    // Update order refund details
-    order.refundAmount = totalRefundAmount;
-    order.refundStatus = 'completed';
-    order.refundedAt = new Date();
-  }
-
-  // Update order status to "Returned"
-  order.order_status = "Returned";
-  
-  // Update all non-cancelled items to "Returned" status and increment stock
-  for (const item of order.items) {
-    const itemStatus = item.status || item.item_status || 'Pending';
-    if (itemStatus !== 'Cancelled') {
-      // Increment stock for each returned item
-      await Variant.findByIdAndUpdate(item.variant_id, {
-        $inc: { stock_quantity: item.quantity }
-      });
-
-      item.status = item.status ? "Returned" : undefined;
-      item.item_status = "Returned"; // Keep backward compatibility
-      item.returned_at = new Date();
-      
-      // Add to status history
-      if (!item.statusHistory) {
-        item.statusHistory = [];
-      }
-      item.statusHistory.push({
-        status: "Returned",
-        reason: "Order return approved by admin",
-      });
-    }
-  }
-
-  // Update all return requests to approved
-  if (!order.returnRequests) {
-    order.returnRequests = [];
-  }
-  order.returnRequests.forEach(req => {
-    if (req.status === "pending") {
-      req.status = "approved";
-      req.processedAt = new Date();
-      // Update refund amount to reflect the total refund for full order return
-      req.refundAmount = totalRefundAmount;
-    }
-  });
-
-  await order.save();
-  
-  return { success: true, refundAmount: totalRefundAmount };
-};
-
-const rejectOrderReturn = async (orderId, reason) => {
-  if (!orderId || !reason) {
-    throw new Error("Order ID and reason are required");
-  }
-
-  const order = await Order.findById(orderId);
-  if (!order) {
-    throw new Error("Order not found");
-  }
-
-  if (order.order_status !== "Return Requested") {
-    throw new Error("Order is not in return requested status");
-  }
-
-  // Update order status back to "Delivered"
-  order.order_status = "Delivered";
-  
-  // Update all items back to "Delivered" status
-  order.items.forEach((item) => {
-    if ((item.status || item.item_status) === "Return Requested") {
-      item.status = item.status ? "Delivered" : undefined;
-      item.item_status = "Delivered";
-      
-      // Add to status history
-      if (!item.statusHistory) {
-        item.statusHistory = [];
-      }
-      item.statusHistory.push({
-        status: "Delivered",
-        reason: "Return request rejected by admin",
-      });
-    }
-  });
-
-  // Update all return requests to rejected with admin reason
-  if (!order.returnRequests) {
-    order.returnRequests = [];
-  }
-  order.returnRequests.forEach(req => {
-    if (req.status === "pending") {
-      req.status = "rejected";
-      req.adminReason = reason.trim();
-      req.processedAt = new Date();
-    }
-  });
-
-  await order.save();
-  return { success: true };
-};
 
 export default {
   getOrders,
   getOrderDetails,
   updateOrderStatus,
-  approveOrderReturn,
-  rejectOrderReturn,
   approveReturn,
   rejectReturn,
 };

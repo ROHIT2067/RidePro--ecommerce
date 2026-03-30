@@ -15,6 +15,7 @@ const getOffers = async (query) => {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
+        //targetId is a reference field pointing to either a Product or Category document, .populate() replaces the ObjectId with the actual document data 
 
     const totalOffers = await Offer.countDocuments();
     const totalPages = Math.ceil(totalOffers / limit);

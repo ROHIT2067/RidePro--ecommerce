@@ -6,7 +6,7 @@ const getCoupons = async (query) => {
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    const coupons = await Coupon.find()
+    const coupons = await Coupon.find() //No .populate() here because coupons don't reference other documents
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
@@ -22,12 +22,14 @@ const getCoupons = async (query) => {
         hasPrevPage: page > 1,
         nextPage: page + 1,
         prevPage: page - 1
-    };
+    }; 
 };
 
 const createCoupon = async (couponData) => {
-    // Validate input data with Zod schema
+    //Validate input data with Zod schema
     const validation = couponSchema.safeParse(couponData);
+
+    //If validation fails, maps each Zod issue to a readable string
     if (!validation.success) {
         const errors = validation.error.errors.map(err => err.message).join(', ');
         throw new Error(errors);
@@ -35,7 +37,7 @@ const createCoupon = async (couponData) => {
 
     const validatedData = validation.data;
 
-    // Check if coupon code already exists (case-insensitive)
+    //Check if coupon code already exists (case-insensitive)
     const existingCoupon = await Coupon.findOne({ 
         code: validatedData.code 
     });
@@ -44,12 +46,12 @@ const createCoupon = async (couponData) => {
         throw new Error("Coupon code already exists. Please choose a different code.");
     }
 
-    // Additional business logic validations
+    //Additional business logic validations
     await validateCouponBusinessRules(validatedData);
 
-    // Create coupon with validated data
+    //Create coupon with validated data
     const coupon = new Coupon({
-        ...validatedData,
+        ...validatedData,   //Spreads all validated fields into the object.
         status: 'active',
         usageCount: 0,
         usedBy: []
@@ -65,11 +67,11 @@ const updateCoupon = async (couponId, updateData) => {
         throw new Error("Coupon not found");
     }
 
-    // Handle status toggle
+    //Handle status toggle
     if (updateData.status === 'toggle') {
         coupon.status = coupon.status === 'active' ? 'inactive' : 'active';
     } else {
-        // Validate updated data with Zod schema for full updates
+        //Validate updated data with Zod schema for full updates(safeParse never throws on failure)
         if (updateData.code || updateData.discountType || updateData.discountValue || updateData.expiryDate) {
             const validation = couponSchema.safeParse({
                 code: updateData.code || coupon.code,
@@ -83,6 +85,7 @@ const updateCoupon = async (couponId, updateData) => {
                 expiryDate: updateData.expiryDate || coupon.expiryDate
             });
 
+            //If validation failed, collects all error messages into a comma-separated string and throws it
             if (!validation.success) {
                 const errors = validation.error.errors.map(err => err.message).join(', ');
                 throw new Error(errors);
@@ -125,6 +128,17 @@ const updateCoupon = async (couponId, updateData) => {
             coupon.expiryDate = expiryDate;
         }
         if (updateData.status) coupon.status = updateData.status;
+
+        await validateCouponBusinessRules({
+          discountType: coupon.discountType,
+          discountValue: coupon.discountValue,
+          minimumOrderAmount: coupon.minimumOrderAmount,
+          maximumOrderAmount: coupon.maximumOrderAmount,
+          maximumDiscountCap: coupon.maximumDiscountCap,
+          usageLimit: coupon.usageLimit,
+          perUserLimit: coupon.perUserLimit,
+          expiryDate: coupon.expiryDate
+        });
     }
 
     await coupon.save();
@@ -232,24 +246,6 @@ const getCouponById = async (couponId) => {
     return coupon;
 };
 
-const getCouponByCode = async (code) => {
-    return await Coupon.findOne({ code: code.toUpperCase() });
-};
-
-const updateCouponById = async (couponId, updateData) => {
-    const coupon = await Coupon.findById(couponId);
-    if (!coupon) {
-        throw new Error("Coupon not found");
-    }
-
-    // Update all fields
-    Object.keys(updateData).forEach(key => {
-        coupon[key] = updateData[key];
-    });
-
-    await coupon.save();
-    return coupon;
-};
 
 // Validate coupon business rules
 const validateCouponBusinessRules = async (couponData) => {
@@ -311,8 +307,6 @@ const validateCouponBusinessRules = async (couponData) => {
 export default {
     getCoupons,
     getCouponById,
-    getCouponByCode,
-    updateCouponById,
     createCoupon,
     updateCoupon,
     deleteCoupon,
