@@ -3,14 +3,6 @@ import couponService from "../../service/admin/couponService.js";
 
 const cartGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userId = req.session.user;
     const cartData = await cartService.getCart(userId);
 
@@ -66,10 +58,6 @@ const cartGet = async (req, res) => {
 
 const addToCartPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Please login to add items to cart" });
-    }
-
     const userId = req.session.user;
     const { variantId, quantity } = req.body;
 
@@ -90,10 +78,6 @@ const addToCartPost = async (req, res) => {
 
 const updateCartPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
-
     const userId = req.session.user;
     const { variantId, quantity } = req.body;
 
@@ -136,10 +120,6 @@ const updateCartPost = async (req, res) => {
 
 const removeFromCartPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
-
     const userId = req.session.user;
     const { variantId } = req.body;
 
@@ -158,10 +138,6 @@ const removeFromCartPost = async (req, res) => {
 
 const clearCartPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
-
     const userId = req.session.user;
     await cartService.clearCart(userId);
 
@@ -174,10 +150,6 @@ const clearCartPost = async (req, res) => {
 
 const applyCouponPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
-
     const userId = req.session.user;
     const { couponCode } = req.body;
 
@@ -214,10 +186,6 @@ const applyCouponPost = async (req, res) => {
 
 const removeCouponPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
-
     // Remove coupon from session
     delete req.session.appliedCoupon;
 

@@ -3,8 +3,6 @@ import { SignUpSchema, ForgotPasswordSchema, ResetPasswordSchema, VerifyOtpSchem
 
 const landingPageGet = async (req, res) => {
   try {
-    if (req.session.admin) return res.redirect("/admin/dashboard");
-
     const data = await userService.getHomeData();
     return res.render("home", data);
   } catch (error) {
@@ -14,33 +12,19 @@ const landingPageGet = async (req, res) => {
 };
 
 const loginGet = (req, res) => {
-  if (req.session.user) {
-    return res.redirect("/home");
-  }
-  if (!req.session.admin) {
-    const loginErr = req.session.loginErr || null;
-    const loginErr1 = req.session.loginErr1 || null;
+  const loginErr = req.session.loginErr || null;
+  const loginErr1 = req.session.loginErr1 || null;
 
-    delete req.session.loginErr;
-    delete req.session.loginErr1;
+  delete req.session.loginErr;
+  delete req.session.loginErr1;
 
-    res.render("login", {
-      loginErr1: loginErr1,
-      loginErr: loginErr,
-    });
-  } else {
-    res.redirect("/admin/dashboard");
-  }
+  res.render("login", {
+    loginErr1: loginErr1,
+    loginErr: loginErr,
+  });
 };
 
 const signupGet = (req, res) => {
-  if (req.session.user) {
-    return res.redirect("/home");
-  }
-  if (req.session.admin) {
-    return res.redirect("/admin/dashboard");
-  }
-
   const serverError = req.session.flash?.serverError || null;
   delete req.session.flash;
 
@@ -49,9 +33,6 @@ const signupGet = (req, res) => {
 
 const homeGet = async (req, res) => {
   try {
-    if (req.session.admin) return res.redirect("/admin/dashboard");
-    if (!req.session.user) return res.redirect("/login");
-
     const data = await userService.getHomeData();
     return res.render("home", data);
   } catch (error) {
@@ -97,13 +78,7 @@ const signUppost = async (req, res) => {
 };
 
 const verifyOtpGet = (req, res) => {
-  if (req.session.user) {
-    return res.redirect("/home");
-  }
-  if (!req.session.admin) {
-    return res.render("verify-otp");
-  }
-  return res.redirect("/admin/dashboard");
+  return res.render("verify-otp");
 };
 
 const verifyOtpPost = async (req, res) => {
@@ -199,10 +174,6 @@ const logOut = async (req, res) => {
 };
 
 const forgotPasswordGet = (req, res) => {
-  if (req.session.user) {
-    return res.redirect("/home");
-  }
-
   const serverError = req.session.flash?.serverError || null;
   delete req.session.flash;
 
@@ -239,13 +210,7 @@ const forgotPasswordPost = async (req, res) => {
 };
 
 const passwordVerifyGet = (req, res) => {
-  if (req.session.user) {
-    return res.redirect("/home");
-  }
-  if (!req.session.admin) {
-    return res.render("forgotPassOtp");
-  }
-  return res.redirect("/admin/dashboard");
+  return res.render("forgotPassOtp");
 };
 
 const passwordVerifyPost = async (req, res) => {
@@ -288,14 +253,6 @@ const resendOtpPassPost = async (req, res) => {
 };
 
 const resetPassGet = (req, res) => {
-  if (req.session.user) {
-    return res.redirect("/home");
-  }
-
-  if (req.session.admin) {
-    return res.redirect("/admin/dashboard");
-  }
-
   if (req.session.isverified) {
     return res.render("reset-password");
   }

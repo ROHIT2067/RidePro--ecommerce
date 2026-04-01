@@ -3,14 +3,6 @@ import { AddAddressSchema, EditAddressSchema } from "../../schemas/index.js";
 
 const addressGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userId = req.session.user;
     const addressId = req.query.addressId;
 
@@ -27,14 +19,6 @@ const addressGet = async (req, res) => {
 };
 
 const addressAddGet = (req, res) => {
-  if (req.session.admin) {
-    return res.redirect("/admin/dashboard");
-  }
-
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-
   const user = req.session.user;
   return res.render("addressAdd", { user: user });
 };
@@ -71,14 +55,6 @@ const addressAddPost = async (req, res) => {
 
 const addressEditGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userId = req.session.user;
     const addressId = req.params.id;
 

@@ -7,14 +7,6 @@ import { createPayPalOrder, capturePayPalOrder } from "../../utils/payPal.js";
 
 const checkoutGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userId = req.session.user;
     const selectedAddressId = req.query.address;
 
@@ -95,10 +87,6 @@ const checkoutGet = async (req, res) => {
 
 const addAddressPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Please login to add address" });
-    }
-
     const result = AddAddressSchema.safeParse(req.body);
     if (!result.success) {
       const errors = result.error.flatten().fieldErrors;
@@ -124,10 +112,6 @@ const addAddressPost = async (req, res) => {
 
 const editAddressPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Please login to edit address" });
-    }
-
     const { addressId, ...addressData } = req.body;
 
     if (!addressId) {
@@ -160,10 +144,6 @@ const editAddressPost = async (req, res) => {
 
 const placeOrderPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Please login to place order" });
-    }
-
     const userId = req.session.user;
     const { addressId, paymentMethod } = req.body;
 
@@ -257,14 +237,6 @@ const placeOrderPost = async (req, res) => {
 
 const orderSuccessGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const orderId = req.query.orderId;
 
     if (!orderId) {
@@ -282,10 +254,6 @@ const orderSuccessGet = async (req, res) => {
 
 const paypalSuccessGet = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     if (!req.session.pendingPayPalOrder) {
       return res.redirect("/payment-failed?reason=invalid_session");
     }
@@ -357,10 +325,6 @@ const paypalCancelGet = async (req, res) => {
 
 const paymentFailedGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
     // Clear any pending PayPal order from session
     if (req.session.pendingPayPalOrder) {
       delete req.session.pendingPayPalOrder;

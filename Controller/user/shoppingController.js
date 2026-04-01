@@ -2,12 +2,6 @@ import shoppingService from "../../service/user/shoppingService.js";
 
 const productsGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    
-
     const data = await shoppingService.getProductsList(req.query);
 
     return res.render("productListing", data);
@@ -19,11 +13,6 @@ const productsGet = async (req, res) => {
 
 const productDetailGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-    
-
     const data = await shoppingService.getProductDetails(req.params.id);
 
     return res.render("productDetail", data);

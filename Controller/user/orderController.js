@@ -5,14 +5,6 @@ import PDFDocument from "pdfkit";
 
 const ordersGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userId = req.session.user;
     const page = parseInt(req.query.page) || 1;
     const search = req.query.search || "";
@@ -35,14 +27,6 @@ const ordersGet = async (req, res) => {
 
 const orderDetailsGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userId = req.session.user;
     const orderId = req.params.orderId;
 
@@ -64,10 +48,6 @@ const orderDetailsGet = async (req, res) => {
 
 const cancelOrderPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Please login" });
-    }
-
     const userId = req.session.user;
     const orderId = req.params.orderId;
     const { reason } = req.body;
@@ -89,10 +69,6 @@ const cancelOrderPost = async (req, res) => {
 
 const cancelOrderItemPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Please login" });
-    }
-
     const userId = req.session.user;
     const orderId = req.params.orderId;
     const itemId = req.params.itemId;
@@ -122,10 +98,6 @@ const cancelOrderItemPost = async (req, res) => {
 
 const cancelOrderItemsPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Please login" });
-    }
-
     const userId = req.session.user;
     const orderId = req.params.orderId;
     const { itemIds, reason } = req.body;
@@ -154,10 +126,6 @@ const cancelOrderItemsPost = async (req, res) => {
 
 const returnOrderItemPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Please login" });
-    }
-
     const userId = req.session.user;
     const orderId = req.params.orderId;
     const { itemId, reason } = req.body;
@@ -186,10 +154,6 @@ const returnOrderItemPost = async (req, res) => {
 
 const returnEntireOrderPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ success: false, message: "Please login" });
-    }
-
     const userId = req.session.user;
     const orderId = req.params.orderId;
     const { reason } = req.body;
@@ -211,10 +175,6 @@ const returnEntireOrderPost = async (req, res) => {
 
 const downloadInvoiceGet = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userId = req.session.user;
     const orderId = req.params.orderId;
 

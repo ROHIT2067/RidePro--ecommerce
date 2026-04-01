@@ -2,14 +2,6 @@ import accountService from "../../service/user/accountService.js";
 import { ChangePasswordSchema } from "../../schemas/index.js";
 
 const changePassGet = (req, res) => {
-  if (req.session.admin) {
-    return res.redirect("/admin/dashboard");
-  }
-
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-
   const oldPassErr = req.session.flash?.oldPassErr || null;
   const newPassErr = req.session.flash?.newPassErr || null;
   const success = req.session.flash?.success || null;
@@ -21,14 +13,6 @@ const changePassGet = (req, res) => {
 
 const accoutGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userData = await accountService.getProfileData(req.session.user);
     return res.render("userprofile", { user: userData });
   } catch (error) {
@@ -70,14 +54,6 @@ const changePassPost = async (req, res) => {
 
 const accountEditGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userData = await accountService.getProfileData(req.session.user);
     return res.render("edit-profile", { user: userData });
   } catch (error) {
@@ -87,13 +63,6 @@ const accountEditGet = async (req, res) => {
 };
 
 const emailVerifyGet = async (req, res) => {
-  if (req.session.admin) {
-    return res.redirect("/admin/dashboard");
-  }
-
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
   const emailErr = req.session.emailErr || null;
   delete req.session.emailErr;
   return res.render("emailChange", { emailErr: emailErr });
@@ -123,13 +92,6 @@ const emailVerifyPost = async (req, res) => {
 };
 
 const emailOtpGet = (req, res) => {
-  if (req.session.admin) {
-    return res.redirect("/admin/dashboard");
-  }
-
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
   return res.render("emailOtp");
 };
 
@@ -153,14 +115,6 @@ const emailOtpPost = async (req, res) => {
 
 const resetEmailGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userData = await accountService.getProfileData(req.session.user);
     const resetErr = req.session.resetErr || null;
     delete req.session.resetErr;

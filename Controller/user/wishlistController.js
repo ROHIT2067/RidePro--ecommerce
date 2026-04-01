@@ -2,14 +2,6 @@ import wishlistService from "../../service/user/wishlistService.js";
 
 const wishlistGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userId = req.session.user;
     const wishlistData = await wishlistService.getWishlist(userId);
 
@@ -26,13 +18,6 @@ const wishlistGet = async (req, res) => {
 
 const addToWishlistPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Please login to add items to wishlist",
-      });
-    }
-
     const userId = req.session.user;
     const { variantId } = req.body;
 
@@ -61,13 +46,6 @@ const addToWishlistPost = async (req, res) => {
 
 const removeFromWishlistPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
-    }
-
     const userId = req.session.user;
     const { variantId } = req.body;
 
@@ -96,13 +74,6 @@ const removeFromWishlistPost = async (req, res) => {
 
 const moveToCartPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
-    }
-
     const userId = req.session.user;
     const { variantId, quantity } = req.body;
 
@@ -157,13 +128,6 @@ const checkWishlistItemGet = async (req, res) => {
 
 const clearWishlistPost = async (req, res) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
-    }
-
     const userId = req.session.user;
     const result = await wishlistService.clearWishlist(userId);
 

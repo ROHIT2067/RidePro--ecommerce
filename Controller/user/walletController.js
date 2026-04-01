@@ -2,14 +2,6 @@ import User from "../../Models/UserModel.js";
 
 const walletGet = async (req, res) => {
   try {
-    if (req.session.admin) {
-      return res.redirect("/admin/dashboard");
-    }
-
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
     const userId = req.session.user;
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
