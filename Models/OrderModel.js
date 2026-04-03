@@ -115,6 +115,29 @@ const orderSchema = new Schema(
       type: [returnRequestSchema],
       default: []
     },
+    statusHistory: {
+      type: [{
+        status: {
+          type: String,
+          required: true,
+        },
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
+        reason: String,
+        changedBy: {
+          type: String,
+          enum: ["admin", "system", "customer"],
+          default: "system"
+        },
+        metadata: {
+          userAgent: String,
+          timestamp: Number
+        }
+      }],
+      default: []
+    },
     shipping_address: {
       name: {
         type: String,
@@ -220,5 +243,22 @@ const orderSchema = new Schema(
   },
   { timestamps: true }
 );
+
+// Pre-save middleware to initialize status history
+orderSchema.pre('save', function() {
+  // Initialize status history if it doesn't exist and this is a new document
+  if (this.isNew && (!this.statusHistory || this.statusHistory.length === 0)) {
+    this.statusHistory = [{
+      status: this.order_status,
+      timestamp: new Date(),
+      reason: "Order created",
+      changedBy: "system",
+      metadata: {
+        userAgent: "Server",
+        timestamp: Date.now()
+      }
+    }];
+  }
+});
 
 export default mongoose.model("Order", orderSchema);

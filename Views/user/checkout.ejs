@@ -145,26 +145,38 @@
         <!-- Order Items -->
         <div class="section">
           <h2 class="section-title">Order Items</h2>
-          <% items.forEach(item => { 
-            const variant = item.variant_id;
-            const product = variant.product_id;
-            const img = variant.images && variant.images.length > 0 ? variant.images[0] : '/images/placeholder.jpg';
-          %>
+          <% if (items && items.length > 0) { %>
+            <% items.forEach(item => { 
+              // Safety checks to prevent undefined errors
+              if (!item || !item.variant_id || !item.variant_id.product_id) {
+                return;
+              }
+              
+              const variant = item.variant_id;
+              const product = variant.product_id;
+              const img = (variant.images && variant.images.length > 0) ? variant.images[0] : '/images/placeholder.jpg';
+            %>
             <div class="order-item">
-              <img src="<%= img %>" alt="<%= product.productName %>" class="item-img">
+              <img src="<%= img %>" alt="<%= product.productName || 'Product' %>" class="item-img">
               <div class="item-info">
-                <div class="item-name"><%= product.productName %></div>
+                <div class="item-name"><%= product.productName || 'Unknown Product' %></div>
                 <div class="item-variant">
                   <% if (variant.size) { %><span>Size: <%= variant.size %></span><% } %>
-                  <% if (variant.color) { %><span> • Color: <%= variant.color %></span><% } %>
+                  <% if (variant.color) { %><span><%= variant.size ? ' • ' : '' %>Color: <%= variant.color %></span><% } %>
                 </div>
               </div>
               <div class="item-price-qty">
-                <div class="item-qty">Qty: <%= item.quantity %></div>
-                <div class="item-price">₹<%= (item.price * item.quantity).toLocaleString('en-IN') %></div>
+                <div class="item-qty">Qty: <%= item.quantity || 0 %></div>
+                <div class="item-price">₹<%= ((item.price || 0) * (item.quantity || 0)).toLocaleString('en-IN') %></div>
               </div>
             </div>
           <% }) %>
+          <% } else { %>
+            <div class="no-items">
+              <p>No items found in your cart.</p>
+              <a href="/home" class="btn btn-primary">Continue Shopping</a>
+            </div>
+          <% } %>
         </div>
 
         <!-- Payment Method -->

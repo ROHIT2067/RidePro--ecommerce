@@ -224,7 +224,7 @@ const clearWishlist = async (userId) => {
   const wishlist = await Wishlist.findOneAndUpdate(
     { user_id: userId },
     { $set: { items: [] } },
-    { new: true }
+    { returnDocument: 'after' }
   );
 
   if (!wishlist) {

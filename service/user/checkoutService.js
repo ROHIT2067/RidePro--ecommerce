@@ -11,78 +11,137 @@ import { validateCartItems, reserveStock, validateAndPrepareOrderItems } from ".
 import mongoose from "mongoose";
 
 const getCheckoutData = async (userId, selectedAddressId) => {
-  // Get cart with populated data
-  const cart = await Cart.findOne({ user_id: userId })
-    .populate({
-      path: "items.variant_id",
-      populate: {
-        path: "product_id",
-        populate: { path: "category" },
-      },
-    });
+  try {
+    // Get cart with populated data
+    const cart = await Cart.findOne({ user_id: userId })
+      .populate({
+        path: "items.variant_id",
+        populate: {
+          path: "product_id",
+          populate: { path: "category" },
+        },
+      });
 
-  if (!cart || cart.items.length === 0) {
-    throw new Error("Your cart is empty");
-  }
+    if (!cart || cart.items.length === 0) {
+      throw new Error("Your cart is empty");
+    }
 
-  // Use comprehensive validation
-  const validation = await validateCartItems(cart.items);
+    // Use comprehensive validation
+    const validation = await validateCartItems(cart.items);
 
-  if (!validation.isValid) {
+    if (!validation.isValid) {
+      return {
+        success: false,
+        unavailableItems: validation.invalidItems.map(item => ({
+          productName: item.variant_id?.product_id?.productName || "Unknown Product",
+          reason: item.reason,
+          availableStock: item.availableStock
+        })),
+        hasUnavailableItems: true,
+      };
+    }
+
+    // Get addresses
+    const userAddresses = await Address.findOne({ user_id: userId }).lean();
+    const addresses = userAddresses?.address || [];
+
+    if (addresses.length === 0) {
+      throw new Error("Please add a delivery address");
+    }
+
+    // Select address
+    let selectedAddress = null;
+    if (selectedAddressId) {
+      selectedAddress = addresses.find((a) => a._id.toString() === selectedAddressId);
+    }
+    if (!selectedAddress) {
+      selectedAddress = addresses.find((a) => a.is_default) || addresses[0];
+    }
+
+    // Calculate totals using current offer prices
+    let subtotal = 0;
+    for (const item of validation.validItems) {
+      try {
+        const variant = item.variant_id;
+        const product = variant?.product_id;
+        
+        // Ensure variant and product exist with required properties
+        if (!variant || !product || !variant.price) {
+          continue;
+        }
+        
+        // Get current offer price for each item
+        let currentOfferPrice = variant.price; // Default to variant price
+        
+        if (product.category && product.category._id) {
+          try {
+            const priceCalc = await calculateProductPrice(product, variant.price, product.category._id);
+            currentOfferPrice = priceCalc.finalPrice || variant.price;
+          } catch (priceError) {
+            console.warn("Error calculating offer price, using variant price:", priceError);
+            currentOfferPrice = variant.price;
+          }
+        }
+        
+        subtotal += currentOfferPrice * item.quantity;
+      } catch (error) {
+        // Skip this item and continue with others
+        continue;
+      }
+    }
+
+    const shippingCost = 118;
+    const totalAmount = subtotal + shippingCost;
+
+    // Filter out any items that don't have proper structure before returning
+    const safeItems = validation.validItems.map(item => {
+      try {
+        // Extract the actual data from Mongoose documents
+        const itemDoc = item._doc || item;
+        const variant = item.validation?.variant || itemDoc.variant_id;
+        const product = item.validation?.product || variant?.product_id;
+
+        // Ensure we have the required data
+        if (!variant || !product || !product.productName) {
+          return null;
+        }
+
+        // Return a clean, template-safe object
+        return {
+          _id: itemDoc._id,
+          quantity: itemDoc.quantity || 0,
+          price: itemDoc.price || variant.price || 0,
+          variant_id: {
+            _id: variant._id,
+            size: variant.size || '',
+            color: variant.color || '',
+            price: variant.price || 0,
+            images: variant.images || [],
+            product_id: {
+              _id: product._id,
+              productName: product.productName || 'Unknown Product'
+            }
+          }
+        };
+      } catch (error) {
+        return null;
+      }
+    }).filter(item => item !== null);
+
     return {
-      success: false,
-      unavailableItems: validation.invalidItems.map(item => ({
-        productName: item.variant_id?.product_id?.productName || "Unknown Product",
-        reason: item.reason,
-        availableStock: item.availableStock
-      })),
-      hasUnavailableItems: true,
+      success: true,
+      items: safeItems,
+      addresses,
+      selectedAddress,
+      subtotal,
+      shippingCost,
+      totalAmount,
+      hasUnavailableItems: false,
     };
+  } catch (error) {
+    console.error("Error in getCheckoutData:", error);
+    throw error;
   }
-
-  // Get addresses
-  const userAddresses = await Address.findOne({ user_id: userId }).lean();
-  const addresses = userAddresses?.address || [];
-
-  if (addresses.length === 0) {
-    throw new Error("Please add a delivery address");
-  }
-
-  // Select address
-  let selectedAddress = null;
-  if (selectedAddressId) {
-    selectedAddress = addresses.find((a) => a._id.toString() === selectedAddressId);
-  }
-  if (!selectedAddress) {
-    selectedAddress = addresses.find((a) => a.is_default) || addresses[0];
-  }
-
-  // Calculate totals using current offer prices
-  let subtotal = 0;
-  for (const item of validation.validItems) {
-    const variant = item.variant_id;
-    const product = variant.product_id;
-    
-    // Get current offer price for each item
-    const priceCalc = await calculateProductPrice(product, variant.price, product.category._id);
-    const currentOfferPrice = priceCalc.finalPrice;
-    
-    subtotal += currentOfferPrice * item.quantity;
-  }
-
-  const shippingCost = 118;
-  const totalAmount = subtotal + shippingCost;
-
-  return {
-    success: true,
-    items: validation.validItems,
-    addresses,
-    selectedAddress,
-    subtotal,
-    shippingCost,
-    totalAmount,
-    hasUnavailableItems: false,
-  };
 };
 
 const generateOrderId = () => {
@@ -254,7 +313,7 @@ const placeOrder = async (userId, addressId, appliedCoupon = null, paymentMethod
         try {
           await processReferralRewards(userId);
         } catch (error) {
-          console.error('Error processing referral rewards:', error);
+          // Silently handle referral processing errors
         }
       });
 

@@ -5,6 +5,11 @@ import { validateItemStock } from "../../middlewares/stockValidationMiddleware.j
 const cartGet = async (req, res) => {
   try {
     const userId = req.session.user;
+    
+    if (!userId) {
+      return res.redirect("/login");
+    }
+
     const cartData = await cartService.getCart(userId);
 
     const checkoutError = req.session.checkoutError;
@@ -40,20 +45,36 @@ const cartGet = async (req, res) => {
     }
 
     return res.render("cart", {
-      items: cartData.items,
-      cartCount: cartData.cartCount,
-      totalPrice: cartData.totalPrice,
+      items: cartData.items || [],
+      cartCount: cartData.cartCount || 0,
+      totalPrice: cartData.totalPrice || 0,
       finalTotal: finalTotal,
       appliedCoupon: appliedCoupon,
       couponDiscount: couponDiscount,
-      hasOutOfStock: cartData.hasOutOfStock,
+      hasOutOfStock: cartData.hasOutOfStock || false,
       unavailableItems: cartData.unavailableItems || [],
       adjustmentWarnings: cartData.adjustmentWarnings || [],
       checkoutError: checkoutError || null,
     });
   } catch (error) {
     console.error("Cart Get Error:", error);
-    return res.redirect("/home");
+    
+    // Set a user-friendly error message
+    req.session.checkoutError = "There was an error loading your cart. Please try again.";
+    
+    // Render cart with empty data to prevent crashes
+    return res.render("cart", {
+      items: [],
+      cartCount: 0,
+      totalPrice: 0,
+      finalTotal: 118, // Just delivery charge
+      appliedCoupon: null,
+      couponDiscount: 0,
+      hasOutOfStock: false,
+      unavailableItems: [],
+      adjustmentWarnings: [],
+      checkoutError: "There was an error loading your cart. Please try again.",
+    });
   }
 };
 

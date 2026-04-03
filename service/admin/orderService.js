@@ -2,6 +2,7 @@ import Order from "../../Models/OrderModel.js";
 import User from "../../Models/UserModel.js";
 import Variant from "../../Models/VariantModel.js";
 import { creditWallet } from "../../utils/walletHelper.js";
+import { validateStatusTransition, createStatusHistoryEntry, getValidNextStatuses } from "../../utils/orderStatusValidator.js";
 
 const getOrders = async (query) => {
   let search = query.search || "";
@@ -60,39 +61,77 @@ const updateOrderStatus = async (orderId, newStatus) => {
     throw new Error("Order ID and status are required");
   }
 
-  const validStatuses = ["Pending", "Confirmed", "Shipped", "Out for Delivery", "Delivered", "Cancelled", "Return Requested"];
-  if (!validStatuses.includes(newStatus)) {
-    throw new Error("Invalid status");
-  }
-
   const order = await Order.findById(orderId);
   if (!order) {
     throw new Error("Order not found");
   }
 
-  if (order.order_status === "Cancelled") {
-    throw new Error("Cannot update status of a cancelled order");
+  const currentStatus = order.order_status;
+
+  // Validate the status transition using the comprehensive validator
+  const validation = validateStatusTransition(currentStatus, newStatus, true);
+  
+  if (!validation.isValid) {
+    throw new Error(validation.reason);
   }
 
-  if (order.order_status === "Returned" || order.order_status === "Return Requested") {
-    throw new Error("Cannot update status of a returned or return requested order");
+  // Additional business logic validations
+  if (currentStatus === "Delivered" && newStatus !== "Return Requested") {
+    throw new Error("Delivered orders can only transition to Return Requested status, and only by customers");
   }
 
+  // Update the order status
   order.order_status = newStatus;
 
-  //Set delivery date if status is Delivered
+  // Set delivery date if status is Delivered
   if (newStatus === "Delivered" && !order.delivery_date) {
     order.delivery_date = new Date();
   }
 
-  //Set shipped date if status is Shipped
+  // Set shipped date if status is Shipped
   if (newStatus === "Shipped" && !order.shipped_date) {
     order.shipped_date = new Date();
   }
 
+  // Add status change to history
+  const statusHistoryEntry = createStatusHistoryEntry(
+    newStatus, 
+    `Status updated by admin from ${currentStatus} to ${newStatus}`,
+    "admin"
+  );
+
+  // Add to order-level status history if it exists
+  if (!order.statusHistory) {
+    order.statusHistory = [];
+  }
+  order.statusHistory.push(statusHistoryEntry);
+
+  // Also update individual item statuses to match order status
+  // (except for terminal item statuses like Cancelled, Returned)
+  order.items.forEach(item => {
+    const itemStatus = item.status || item.item_status;
+    
+    // Don't update items that are in terminal states
+    if (!["Cancelled", "Returned", "Return Requested"].includes(itemStatus)) {
+      item.status = newStatus;
+      
+      // Add to item status history
+      if (!item.statusHistory) {
+        item.statusHistory = [];
+      }
+      item.statusHistory.push(statusHistoryEntry);
+    }
+  });
+
   await order.save();
 
-  return { success: true, newStatus };
+  return { 
+    success: true, 
+    newStatus,
+    previousStatus: currentStatus,
+    message: `Order status successfully updated from ${currentStatus} to ${newStatus}`,
+    validNextStatuses: getValidNextStatuses(newStatus, true)
+  };
 };
 
 const getOrderDetails = async (orderId) => {
@@ -327,6 +366,30 @@ const approveReturnWithoutInventory = async (itemId) => {
   return await approveReturn(itemId, false);
 };
 
+const getOrderStatusInfo = async (orderId) => {
+  const order = await Order.findById(orderId);
+  if (!order) {
+    throw new Error("Order not found");
+  }
+
+  const currentStatus = order.order_status;
+  const validNextStatuses = getValidNextStatuses(currentStatus, true);
+
+  return {
+    orderId: order._id,
+    orderNumber: order.order_id,
+    currentStatus,
+    validNextStatuses,
+    canUpdate: validNextStatuses.length > 0,
+    statusHistory: order.statusHistory || [],
+    lastUpdated: order.updatedAt
+  };
+};
+
+const getValidStatusOptions = (currentStatus) => {
+  return getValidNextStatuses(currentStatus, true);
+};
+
 export default {
   getOrders,
   getOrderDetails,
@@ -335,4 +398,6 @@ export default {
   approveReturnWithInventory,
   approveReturnWithoutInventory,
   rejectReturn,
+  getOrderStatusInfo,
+  getValidStatusOptions,
 };

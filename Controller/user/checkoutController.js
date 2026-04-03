@@ -11,6 +11,10 @@ const checkoutGet = async (req, res) => {
     const userId = req.session.user;
     const selectedAddressId = req.query.address;
 
+    if (!userId) {
+      return res.redirect("/login");
+    }
+
     // Validate cart before showing checkout page
     const { preCheckoutValidation } = await import("../../utils/orderValidationHooks.js");
     const validation = await preCheckoutValidation(userId);
@@ -41,7 +45,38 @@ const checkoutGet = async (req, res) => {
         hasOutOfStock: false,
         unavailableItems: checkoutData.unavailableItems || [],
         adjustmentWarnings: [],
+        checkoutError: "Some items in your cart are unavailable",
       });
+    }
+
+    // Additional safety check - ensure items are properly structured for template
+    const safeItems = (checkoutData.items || []).filter(item => {
+      const isValid = item && 
+                     item.variant_id && 
+                     item.variant_id.product_id && 
+                     item.variant_id.product_id.productName &&
+                     typeof item.quantity === 'number' &&
+                     typeof item.price === 'number' &&
+                     item.quantity > 0;
+      
+      if (!isValid) {
+        console.warn("Filtering out invalid checkout item:", {
+          hasItem: !!item,
+          hasVariant: !!item?.variant_id,
+          hasProduct: !!item?.variant_id?.product_id,
+          hasProductName: !!item?.variant_id?.product_id?.productName,
+          quantity: item?.quantity,
+          price: item?.price
+        });
+      }
+      
+      return isValid;
+    });
+
+    // If no valid items remain, redirect to cart
+    if (safeItems.length === 0) {
+      req.session.checkoutError = "No valid items found in cart";
+      return res.redirect("/cart");
     }
 
     // Get user's wallet balance
@@ -89,20 +124,30 @@ const checkoutGet = async (req, res) => {
     }
 
     return res.render("checkout", {
-      items: checkoutData.items,
-      addresses: checkoutData.addresses,
+      items: safeItems,
+      addresses: checkoutData.addresses || [],
       selectedAddress: checkoutData.selectedAddress,
-      subtotal: checkoutData.subtotal,
-      shippingCost: checkoutData.shippingCost,
-      totalAmount: checkoutData.totalAmount,
+      subtotal: checkoutData.subtotal || 0,
+      shippingCost: checkoutData.shippingCost || 118,
+      totalAmount: checkoutData.totalAmount || 118,
       appliedCoupon: appliedCoupon,
       finalTotal: finalTotal,
       walletBalance: walletBalance,
     });
   } catch (error) {
     console.error("Checkout Get Error:", error);
-    req.session.checkoutError = error.message;
-    return res.redirect("/cart");
+    req.session.checkoutError = "Unable to load checkout page. Please try again.";
+    
+    // Render cart with error message instead of redirecting
+    return res.render("cart", {
+      items: [],
+      cartCount: 0,
+      totalPrice: 0,
+      hasOutOfStock: false,
+      unavailableItems: [],
+      adjustmentWarnings: [],
+      checkoutError: "Unable to load checkout page. Please check your cart and try again.",
+    });
   }
 };
 

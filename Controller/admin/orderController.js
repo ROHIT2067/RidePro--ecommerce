@@ -21,25 +21,52 @@ const updateOrderStatusPost = async (req, res) => {
   try {
     const { orderId, status } = req.body;
 
+    if (!orderId || !status) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Order ID and status are required" 
+      });
+    }
+
     const result = await orderService.updateOrderStatus(orderId, status);
 
-    return res.status(200).json(result);
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: {
+        newStatus: result.newStatus,
+        previousStatus: result.previousStatus,
+        validNextStatuses: result.validNextStatuses
+      }
+    });
   } catch (error) {
     console.error("Error updating order status:", error);
 
-    if (error.message === "Order ID and status are required") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-
-    if (error.message === "Invalid status") {
-      return res.status(400).json({ success: false, message: error.message });
+    // Handle specific validation errors
+    if (error.message.includes("Cannot transition") || 
+        error.message.includes("Cannot revert") ||
+        error.message.includes("terminal state") ||
+        error.message.includes("Invalid")) {
+      return res.status(400).json({ 
+        success: false, 
+        message: error.message,
+        errorType: "VALIDATION_ERROR"
+      });
     }
 
     if (error.message === "Order not found") {
-      return res.status(404).json({ success: false, message: error.message });
+      return res.status(404).json({ 
+        success: false, 
+        message: error.message,
+        errorType: "NOT_FOUND"
+      });
     }
 
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ 
+      success: false, 
+      message: "Internal server error while updating order status",
+      errorType: "SERVER_ERROR"
+    });
   }
 };
 
@@ -251,10 +278,38 @@ const rejectReturnPost = async (req, res) => {
   }
 };
 
+const getOrderStatusOptionsGet = async (req, res) => {
+  try {
+    if (!req.session.admin) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const orderId = req.params.id;
+    const statusInfo = await orderService.getOrderStatusInfo(orderId);
+
+    return res.status(200).json({
+      success: true,
+      data: statusInfo
+    });
+  } catch (error) {
+    console.error("Error getting order status options:", error);
+    
+    if (error.message === "Order not found") {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+
+    return res.status(500).json({ 
+      success: false, 
+      message: "Error retrieving order status information" 
+    });
+  }
+};
+
 export default {
   ordersGet,
   orderDetailsGet,
   updateOrderStatusPost,
+  getOrderStatusOptionsGet,
   downloadInvoiceGet,
   approveReturnPost,
   approveReturnWithInventoryPost,

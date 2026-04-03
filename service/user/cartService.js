@@ -9,39 +9,54 @@ const MAX_QUANTITY_PER_ITEM = 5;
 // Helper function to get offer-discounted price for a variant
 const getOfferPrice = async (variant) => {
   try {
+    // Ensure variant exists and has required properties
+    if (!variant || !variant.price) {
+      console.warn("Invalid variant passed to getOfferPrice:", variant);
+      return 0;
+    }
+
     const product = variant.product_id;
+    
+    // If product is not populated or doesn't exist, return original price
     if (!product || !product.category) {
-      return variant.price; // Return original price if no product/category info
+      return variant.price;
+    }
+    
+    // Ensure product has required properties
+    if (!product._id || !product.category._id) {
+      return variant.price;
     }
     
     const priceCalc = await calculateProductPrice(product, variant.price, product.category._id);
-    return priceCalc.finalPrice;
+    return priceCalc.finalPrice || variant.price;
   } catch (error) {
     console.error("Error calculating offer price:", error);
-    return variant.price; // Fallback to original price
+    // Return original price as fallback
+    return variant?.price || 0;
   }
 };
 
 const getCart = async (userId) => {
-  let cart = await Cart.findOne({ user_id: userId })
-    .populate({
-      path: "items.variant_id",
-      populate: {
-        path: "product_id",
-        populate: { path: "category" },
-      },
-    });  // Nested population : needed to run availability checks on each item
+  try {
+    let cart = await Cart.findOne({ user_id: userId })
+      .populate({
+        path: "items.variant_id",
+        populate: {
+          path: "product_id",
+          populate: { path: "category" },
+        },
+      });  // Nested population : needed to run availability checks on each item
 
-  if (!cart) {
-    cart = new Cart({ user_id: userId, items: [] });
-    await cart.save();
-    return { items: [], cartCount: 0, totalPrice: 0, hasOutOfStock: false };
-  }
+    if (!cart) {
+      cart = new Cart({ user_id: userId, items: [] });
+      await cart.save();
+      return { items: [], cartCount: 0, totalPrice: 0, hasOutOfStock: false };
+    }
 
-  const unavailableItems = [];
-  const adjustmentWarnings = [];
-  const validItems = [];
-  let cartModified = false;
+    const unavailableItems = [];
+    const adjustmentWarnings = [];
+    const validItems = [];
+    let cartModified = false;
 
   //Needed to run availability checks on each item to safely splice items without messing up the loop index
   for (let i = cart.items.length - 1; i >= 0; i--) {
@@ -119,29 +134,55 @@ const getCart = async (userId) => {
 
   //Converts Mongoose documents to plain JS objects for safe use in the view
   const itemsLean = await Promise.all(validItems.map(async (item) => {
-    const offerPrice = await getOfferPrice(item.variant_id);
-    
-    // Update cart item price if it's different from current offer price
-    if (Math.abs(item.price - offerPrice) > 0.01) {
-      item.price = offerPrice;
-      cartModified = true;
+    try {
+      // Ensure item and variant exist
+      if (!item || !item.variant_id) {
+        console.warn("Invalid item in cart:", item);
+        return null;
+      }
+
+      const variant = item.variant_id;
+      
+      // Ensure variant has required properties
+      if (!variant || !variant.price) {
+        console.warn("Invalid variant in cart item:", variant);
+        return null;
+      }
+
+      const offerPrice = await getOfferPrice(variant);
+      
+      // Update cart item price if it's different from current offer price
+      if (Math.abs(item.price - offerPrice) > 0.01) {
+        item.price = offerPrice;
+        cartModified = true;
+      }
+      
+      return {
+        ...item.toObject(),
+        variant_id: variant.toObject ? variant.toObject() : variant,
+        offerPrice: offerPrice,
+        originalPrice: variant.price || 0, // Use actual variant price as original
+        finalPrice: offerPrice // Use offer price for calculations
+      };
+    } catch (error) {
+      return null;
     }
-    
-    return {
-      ...item.toObject(),
-      variant_id: item.variant_id.toObject ? item.variant_id.toObject() : item.variant_id,
-      offerPrice: offerPrice,
-      originalPrice: item.variant_id.price, // Use actual variant price as original
-      finalPrice: offerPrice // Use offer price for calculations
-    };
   }));
+
+  // Filter out any null items that failed processing
+  const validItemsLean = itemsLean.filter(item => item !== null);
 
   const cartCount = validItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = await validItems.reduce(async (sumPromise, item) => {
     const sum = await sumPromise;
-    if (!item.isOutOfStock) {
-      const offerPrice = await getOfferPrice(item.variant_id);
-      return sum + offerPrice * item.quantity;
+    if (!item.isOutOfStock && item.variant_id) {
+      try {
+        const offerPrice = await getOfferPrice(item.variant_id);
+        return sum + offerPrice * item.quantity;
+      } catch (error) {
+        console.error("Error calculating price for item:", error, item);
+        return sum;
+      }
     }
     return sum;
   }, Promise.resolve(0));
@@ -149,13 +190,25 @@ const getCart = async (userId) => {
   const hasOutOfStock = validItems.some((item) => item.isOutOfStock);
 
   return {
-    items: itemsLean,
+    items: validItemsLean,
     cartCount,
     totalPrice,
     hasOutOfStock,
     unavailableItems,
     adjustmentWarnings,
   };
+} catch (error) {
+  console.error("Error in getCart:", error);
+  // Return safe defaults if there's an error
+  return {
+    items: [],
+    cartCount: 0,
+    totalPrice: 0,
+    hasOutOfStock: false,
+    unavailableItems: [],
+    adjustmentWarnings: [],
+  };
+}
 };
 
 const addToCart = async (userId, variantId, quantity = 1) => {
@@ -299,7 +352,7 @@ const clearCart = async (userId) => {
   const cart = await Cart.findOneAndUpdate(
     { user_id: userId },
     { $set: { items: [] } },
-    { new: true }
+    { returnDocument: 'after' }
   );
 
   if (!cart) {

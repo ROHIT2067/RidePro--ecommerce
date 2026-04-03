@@ -104,22 +104,54 @@ export const validateCartItems = async (cartItems, session = null) => {
   const invalidItems = [];
 
   for (const item of cartItems) {
-    const validation = await validateItemStock(
-      item.variant_id._id || item.variant_id,
-      item.quantity,
-      session
-    );
+    try {
+      // Check if item has required properties
+      if (!item || !item.variant_id || item.quantity === undefined) {
+        invalidItems.push({
+          ...item,
+          reason: "Invalid cart item data",
+          availableStock: 0
+        });
+        continue;
+      }
 
-    if (validation.isValid) {
-      validItems.push({
-        ...item,
-        validation
-      });
-    } else {
+      const variantId = item.variant_id._id || item.variant_id;
+      
+      if (!variantId) {
+        invalidItems.push({
+          ...item,
+          reason: "Invalid variant ID",
+          availableStock: 0
+        });
+        continue;
+      }
+
+      const validation = await validateItemStock(variantId, item.quantity, session);
+
+      if (validation.isValid) {
+        // Create a clean item object with validation data
+        const cleanItem = {
+          _id: item._id,
+          quantity: item.quantity,
+          price: item.price,
+          variant_id: validation.variant,
+          validation: validation
+        };
+        
+        validItems.push(cleanItem);
+      } else {
+        invalidItems.push({
+          ...item,
+          reason: validation.reason,
+          availableStock: validation.availableStock
+        });
+      }
+    } catch (error) {
+      console.error("Error validating cart item:", error, item);
       invalidItems.push({
         ...item,
-        reason: validation.reason,
-        availableStock: validation.availableStock
+        reason: "Error validating item",
+        availableStock: 0
       });
     }
   }
@@ -163,7 +195,7 @@ export const reserveStock = async (orderItems, session) => {
           $inc: { stock_quantity: -quantity }
         },
         {
-          new: true,
+          returnDocument: 'after',
           session
         }
       );
@@ -210,7 +242,7 @@ export const restoreStock = async (items, session = null) => {
           $inc: { stock_quantity: quantity }
         },
         {
-          new: true,
+          returnDocument: 'after',
           session
         }
       );
