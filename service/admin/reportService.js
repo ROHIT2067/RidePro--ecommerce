@@ -29,7 +29,8 @@ const getSalesReport = async (startDate, endDate, page = 1, limit = 20) => {
               $subtract: ['$total_amount', { $ifNull: ['$final_amount', '$total_amount'] }] 
             }
           },
-          totalNetRevenue: { $sum: { $ifNull: ['$final_amount', '$total_amount'] } }
+          totalNetRevenue: { $sum: { $ifNull: ['$final_amount', '$total_amount'] } },
+          totalRefunds: { $sum: { $ifNull: ['$refundAmount', 0] } }
         }
       }
     ]);
@@ -38,8 +39,12 @@ const getSalesReport = async (startDate, endDate, page = 1, limit = 20) => {
       totalOrders: 0,
       totalOrderAmount: 0,
       totalDiscount: 0,
-      totalNetRevenue: 0
+      totalNetRevenue: 0,
+      totalRefunds: 0
     };
+
+    // Calculate actual revenue (net revenue minus refunds)
+    summary.actualRevenue = summary.totalNetRevenue - summary.totalRefunds;
 
     // Detailed orders with pagination
     const skip = (page - 1) * limit;
@@ -92,6 +97,7 @@ const getSalesReport = async (startDate, endDate, page = 1, limit = 20) => {
         customerEmail: order.user_id?.email || '',
         items: itemNames,
         orderAmount: order.final_amount || order.total_amount,
+        refundAmount: order.refundAmount || 0,
         couponApplied: hasCoupon ? 'Yes' : 'No',
         paymentMethod: order.payment_method.toUpperCase(),
         status: order.order_status
@@ -216,6 +222,7 @@ const getAllOrdersForExport = async (startDate, endDate) => {
         customerEmail: order.user_id?.email || '',
         items: itemNames,
         orderAmount: order.final_amount || order.total_amount,
+        refundAmount: order.refundAmount || 0,
         couponApplied: hasCoupon ? 'Yes' : 'No',
         paymentMethod: order.payment_method.toUpperCase(),
         status: order.order_status

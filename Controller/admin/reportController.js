@@ -136,7 +136,9 @@ const generatePDFReport = async (res, summary, orders, dateRange) => {
   doc.text(`Total Orders: ${summary.totalOrders}`);
   doc.text(`Order Amount: ₹${summary.totalOrderAmount.toLocaleString('en-IN')}`);
   doc.text(`Total Discounts: ₹${summary.totalDiscount.toLocaleString('en-IN')}`);
+  doc.text(`Total Refunds: ₹${summary.totalRefunds.toLocaleString('en-IN')}`);
   doc.text(`Net Revenue: ₹${summary.totalNetRevenue.toLocaleString('en-IN')}`);
+  doc.text(`Actual Revenue: ₹${summary.actualRevenue.toLocaleString('en-IN')}`);
   doc.moveDown(2);
 
   // Orders Table
@@ -146,16 +148,17 @@ const generatePDFReport = async (res, summary, orders, dateRange) => {
   // Table headers with better column widths for landscape
   const tableTop = doc.y;
   const tableLeft = 50;
-  const colWidths = [90, 70, 140, 90, 60, 80, 100]; // Adjusted for landscape
+  const colWidths = [80, 60, 120, 80, 70, 70, 60, 80, 90]; // Adjusted for refund column
   
   doc.fontSize(10);
   doc.text('Order ID', tableLeft, tableTop);
   doc.text('Date', tableLeft + colWidths[0], tableTop);
   doc.text('Customer', tableLeft + colWidths[0] + colWidths[1], tableTop);
   doc.text('Amount', tableLeft + colWidths[0] + colWidths[1] + colWidths[2], tableTop);
-  doc.text('Coupon', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], tableTop);
-  doc.text('Payment', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], tableTop);
-  doc.text('Status', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], tableTop);
+  doc.text('Refund', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], tableTop);
+  doc.text('Coupon', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], tableTop);
+  doc.text('Payment', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], tableTop);
+  doc.text('Status', tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5] + colWidths[6], tableTop);
 
   // Draw line under headers
   doc.moveTo(tableLeft, tableTop + 15)
@@ -182,9 +185,10 @@ const generatePDFReport = async (res, summary, orders, dateRange) => {
       doc.text(new Date(order.date).toLocaleDateString('en-GB'), tableLeft + colWidths[0], currentY);
       doc.text(customerName, tableLeft + colWidths[0] + colWidths[1], currentY, { width: colWidths[2] - 5 });
       doc.text(`₹${order.orderAmount.toLocaleString('en-IN')}`, tableLeft + colWidths[0] + colWidths[1] + colWidths[2], currentY);
-      doc.text(order.couponApplied, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], currentY);
-      doc.text(order.paymentMethod, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], currentY);
-      doc.text(order.status, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], currentY, { width: colWidths[6] - 5 });
+      doc.text(`₹${order.refundAmount.toLocaleString('en-IN')}`, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], currentY);
+      doc.text(order.couponApplied, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], currentY);
+      doc.text(order.paymentMethod, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], currentY);
+      doc.text(order.status, tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5] + colWidths[6], currentY, { width: colWidths[7] - 5 });
 
       currentY += 18; // Reduced line height
     });
@@ -213,7 +217,9 @@ const generateExcelReport = async (res, summary, orders, dateRange) => {
   worksheet.addRow(['Total Orders', summary.totalOrders]);
   worksheet.addRow(['Order Amount', `₹${summary.totalOrderAmount.toLocaleString('en-IN')}`]);
   worksheet.addRow(['Total Discounts', `₹${summary.totalDiscount.toLocaleString('en-IN')}`]);
+  worksheet.addRow(['Total Refunds', `₹${summary.totalRefunds.toLocaleString('en-IN')}`]);
   worksheet.addRow(['Net Revenue', `₹${summary.totalNetRevenue.toLocaleString('en-IN')}`]);
+  worksheet.addRow(['Actual Revenue', `₹${summary.actualRevenue.toLocaleString('en-IN')}`]);
   worksheet.addRow([]);
 
   // Orders table headers
@@ -224,6 +230,7 @@ const generateExcelReport = async (res, summary, orders, dateRange) => {
     'Customer',
     'Items',
     'Order Amount',
+    'Refund Amount',
     'Coupon Applied',
     'Payment Method',
     'Status'
@@ -246,6 +253,7 @@ const generateExcelReport = async (res, summary, orders, dateRange) => {
         order.customerName,
         order.items,
         `₹${order.orderAmount.toLocaleString('en-IN')}`,
+        `₹${order.refundAmount.toLocaleString('en-IN')}`,
         order.couponApplied,
         order.paymentMethod,
         order.status

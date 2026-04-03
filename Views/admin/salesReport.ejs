@@ -534,6 +534,16 @@
           <div class="summary-value">₹<%= summary.totalNetRevenue.toLocaleString('en-IN') %></div>
           <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">Final revenue after all discounts</p>
         </div>
+        <div class="summary-card">
+          <h3>Total Refunds</h3>
+          <div class="summary-value" style="color: #ef4444;">₹<%= summary.totalRefunds.toLocaleString('en-IN') %></div>
+          <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">Total amount refunded to customers</p>
+        </div>
+        <div class="summary-card">
+          <h3>Actual Revenue</h3>
+          <div class="summary-value" style="color: #10b981;">₹<%= summary.actualRevenue.toLocaleString('en-IN') %></div>
+          <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">Net revenue after refunds</p>
+        </div>
       </div>
 
       <!-- Orders Table -->
@@ -566,6 +576,7 @@
                 <th>Customer</th>
                 <th>Items</th>
                 <th>Order Amount</th>
+                <th>Refund Amount</th>
                 <th>Coupon Applied</th>
                 <th>Payment Method</th>
                 <th>Status</th>
@@ -579,6 +590,9 @@
                   <td><%= order.customerName %></td>
                   <td title="<%= order.items %>"><%= order.items.length > 50 ? order.items.substring(0, 50) + '...' : order.items %></td>
                   <td>₹<%= order.orderAmount.toLocaleString('en-IN') %></td>
+                  <td style="color: <%= order.refundAmount > 0 ? '#ef4444' : '#6b7280' %>;">
+                    ₹<%= order.refundAmount.toLocaleString('en-IN') %>
+                  </td>
                   <td>
                     <span class="<%= order.couponApplied === 'Yes' ? 'coupon-yes' : 'coupon-no' %>">
                       <%= order.couponApplied %>
