@@ -98,29 +98,37 @@ const getCart = async (userId) => {
     //Handles the case where stock dropped after the item was added to cart
     if (item.quantity > variant.stock_quantity) {
       if (variant.stock_quantity === 0) {
-        item.isOutOfStock = true;
-        adjustmentWarnings.push({
+        unavailableItems.push({
           productName: product.productName,
           reason: `Product is now out of stock`,
+          requestedQuantity: item.quantity,
+          availableStock: 0
         });
-       validItems.push(item);
-  continue;
+        cart.items.splice(i, 1);
+        cartModified = true;
+        continue;
       } else {
-        adjustmentWarnings.push({
+        unavailableItems.push({
           productName: product.productName,
-          reason: `Quantity reduced from ${item.quantity} to ${variant.stock_quantity} (available stock)`,
+          reason: `Only ${variant.stock_quantity} items available, but you have ${item.quantity} in cart`,
+          requestedQuantity: item.quantity,
+          availableStock: variant.stock_quantity
         });
-        item.quantity = variant.stock_quantity;
-        item.isOutOfStock = false;
+        cart.items.splice(i, 1);
+        cartModified = true;
+        continue;
       }
-      cartModified = true;
-      validItems.push(item);
-      continue;
     }
 
     if (variant.status !== "Available" || variant.stock_quantity === 0) {
-      item.isOutOfStock = true;
-      validItems.push(item);
+      unavailableItems.push({
+        productName: product.productName,
+        reason: "Product is currently unavailable",
+        requestedQuantity: item.quantity,
+        availableStock: 0
+      });
+      cart.items.splice(i, 1);
+      cartModified = true;
       continue;
     }
 
@@ -188,12 +196,14 @@ const getCart = async (userId) => {
   }, Promise.resolve(0));
 
   const hasOutOfStock = validItems.some((item) => item.isOutOfStock);
+  const hasUnavailableItems = unavailableItems.length > 0;
 
   return {
     items: validItemsLean,
     cartCount,
     totalPrice,
     hasOutOfStock,
+    hasUnavailableItems,
     unavailableItems,
     adjustmentWarnings,
   };
@@ -205,6 +215,7 @@ const getCart = async (userId) => {
     cartCount: 0,
     totalPrice: 0,
     hasOutOfStock: false,
+    hasUnavailableItems: false,
     unavailableItems: [],
     adjustmentWarnings: [],
   };

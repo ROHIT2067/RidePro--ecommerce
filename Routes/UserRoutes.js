@@ -8,6 +8,7 @@ import {
   userPageAccess, 
   authPageAccess 
 } from "../middlewares/authMiddleware.js";
+import { validateCartStock, validateItemStock } from "../middlewares/stockValidationMiddleware.js";
 import userController from "../Controller/user/userController.js";
 import passport from "../Config/passport.js";
 import upload from "../middlewares/multer.js";
@@ -96,8 +97,8 @@ router.get('/product/:id', redirectIfAdmin, shoppingController.productDetailGet)
 
 // Cart Management
 router.get('/cart', userPageAccess, cartController.cartGet)
-router.post('/cart/add', requireUserAPI, cartController.addToCartPost)
-router.post('/cart/update', requireUserAPI, cartController.updateCartPost)
+router.post('/cart/add', requireUserAPI, validateItemStock, cartController.addToCartPost)
+router.post('/cart/update', requireUserAPI, validateItemStock, cartController.updateCartPost)
 router.post('/cart/remove', requireUserAPI, cartController.removeFromCartPost)
 router.post('/cart/clear', requireUserAPI, cartController.clearCartPost)
 router.post('/cart/apply-coupon', requireUserAPI, cartController.applyCouponPost)
@@ -115,7 +116,7 @@ router.get('/wishlist/check/:variantId', wishlistController.checkWishlistItemGet
 router.get('/checkout', userPageAccess, checkoutController.checkoutGet)
 router.post('/checkout/add-address', requireUserAPI, checkoutController.addAddressPost)
 router.post('/checkout/edit-address', requireUserAPI, checkoutController.editAddressPost)
-router.post('/checkout/place-order', requireUserAPI, checkoutController.placeOrderPost)
+router.post('/checkout/place-order', requireUserAPI, validateCartStock, checkoutController.placeOrderPost)
 router.get('/checkout/paypal/success', requireUser, checkoutController.paypalSuccessGet)
 router.get('/checkout/paypal/cancel', checkoutController.paypalCancelGet)
 router.get('/payment-failed', redirectIfAdmin, checkoutController.paymentFailedGet)

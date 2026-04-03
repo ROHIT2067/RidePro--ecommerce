@@ -269,125 +269,141 @@ const cancelEntireOrder = async (userId, orderId, reason) => {
 };
 
 const cancelOrderItems = async (userId, orderId, itemIds, reason) => {
-  const order = await Order.findOne({
-    _id: orderId,
-    user_id: userId,
-  });
+  const session = await mongoose.startSession();
+  
+  try {
+    return await session.withTransaction(async () => {
+      const order = await Order.findOne({
+        _id: orderId,
+        user_id: userId,
+      }).session(session);
 
-  if (!order) {
-    throw new Error("Order not found");
-  }
-
-  if (!["Pending", "Confirmed"].includes(order.order_status)) {
-    throw new Error(`Cannot cancel items when order status is: ${order.order_status}`);
-  }
-
-  // Prevent individual item cancellation for orders with coupon discounts
-  if (order.coupon_discount && order.coupon_discount > 0) {
-    throw new Error("Individual item cancellation is not allowed for orders with coupon discounts. Please cancel the entire order instead.");
-  }
-
-  let cancelledCount = 0;
-  let totalItemsValue = 0;
-  const totalOrderValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
-
-  //Only processes items that exist and aren't already cancelled
-  for (const itemId of itemIds) {
-    const item = order.items.id(itemId);
-    if (item && (item.status || item.item_status) !== "Cancelled") {
-      //Restore stock
-      await Variant.findByIdAndUpdate(item.variant_id, {
-        $inc: { stock_quantity: item.quantity },
-      });
-
-      // Calculate item value for proportional discount calculation
-      const itemValue = item.totalPrice || (item.price * item.quantity);
-      totalItemsValue += itemValue;
-
-      item.status = item.status ? "Cancelled" : undefined;
-      item.item_status = "Cancelled"; // Keep backward compatibility
-      item.cancellationReason = reason || "Item cancelled by user";
-      item.cancelledAt = new Date();
-      
-      //Add to status history if the field exists
-      if (!item.statusHistory) {
-        item.statusHistory = [];
+      if (!order) {
+        throw new Error("Order not found");
       }
-      item.statusHistory.push({
-        status: "Cancelled",
-        reason: reason || "Item cancelled by user",
-      });
 
-      //Add to cancelled items if the array exists
-      if (!order.cancelledItems) {
-        order.cancelledItems = [];
+      if (!["Pending", "Confirmed"].includes(order.order_status)) {
+        throw new Error(`Cannot cancel items when order status is: ${order.order_status}`);
       }
-      order.cancelledItems.push({
-        itemId: item._id,
-        reason: reason || "Item cancelled by user",
-      });
-      
-      cancelledCount++;
-    }
+
+      // Prevent individual item cancellation for orders with coupon discounts
+      if (order.coupon_discount && order.coupon_discount > 0) {
+        throw new Error("Individual item cancellation is not allowed for orders with coupon discounts. Please cancel the entire order instead.");
+      }
+
+      let cancelledCount = 0;
+      let totalItemsValue = 0;
+      const totalOrderValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
+      const itemsToRestore = [];
+
+      // Only processes items that exist and aren't already cancelled
+      for (const itemId of itemIds) {
+        const item = order.items.id(itemId);
+        if (item && (item.status || item.item_status) !== "Cancelled") {
+          // Prepare for stock restoration
+          itemsToRestore.push({
+            variant_id: item.variant_id,
+            quantity: item.quantity
+          });
+
+          // Calculate item value for proportional discount calculation
+          const itemValue = item.totalPrice || (item.price * item.quantity);
+          totalItemsValue += itemValue;
+
+          item.status = item.status ? "Cancelled" : undefined;
+          item.item_status = "Cancelled";
+          item.cancellationReason = reason || "Item cancelled by user";
+          item.cancelledAt = new Date();
+          
+          // Add to status history if the field exists
+          if (!item.statusHistory) {
+            item.statusHistory = [];
+          }
+          item.statusHistory.push({
+            status: "Cancelled",
+            reason: reason || "Item cancelled by user",
+          });
+
+          // Add to cancelled items if the array exists
+          if (!order.cancelledItems) {
+            order.cancelledItems = [];
+          }
+          order.cancelledItems.push({
+            itemId: item._id,
+            reason: reason || "Item cancelled by user",
+          });
+          
+          cancelledCount++;
+        }
+      }
+
+      // Atomically restore stock for all cancelled items
+      if (itemsToRestore.length > 0) {
+        await restoreStock(itemsToRestore, session);
+      }
+
+      // Calculate total refund amount accounting for coupon discount
+      let totalRefundAmount = 0;
+      if (totalItemsValue > 0) {
+        // Check if all items are being cancelled
+        const allItemsValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
+        const isAllItemsCancelled = Math.abs(totalItemsValue - allItemsValue) < 0.01;
+        
+        if (isAllItemsCancelled) {
+          // If all items are cancelled, refund the full final amount
+          totalRefundAmount = order.final_amount || (order.total_amount - (order.coupon_discount || 0));
+        } else {
+          // For partial cancellation, calculate proportional refund (no shipping refund)
+          const proportionalDiscount = (order.coupon_discount || 0) * (totalItemsValue / allItemsValue);
+          totalRefundAmount = totalItemsValue - proportionalDiscount;
+        }
+      }
+
+      // Process refund if payment was made via wallet, online, or paypal
+      if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal')) {
+        await creditWallet(
+          userId, 
+          totalRefundAmount, 
+          `Refund for cancelled items in order #${order.order_id}`, 
+          order._id,
+          session
+        );
+
+        // Update order refund details
+        order.refundAmount = (order.refundAmount || 0) + totalRefundAmount;
+        order.refundStatus = 'completed';
+        order.refundedAt = new Date();
+      }
+
+      // Check if all items are cancelled after this operation
+      const allCancelled = order.items.every((item) => (item.status || item.item_status) === "Cancelled");
+      if (allCancelled) {
+        order.order_status = "Cancelled";
+        
+        // If this operation resulted in all items being cancelled, but we calculated a partial refund
+        // (meaning not all items were cancelled in this single call), we need to refund shipping
+        const wasPartialCancellation = !isAllItemsCancelled;
+        if (wasPartialCancellation && (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal')) {
+          const shippingRefund = order.shipping_cost;
+          await creditWallet(
+            userId, 
+            shippingRefund, 
+            `Shipping refund for fully cancelled order #${order.order_id}`, 
+            order._id,
+            session
+          );
+          
+          // Update order refund details
+          order.refundAmount = (order.refundAmount || 0) + shippingRefund;
+        }
+      }
+
+      await order.save({ session });
+      return { order, cancelledCount };
+    });
+  } finally {
+    await session.endSession();
   }
-
-  // Calculate total refund amount accounting for coupon discount
-  let totalRefundAmount = 0;
-  if (totalItemsValue > 0) {
-    // Check if all items are being cancelled
-    const allItemsValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
-    const isAllItemsCancelled = Math.abs(totalItemsValue - allItemsValue) < 0.01;
-    
-    if (isAllItemsCancelled) {
-      // If all items are cancelled, refund the full final amount
-      // Fallback to calculated amount if final_amount is not available
-      totalRefundAmount = order.final_amount || (order.total_amount - (order.coupon_discount || 0));
-    } else {
-      // For partial cancellation, calculate proportional refund (no shipping refund)
-      const proportionalDiscount = (order.coupon_discount || 0) * (totalItemsValue / allItemsValue);
-      totalRefundAmount = totalItemsValue - proportionalDiscount;
-    }
-  }
-
-  // Process refund if payment was made via wallet, online, or paypal
-  if (totalRefundAmount > 0 && (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal')) {
-    await creditWallet(
-      userId, 
-      totalRefundAmount, 
-      `Refund for cancelled items in order #${order.order_id}`, 
-      order._id
-    );
-
-    // Update order refund details
-    order.refundAmount = (order.refundAmount || 0) + totalRefundAmount;
-    order.refundStatus = 'completed';
-    order.refundedAt = new Date();
-  }
-
-  //Check if all items are cancelled after this operation
-  const allCancelled = order.items.every((item) => (item.status || item.item_status) === "Cancelled");
-  if (allCancelled) {
-    order.order_status = "Cancelled";
-    
-    // If this operation resulted in all items being cancelled, but we calculated a partial refund
-    // (meaning not all items were cancelled in this single call), we need to refund shipping
-    const wasPartialCancellation = !isAllItemsCancelled;
-    if (wasPartialCancellation && (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal')) {
-      const shippingRefund = order.shipping_cost;
-      await creditWallet(
-        userId, 
-        shippingRefund, 
-        `Shipping refund for fully cancelled order #${order.order_id}`, 
-        order._id
-      );
-      
-      // Update order refund details
-      order.refundAmount = (order.refundAmount || 0) + shippingRefund;
-    }
-  }
-
-  await order.save();
-  return { order, cancelledCount };
 };
 
 const returnOrderItem = async (userId, orderId, itemId, reason) => {

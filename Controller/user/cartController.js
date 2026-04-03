@@ -55,6 +55,7 @@ const cartGet = async (req, res) => {
       unavailableItems: cartData.unavailableItems || [],
       adjustmentWarnings: cartData.adjustmentWarnings || [],
       checkoutError: checkoutError || null,
+      hasUnavailableItems: (cartData.unavailableItems && cartData.unavailableItems.length > 0),
     });
   } catch (error) {
     console.error("Cart Get Error:", error);

@@ -26,17 +26,28 @@ export const validateCartStock = async (req, res, next) => {
       });
     }
 
-    // Check if cart already has stock issues
-    if (cartData.hasOutOfStock || cartData.unavailableItems?.length > 0) {
-      req.session.checkoutError = "Some items in your cart are no longer available. Please review your cart.";
+    // Check if cart has unavailable items (items removed due to stock issues)
+    if (cartData.unavailableItems && cartData.unavailableItems.length > 0) {
+      req.session.checkoutError = "Some items in your cart are no longer available in the requested quantity. Please review your cart.";
       return res.status(400).json({ 
         success: false, 
-        message: "Some items in your cart are no longer available",
+        message: "Some items in your cart are no longer available in the requested quantity",
+        unavailableItems: cartData.unavailableItems,
         redirectUrl: "/cart"
       });
     }
 
-    // Perform comprehensive validation
+    // Check if cart has out of stock items
+    if (cartData.hasOutOfStock) {
+      req.session.checkoutError = "Some items in your cart are out of stock. Please review your cart.";
+      return res.status(400).json({ 
+        success: false, 
+        message: "Some items in your cart are out of stock",
+        redirectUrl: "/cart"
+      });
+    }
+
+    // Perform comprehensive validation on remaining items
     const validation = await validateCartItems(cartData.items);
     
     if (!validation.isValid) {

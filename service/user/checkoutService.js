@@ -35,7 +35,8 @@ const getCheckoutData = async (userId, selectedAddressId) => {
         unavailableItems: validation.invalidItems.map(item => ({
           productName: item.variant_id?.product_id?.productName || "Unknown Product",
           reason: item.reason,
-          availableStock: item.availableStock
+          availableStock: item.availableStock,
+          requestedQuantity: item.quantity
         })),
         hasUnavailableItems: true,
       };

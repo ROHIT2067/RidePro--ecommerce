@@ -1,10 +1,10 @@
 import checkoutService from "../../service/user/checkoutService.js";
+import cartService from "../../service/user/cartService.js";
 import addressService from "../../service/user/addressService.js";
 import couponService from "../../service/admin/couponService.js";
 import User from "../../Models/UserModel.js";
 import { AddAddressSchema, EditAddressSchema } from "../../schemas/index.js";
 import { createPayPalOrder, capturePayPalOrder } from "../../utils/payPal.js";
-import { validateCartStock } from "../../middlewares/stockValidationMiddleware.js";
 
 const checkoutGet = async (req, res) => {
   try {
@@ -15,38 +15,35 @@ const checkoutGet = async (req, res) => {
       return res.redirect("/login");
     }
 
+    // Get cart data first to check for stock issues
+    const cartData = await cartService.getCart(userId);
+    
+    // Check if cart has unavailable items
+    if (cartData.unavailableItems && cartData.unavailableItems.length > 0) {
+      req.session.checkoutError = "Some items in your cart are no longer available in the requested quantity. Please review your cart.";
+      return res.redirect("/cart");
+    }
+
+    // Check if cart has out of stock items
+    if (cartData.hasOutOfStock) {
+      req.session.checkoutError = "Some items in your cart are out of stock. Please review your cart.";
+      return res.redirect("/cart");
+    }
+
     // Validate cart before showing checkout page
     const { preCheckoutValidation } = await import("../../utils/orderValidationHooks.js");
     const validation = await preCheckoutValidation(userId);
     
     if (!validation.isValid) {
-      if (validation.redirectTo === "/cart") {
-        return res.render("cart", {
-          items: [],
-          cartCount: 0,
-          totalPrice: 0,
-          hasOutOfStock: true,
-          unavailableItems: validation.warnings || validation.errors || [],
-          adjustmentWarnings: [],
-          checkoutError: validation.reason,
-        });
-      }
       req.session.checkoutError = validation.reason;
-      return res.redirect(validation.redirectTo || "/cart");
+      return res.redirect("/cart");
     }
 
     const checkoutData = await checkoutService.getCheckoutData(userId, selectedAddressId);
 
     if (!checkoutData.success) {
-      return res.render("cart", {
-        items: [],
-        cartCount: 0,
-        totalPrice: 0,
-        hasOutOfStock: false,
-        unavailableItems: checkoutData.unavailableItems || [],
-        adjustmentWarnings: [],
-        checkoutError: "Some items in your cart are unavailable",
-      });
+      req.session.checkoutError = "Some items in your cart are no longer available in the requested quantity. Please review your cart.";
+      return res.redirect("/cart");
     }
 
     // Additional safety check - ensure items are properly structured for template
@@ -59,17 +56,6 @@ const checkoutGet = async (req, res) => {
                      typeof item.price === 'number' &&
                      item.quantity > 0;
       
-      if (!isValid) {
-        console.warn("Filtering out invalid checkout item:", {
-          hasItem: !!item,
-          hasVariant: !!item?.variant_id,
-          hasProduct: !!item?.variant_id?.product_id,
-          hasProductName: !!item?.variant_id?.product_id?.productName,
-          quantity: item?.quantity,
-          price: item?.price
-        });
-      }
-      
       return isValid;
     });
 
@@ -81,7 +67,7 @@ const checkoutGet = async (req, res) => {
 
     // Get user's wallet balance
     const user = await User.findById(userId).select('wallet');
-    let walletBalance = 0; // Start with 0, will be set based on actual wallet data
+    let walletBalance = 0;
     
     if (user && user.wallet) {
       if (typeof user.wallet === 'number') {
@@ -117,7 +103,6 @@ const checkoutGet = async (req, res) => {
         finalTotal = checkoutData.totalAmount - appliedCoupon.discountAmount;
       } catch (error) {
         // Coupon is no longer valid, remove it
-        console.log("Removing invalid coupon at checkout:", error.message);
         delete req.session.appliedCoupon;
         appliedCoupon = null;
       }
@@ -136,18 +121,8 @@ const checkoutGet = async (req, res) => {
     });
   } catch (error) {
     console.error("Checkout Get Error:", error);
-    req.session.checkoutError = "Unable to load checkout page. Please try again.";
-    
-    // Render cart with error message instead of redirecting
-    return res.render("cart", {
-      items: [],
-      cartCount: 0,
-      totalPrice: 0,
-      hasOutOfStock: false,
-      unavailableItems: [],
-      adjustmentWarnings: [],
-      checkoutError: "Unable to load checkout page. Please check your cart and try again.",
-    });
+    req.session.checkoutError = "Unable to load checkout page. Please check your cart and try again.";
+    return res.redirect("/cart");
   }
 };
 
@@ -226,77 +201,77 @@ const placeOrderPost = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid payment method" });
     }
 
-    // Perform final stock validation before processing
-    await validateCartStock(req, res, async () => {
-      // Get applied coupon from session
-      const appliedCoupon = req.session.appliedCoupon || null;
+    // Stock validation is already done by middleware, use validated items
+    const validatedCartItems = req.validatedCartItems;
 
-      // Handle PayPal payment
-      if (paymentMethod === 'paypal') {
-        // Get checkout data to calculate total
-        const checkoutData = await checkoutService.getCheckoutData(userId, addressId);
-        if (!checkoutData.success) {
-          return res.status(400).json({ success: false, message: "Unable to process checkout data" });
-        }
+    // Get applied coupon from session
+    const appliedCoupon = req.session.appliedCoupon || null;
 
-        let finalTotal = checkoutData.totalAmount;
-        if (appliedCoupon) {
-          finalTotal = checkoutData.totalAmount - appliedCoupon.discountAmount;
-        }
+    // Handle PayPal payment
+    if (paymentMethod === 'paypal') {
+      // Get checkout data to calculate total
+      const checkoutData = await checkoutService.getCheckoutData(userId, addressId);
+      if (!checkoutData.success) {
+        return res.status(400).json({ success: false, message: "Unable to process checkout data" });
+      }
 
-        // Create PayPal order
-        const paypalResult = await createPayPalOrder(finalTotal);
-        
-        if (!paypalResult.success) {
-          let errorReason = "paypal_error";
-          if (paypalResult.errorCode) {
-            switch (paypalResult.errorCode) {
-              case 400:
-                errorReason = "invalid_payment_method";
-                break;
-              case 422:
-                errorReason = "insufficient_funds";
-                break;
-              default:
-                errorReason = "paypal_error";
-            }
+      let finalTotal = checkoutData.totalAmount;
+      if (appliedCoupon) {
+        finalTotal = checkoutData.totalAmount - appliedCoupon.discountAmount;
+      }
+
+      // Create PayPal order
+      const paypalResult = await createPayPalOrder(finalTotal);
+      
+      if (!paypalResult.success) {
+        let errorReason = "paypal_error";
+        if (paypalResult.errorCode) {
+          switch (paypalResult.errorCode) {
+            case 400:
+              errorReason = "invalid_payment_method";
+              break;
+            case 422:
+              errorReason = "insufficient_funds";
+              break;
+            default:
+              errorReason = "paypal_error";
           }
-          return res.status(400).json({ 
-            success: false, 
-            message: "PayPal payment initialization failed",
-            redirectUrl: `/payment-failed?reason=${errorReason}`
-          });
         }
-
-        // Store order details in session for completion after PayPal approval
-        req.session.pendingPayPalOrder = {
-          userId,
-          addressId,
-          appliedCoupon,
-          paymentMethod: 'paypal',
-          paypalOrderId: paypalResult.orderId,
-          totalAmount: finalTotal
-        };
-
-        return res.json({
-          success: true,
-          paypalApprovalUrl: paypalResult.approvalUrl,
-          paypalOrderId: paypalResult.orderId
+        return res.status(400).json({ 
+          success: false, 
+          message: "PayPal payment initialization failed",
+          redirectUrl: `/payment-failed?reason=${errorReason}`
         });
       }
 
-      const order = await checkoutService.placeOrder(userId, addressId, appliedCoupon, paymentMethod);
-
-      // Clear applied coupon from session after successful order
-      if (appliedCoupon) {
-        delete req.session.appliedCoupon;
-      }
+      // Store order details in session for completion after PayPal approval
+      req.session.pendingPayPalOrder = {
+        userId,
+        addressId,
+        appliedCoupon,
+        paymentMethod: 'paypal',
+        paypalOrderId: paypalResult.orderId,
+        totalAmount: finalTotal
+      };
 
       return res.json({
         success: true,
-        message: "Order placed successfully",
-        orderId: order.order_id,
+        paypalApprovalUrl: paypalResult.approvalUrl,
+        paypalOrderId: paypalResult.orderId
       });
+    }
+
+    const order = await checkoutService.placeOrder(userId, addressId, appliedCoupon, paymentMethod);
+
+    // Clear applied coupon from session after successful order
+    if (appliedCoupon) {
+      delete req.session.appliedCoupon;
+    }
+
+    return res.json({
+      success: true,
+      message: "Order placed successfully",
+      orderId: order.order_id,
     });
   } catch (error) {
     console.error("Place Order Error:", error);

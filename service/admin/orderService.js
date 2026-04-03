@@ -3,6 +3,8 @@ import User from "../../Models/UserModel.js";
 import Variant from "../../Models/VariantModel.js";
 import { creditWallet } from "../../utils/walletHelper.js";
 import { validateStatusTransition, createStatusHistoryEntry, getValidNextStatuses } from "../../utils/orderStatusValidator.js";
+import { restoreStock, validateItemStock } from "../../utils/stockValidator.js";
+import mongoose from "mongoose";
 
 const getOrders = async (query) => {
   let search = query.search || "";
@@ -164,121 +166,140 @@ const approveReturn = async (itemId, addToInventory = true) => {
     throw new Error("Item ID is required");
   }
 
-  const order = await Order.findOne({ "items._id": itemId });  //queries inside the nested items array
-  if (!order) {
-    throw new Error("Order not found");
-  }
-
-  const item = order.items.id(itemId);   //finds the specific subdocument inside the  array by _id
-  if (!item) {
-    throw new Error("Item not found");
-  }
-
-  const returnRequest = order.returnRequests.find(req => req.itemId.toString() === itemId);  
-  if (!returnRequest) {
-    throw new Error("Return request not found");
-  }
-
-  if (returnRequest.status !== "pending") {
-    throw new Error("Return request is not pending");
-  }//if already approved/rejected, throws an error
-
-  // Only increment stock if addToInventory is true
-  if (addToInventory) {
-    await Variant.findByIdAndUpdate(item.variant_id, {
-      $inc: { stock_quantity: item.quantity }
-    });//automically increments stock_quantity by item.quantity
-  }
-
-  // Calculate refund amount accounting for coupon discount
-  const itemValue = item.totalPrice || (item.price * item.quantity);
-  const totalOrderValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
+  const session = await mongoose.startSession();
   
-  // Calculation for no coupon discount order
-  const proportionalDiscount = (order.coupon_discount || 0) * (itemValue / totalOrderValue);
-  const refundAmount = itemValue - proportionalDiscount;
-  
-  // Process refund for all paid orders (wallet, online, paypal)
-  if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
-    await creditWallet(
-      order.user_id, 
-      refundAmount, 
-      `Refund for returned item in order #${order.order_id}`, 
-      order._id
-    );
+  try {
+    return await session.withTransaction(async () => {
+      const order = await Order.findOne({ "items._id": itemId }).session(session);
+      if (!order) {
+        throw new Error("Order not found");
+      }
 
-    // Update order refund details
-    order.refundAmount = (order.refundAmount || 0) + refundAmount;
-    order.refundStatus = 'completed';
-    order.refundedAt = new Date();
-  }
+      const item = order.items.id(itemId);
+      if (!item) {
+        throw new Error("Item not found");
+      }
 
-  //Updates the item's status, records the return timestamp, and appends to its status history log
-  item.status = item.status ? "Returned" : undefined;
-  item.item_status = "Returned";
-  item.returned_at = new Date();
- 
-  if (!item.statusHistory) {
-    item.statusHistory = [];
-  }
-  item.statusHistory.push({
-    status: "Returned",
-    reason: addToInventory ? "Return approved by admin" : "Return approved by admin (no inventory update)",
-  });
+      const returnRequest = order.returnRequests.find(req => req.itemId.toString() === itemId);  
+      if (!returnRequest) {
+        throw new Error("Return request not found");
+      }
 
-  returnRequest.status = "approved";
-  returnRequest.processedAt = new Date();
-  returnRequest.addedToInventory = addToInventory; // Track whether stock was incremented
+      if (returnRequest.status !== "pending") {
+        throw new Error("Return request is not pending");
+      }
 
-  // Determine the correct order status based on actual item states
-  const nonCancelledItems = order.items.filter(orderItem => 
-    (orderItem.status || orderItem.item_status) !== "Cancelled"
-  );
-  
-  const returnedItems = nonCancelledItems.filter(orderItem => 
-    (orderItem.status || orderItem.item_status) === "Returned"
-  );
-  
-  const deliveredItems = nonCancelledItems.filter(orderItem => 
-    (orderItem.status || orderItem.item_status) === "Delivered"
-  );
-  
-  const returnRequestedItems = nonCancelledItems.filter(orderItem => 
-    (orderItem.status || orderItem.item_status) === "Return Requested"
-  );
+      // Only increment stock if addToInventory is true and validate the operation
+      if (addToInventory) {
+        // Validate that the variant still exists and can accept the stock
+        const validation = await validateItemStock(item.variant_id, 0, session); // Check if variant exists
+        if (!validation.isValid && validation.reason !== "Only 0 items available in stock") {
+          // If variant doesn't exist or has other issues, log warning but continue
+          console.warn(`Warning: Cannot restore stock for variant ${item.variant_id}: ${validation.reason}`);
+        } else {
+          // Use the stock restoration utility for atomic operation
+          await restoreStock([{
+            variant_id: item.variant_id,
+            quantity: item.quantity
+          }], session);
+        }
+      }
 
-  // Determine order status based on item states
-  if (returnedItems.length === nonCancelledItems.length) {
-    // All non-cancelled items are returned
-    order.order_status = "Returned";
-    
-    // Refund shipping cost for fully returned order
-    const shippingRefund = order.shipping_cost;
-    if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
-      await creditWallet(
-        order.user_id, 
-        shippingRefund, 
-        `Shipping refund for fully returned order #${order.order_id}`, 
-        order._id
+      // Calculate refund amount accounting for coupon discount
+      const itemValue = item.totalPrice || (item.price * item.quantity);
+      const totalOrderValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
+      
+      // Calculation for no coupon discount order
+      const proportionalDiscount = (order.coupon_discount || 0) * (itemValue / totalOrderValue);
+      const refundAmount = itemValue - proportionalDiscount;
+      
+      // Process refund for all paid orders (wallet, online, paypal)
+      if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
+        await creditWallet(
+          order.user_id, 
+          refundAmount, 
+          `Refund for returned item in order #${order.order_id}`, 
+          order._id,
+          session
+        );
+
+        // Update order refund details
+        order.refundAmount = (order.refundAmount || 0) + refundAmount;
+        order.refundStatus = 'completed';
+        order.refundedAt = new Date();
+      }
+
+      // Updates the item's status, records the return timestamp, and appends to its status history log
+      item.status = item.status ? "Returned" : undefined;
+      item.item_status = "Returned";
+      item.returned_at = new Date();
+     
+      if (!item.statusHistory) {
+        item.statusHistory = [];
+      }
+      item.statusHistory.push({
+        status: "Returned",
+        reason: addToInventory ? "Return approved by admin" : "Return approved by admin (no inventory update)",
+      });
+
+      returnRequest.status = "approved";
+      returnRequest.processedAt = new Date();
+      returnRequest.addedToInventory = addToInventory; // Track whether stock was incremented
+
+      // Determine the correct order status based on actual item states
+      const nonCancelledItems = order.items.filter(orderItem => 
+        (orderItem.status || orderItem.item_status) !== "Cancelled"
       );
       
-      // Update order refund details
-      order.refundAmount = (order.refundAmount || 0) + shippingRefund;
-    }
-  } else if (returnedItems.length > 0) {
-    // Some items are returned, some are not
-    order.order_status = "Partially Returned";
-  } else if (returnRequestedItems.length > 0) {
-    // Some items still have pending return requests
-    order.order_status = "Return Requested";
-  } else {
-    // All items are delivered (no returns)
-    order.order_status = "Delivered";
-  }
+      const returnedItems = nonCancelledItems.filter(orderItem => 
+        (orderItem.status || orderItem.item_status) === "Returned"
+      );
+      
+      const deliveredItems = nonCancelledItems.filter(orderItem => 
+        (orderItem.status || orderItem.item_status) === "Delivered"
+      );
+      
+      const returnRequestedItems = nonCancelledItems.filter(orderItem => 
+        (orderItem.status || orderItem.item_status) === "Return Requested"
+      );
 
-  await order.save();
-  
-  return { success: true, item, refundAmount: returnRequest.refundAmount, addedToInventory: addToInventory };
+      // Determine order status based on item states
+      if (returnedItems.length === nonCancelledItems.length) {
+        // All non-cancelled items are returned
+        order.order_status = "Returned";
+        
+        // Refund shipping cost for fully returned order
+        const shippingRefund = order.shipping_cost;
+        if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
+          await creditWallet(
+            order.user_id, 
+            shippingRefund, 
+            `Shipping refund for fully returned order #${order.order_id}`, 
+            order._id,
+            session
+          );
+          
+          // Update order refund details
+          order.refundAmount = (order.refundAmount || 0) + shippingRefund;
+        }
+      } else if (returnedItems.length > 0) {
+        // Some items are returned, some are not
+        order.order_status = "Partially Returned";
+      } else if (returnRequestedItems.length > 0) {
+        // Some items still have pending return requests
+        order.order_status = "Return Requested";
+      } else {
+        // All items are delivered (no returns)
+        order.order_status = "Delivered";
+      }
+
+      await order.save({ session });
+      
+      return { success: true, item, refundAmount: returnRequest.refundAmount, addedToInventory: addToInventory };
+    });
+  } finally {
+    await session.endSession();
+  }
 };
 
 const rejectReturn = async (itemId, reason) => {

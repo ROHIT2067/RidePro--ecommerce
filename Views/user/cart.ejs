@@ -877,13 +877,18 @@
                             </div>
 
                             <button class="btn-checkout" onclick="window.location.href='/checkout'" <%=(items.length===0
-                              || hasOutOfStock) ? 'disabled' : '' %>>
+                              || hasOutOfStock || hasUnavailableItems) ? 'disabled' : '' %>>
                               <i class="fa fa-lock"></i> Proceed to Checkout
                             </button>
 
-                            <% if (hasOutOfStock) { %>
+                            <% if (hasOutOfStock || hasUnavailableItems) { %>
                               <div class="oos-checkout-note">
-                                <i class="fa fa-circle-exclamation"></i> Remove out of stock items to proceed
+                                <i class="fa fa-circle-exclamation"></i> 
+                                <% if (hasUnavailableItems) { %>
+                                  Some items in your cart are no longer available in the requested quantity
+                                <% } else { %>
+                                  Remove out of stock items to proceed
+                                <% } %>
                               </div>
                               <% } %>
                                 <div class="secure-note"><i class="fa fa-shield-halved"></i> Secure checkout — SSL
