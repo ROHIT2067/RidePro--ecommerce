@@ -2,6 +2,8 @@ import Order from "../../Models/OrderModel.js";
 import Variant from "../../Models/VariantModel.js";
 import User from "../../Models/UserModel.js";
 import { creditWallet } from "../../utils/walletHelper.js";
+import { restoreStock } from "../../utils/stockValidator.js";
+import mongoose from "mongoose";
 
 const getOrders = async (userId, page = 1, limit = 10, search = "") => {
   const skip = (page - 1) * limit;
@@ -60,106 +62,118 @@ const getOrderDetails = async (userId, orderId) => {
 
 
 const cancelOrderItem = async (userId, orderId, itemId, reason) => {
-  const order = await Order.findOne({
-    _id: orderId,
-    user_id: userId,
-  });
-
-  if (!order) {
-    throw new Error("Order not found");
-  }
-
-  if (!["Pending", "Confirmed"].includes(order.order_status)) {
-    throw new Error(`Cannot cancel items when order status is: ${order.order_status}`);
-  }
-
-  // Prevent individual item cancellation for orders with coupon discounts
-  if (order.coupon_discount && order.coupon_discount > 0) {
-    throw new Error("Individual item cancellation is not allowed for orders with coupon discounts. Please cancel the entire order instead.");
-  }
-
-  const item = order.items.id(itemId);  //finds a specific subdocument inside the items array by its _id
-  if (!item) {
-    throw new Error("Item not found in order");
-  }
-
-  if ((item.status || item.item_status) === "Cancelled") {
-    throw new Error("Item is already cancelled");
-  }
-
-  await Variant.findByIdAndUpdate(item.variant_id, {
-    $inc: { stock_quantity: item.quantity },
-  });
-
-  // Calculate refund amount for this item (accounting for coupon discount)
-  const itemValue = item.totalPrice || (item.price * item.quantity);
-  const totalOrderValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
+  const session = await mongoose.startSession();
   
-  // Calculate proportional coupon discount for this item
-  const proportionalDiscount = (order.coupon_discount || 0) * (itemValue / totalOrderValue);
-  const refundAmount = itemValue - proportionalDiscount;
+  try {
+    return await session.withTransaction(async () => {
+      const order = await Order.findOne({
+        _id: orderId,
+        user_id: userId,
+      }).session(session);
 
-  // Process refund if payment was made via wallet, online, or paypal
-  if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
-    await creditWallet(
-      userId, 
-      refundAmount, 
-      `Refund for cancelled item in order #${order.order_id}`, 
-      order._id
-    );
+      if (!order) {
+        throw new Error("Order not found");
+      }
 
-    // Update order refund details
-    order.refundAmount = (order.refundAmount || 0) + refundAmount;
-    order.refundStatus = 'completed';
-    order.refundedAt = new Date();
-  }
+      if (!["Pending", "Confirmed"].includes(order.order_status)) {
+        throw new Error(`Cannot cancel items when order status is: ${order.order_status}`);
+      }
 
-  //Update item status
-  item.status = item.status ? "Cancelled" : undefined;
-  item.item_status = "Cancelled"; 
-  item.cancellationReason = reason || "Item cancelled by user";
-  item.cancelledAt = new Date();
+      // Prevent individual item cancellation for orders with coupon discounts
+      if (order.coupon_discount && order.coupon_discount > 0) {
+        throw new Error("Individual item cancellation is not allowed for orders with coupon discounts. Please cancel the entire order instead.");
+      }
 
-  //Add to status history if the field exists
-  if (!item.statusHistory) {
-    item.statusHistory = [];
-  }
-  item.statusHistory.push({
-    status: "Cancelled",
-    reason: reason || "Item cancelled by user",
-  });
+      const item = order.items.id(itemId);  //finds a specific subdocument inside the items array by its _id
+      if (!item) {
+        throw new Error("Item not found in order");
+      }
 
-  //Add to cancelled items if the array exists
-  if (!order.cancelledItems) {
-    order.cancelledItems = [];
-  }
-  order.cancelledItems.push({
-    itemId: item._id,
-    reason: reason || "Item cancelled by user",
-  });
+      if ((item.status || item.item_status) === "Cancelled") {
+        throw new Error("Item is already cancelled");
+      }
 
-  //After cancelling one item, checks if all items are now cancelled. If yes, marks the entire order as Cancelled too 
-  const allCancelled = order.items.every((item) => (item.status || item.item_status) === "Cancelled");
-  if (allCancelled) {
-    order.order_status = "Cancelled";
-    
-    // If this was the last item and user paid for shipping, refund the shipping cost too
-    if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
-      const shippingRefund = order.shipping_cost;
-      await creditWallet(
-        userId, 
-        shippingRefund, 
-        `Shipping refund for fully cancelled order #${order.order_id}`, 
-        order._id
-      );
+      // Atomically restore stock using the utility
+      await restoreStock([{
+        variant_id: item.variant_id,
+        quantity: item.quantity
+      }], session);
+
+      // Calculate refund amount for this item (accounting for coupon discount)
+      const itemValue = item.totalPrice || (item.price * item.quantity);
+      const totalOrderValue = order.items.reduce((sum, orderItem) => sum + (orderItem.totalPrice || (orderItem.price * orderItem.quantity)), 0);
       
-      // Update order refund details
-      order.refundAmount = (order.refundAmount || 0) + shippingRefund;
-    }
-  }
+      // Calculate proportional coupon discount for this item
+      const proportionalDiscount = (order.coupon_discount || 0) * (itemValue / totalOrderValue);
+      const refundAmount = itemValue - proportionalDiscount;
 
-  await order.save();
-  return order;
+      // Process refund if payment was made via wallet, online, or paypal
+      if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
+        await creditWallet(
+          userId, 
+          refundAmount, 
+          `Refund for cancelled item in order #${order.order_id}`, 
+          order._id,
+          session
+        );
+
+        // Update order refund details
+        order.refundAmount = (order.refundAmount || 0) + refundAmount;
+        order.refundStatus = 'completed';
+        order.refundedAt = new Date();
+      }
+
+      //Update item status
+      item.status = item.status ? "Cancelled" : undefined;
+      item.item_status = "Cancelled"; 
+      item.cancellationReason = reason || "Item cancelled by user";
+      item.cancelledAt = new Date();
+
+      //Add to status history if the field exists
+      if (!item.statusHistory) {
+        item.statusHistory = [];
+      }
+      item.statusHistory.push({
+        status: "Cancelled",
+        reason: reason || "Item cancelled by user",
+      });
+
+      //Add to cancelled items if the array exists
+      if (!order.cancelledItems) {
+        order.cancelledItems = [];
+      }
+      order.cancelledItems.push({
+        itemId: item._id,
+        reason: reason || "Item cancelled by user",
+      });
+
+      //After cancelling one item, checks if all items are now cancelled. If yes, marks the entire order as Cancelled too 
+      const allCancelled = order.items.every((item) => (item.status || item.item_status) === "Cancelled");
+      if (allCancelled) {
+        order.order_status = "Cancelled";
+        
+        // If this was the last item and user paid for shipping, refund the shipping cost too
+        if (order.payment_method === 'wallet' || order.payment_method === 'online' || order.payment_method === 'paypal') {
+          const shippingRefund = order.shipping_cost;
+          await creditWallet(
+            userId, 
+            shippingRefund, 
+            `Shipping refund for fully cancelled order #${order.order_id}`, 
+            order._id,
+            session
+          );
+          
+          // Update order refund details
+          order.refundAmount = (order.refundAmount || 0) + shippingRefund;
+        }
+      }
+
+      await order.save({ session });
+      return order;
+    });
+  } finally {
+    await session.endSession();
+  }
 };
 
 const cancelEntireOrder = async (userId, orderId, reason) => {

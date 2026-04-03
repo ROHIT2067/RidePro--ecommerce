@@ -1,5 +1,6 @@
 import cartService from "../../service/user/cartService.js";
 import couponService from "../../service/admin/couponService.js";
+import { validateItemStock } from "../../middlewares/stockValidationMiddleware.js";
 
 const cartGet = async (req, res) => {
   try {

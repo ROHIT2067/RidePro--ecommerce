@@ -1,8 +1,8 @@
 import User from '../Models/UserModel.js';
 
 // Credit money to wallet
-export const creditWallet = async (userId, amount, description, orderId = null) => {
-  const user = await User.findById(userId);
+export const creditWallet = async (userId, amount, description, orderId = null, session = null) => {
+  const user = await User.findById(userId).session(session);
   if (!user) {
     throw new Error('User not found');
   }
@@ -29,13 +29,13 @@ export const creditWallet = async (userId, amount, description, orderId = null) 
     date: new Date()
   });
 
-  await user.save();
+  await user.save({ session });
   return user.wallet.balance;
 };
 
 // Debit money from wallet
-export const debitWallet = async (userId, amount, description, orderId = null) => {
-  const user = await User.findById(userId);
+export const debitWallet = async (userId, amount, description, orderId = null, session = null) => {
+  const user = await User.findById(userId).session(session);
   if (!user) {
     throw new Error('User not found');
   }
@@ -66,6 +66,6 @@ export const debitWallet = async (userId, amount, description, orderId = null) =
     date: new Date()
   });
 
-  await user.save();
+  await user.save({ session });
   return user.wallet.balance;
 };

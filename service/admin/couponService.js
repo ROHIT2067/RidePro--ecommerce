@@ -212,8 +212,8 @@ const applyCoupon = async (couponCode, orderAmount, userId) => {
     };
 };
 
-const useCoupon = async (couponId, userId) => {
-    const coupon = await Coupon.findById(couponId);
+const useCoupon = async (couponId, userId, session = null) => {
+    const coupon = await Coupon.findById(couponId).session(session);
     if (!coupon) {
         throw new Error("Coupon not found");
     }
@@ -234,7 +234,7 @@ const useCoupon = async (couponId, userId) => {
         });
     }
 
-    await coupon.save();
+    await coupon.save({ session });
     return coupon;
 };
 

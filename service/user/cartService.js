@@ -2,6 +2,7 @@ import Cart from "../../Models/CartModel.js";
 import Product from "../../Models/ProductModel.js";
 import Variant from "../../Models/VariantModel.js";
 import { calculateProductPrice } from "../../utils/priceCalculator.js";
+import { validateItemStock } from "../../utils/stockValidator.js";
 
 const MAX_QUANTITY_PER_ITEM = 5;
 
@@ -158,37 +159,14 @@ const getCart = async (userId) => {
 };
 
 const addToCart = async (userId, variantId, quantity = 1) => {
-  const variant = await Variant.findById(variantId).populate({
-    path: "product_id",
-    populate: { path: "category" },
-  });
-
-  //unlisted product, inactive category, unavailable variant, zero stock arent added
-  if (!variant) {
-    throw new Error("Product variant not found");
+  // Use comprehensive validation
+  const validation = await validateItemStock(variantId, quantity);
+  
+  if (!validation.isValid) {
+    throw new Error(validation.reason);
   }
 
-  const product = variant.product_id;
-
-  if (!product) {
-    throw new Error("Product not found");
-  }
-
-  if (product.status === "Out Of Stock") {
-    throw new Error("This product is no longer available");
-  }
-
-  if (product.category && product.category.status === "Inactive") {
-    throw new Error("This product category is no longer active");
-  }
-
-  if (variant.status !== "Available") {
-    throw new Error("This product is currently unavailable");
-  }
-
-  if (variant.stock_quantity === 0) {
-    throw new Error("This product is out of stock");
-  }
+  const { variant, product } = validation;
 
   let cart = await Cart.findOne({ user_id: userId });
 
@@ -210,8 +188,10 @@ const addToCart = async (userId, variantId, quantity = 1) => {
       throw new Error(`Maximum ${MAX_QUANTITY_PER_ITEM} items allowed per product`);
     }
 
-    if (newQuantity > variant.stock_quantity) {
-      throw new Error(`Only ${variant.stock_quantity} items available in stock`);
+    // Re-validate with new total quantity
+    const newValidation = await validateItemStock(variantId, newQuantity);
+    if (!newValidation.isValid) {
+      throw new Error(newValidation.reason);
     }
 
     existingItem.quantity = newQuantity;
@@ -219,10 +199,6 @@ const addToCart = async (userId, variantId, quantity = 1) => {
   } else {
     if (quantity > MAX_QUANTITY_PER_ITEM) {
       throw new Error(`Maximum ${MAX_QUANTITY_PER_ITEM} items allowed per product`);
-    }
-
-    if (quantity > variant.stock_quantity) {
-      throw new Error(`Only ${variant.stock_quantity} items available in stock`);
     }
 
     cart.items.push({
@@ -246,18 +222,14 @@ const updateCartQuantity = async (userId, variantId, quantity) => {
     throw new Error(`Maximum ${MAX_QUANTITY_PER_ITEM} items allowed per product`);
   }
 
-  const variant = await Variant.findById(variantId).populate({
-    path: "product_id",
-    populate: { path: "category" },
-  });
-
-  if (!variant) {
-    throw new Error("Product variant not found");
+  // Use comprehensive validation
+  const validation = await validateItemStock(variantId, quantity);
+  
+  if (!validation.isValid) {
+    throw new Error(validation.reason);
   }
 
-  if (quantity > variant.stock_quantity) {
-    throw new Error(`Only ${variant.stock_quantity} items available in stock`);
-  }
+  const { variant } = validation;
 
   const cart = await Cart.findOne({ user_id: userId });
 

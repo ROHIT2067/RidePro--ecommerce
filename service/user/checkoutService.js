@@ -7,6 +7,8 @@ import couponService from "../admin/couponService.js";
 import { debitWallet } from "../../utils/walletHelper.js";
 import { calculateProductPrice } from "../../utils/priceCalculator.js";
 import { processReferralRewards } from "./referralService.js";
+import { validateCartItems, reserveStock, validateAndPrepareOrderItems } from "../../utils/stockValidator.js";
+import mongoose from "mongoose";
 
 const getCheckoutData = async (userId, selectedAddressId) => {
   // Get cart with populated data
@@ -23,68 +25,17 @@ const getCheckoutData = async (userId, selectedAddressId) => {
     throw new Error("Your cart is empty");
   }
 
-  // Validate all items
-  const validItems = [];
-  const unavailableItems = [];
+  // Use comprehensive validation
+  const validation = await validateCartItems(cart.items);
 
-  for (const item of cart.items) {
-    const variant = item.variant_id;
-    const product = variant?.product_id;
-
-    // Check if product exists and is available
-    if (!variant || !product) {
-      unavailableItems.push({
-        productName: product?.productName || "Unknown Product",
-        reason: "Product no longer exists",
-      });
-      continue;
-    }
-
-    // Check if product is unlisted
-    if (product.status === "Out Of Stock") {
-      unavailableItems.push({
-        productName: product.productName,
-        reason: "Product is no longer available",
-      });
-      continue;
-    }
-
-    // Check if category is inactive
-    if (product.category && product.category.status === "Inactive") {
-      unavailableItems.push({
-        productName: product.productName,
-        reason: "Product category is no longer active",
-      });
-      continue;
-    }
-
-    // Check variant availability
-    if (variant.status !== "Available") {
-      unavailableItems.push({
-        productName: product.productName,
-        reason: "Product variant is unavailable",
-      });
-      continue;
-    }
-
-    // Check stock
-    if (variant.stock_quantity === 0 || item.quantity > variant.stock_quantity) {
-      unavailableItems.push({
-        productName: product.productName,
-        reason: variant.stock_quantity === 0 
-          ? "Product is out of stock" 
-          : `Only ${variant.stock_quantity} items available`,
-      });
-      continue;
-    }
-
-    validItems.push(item);
-  }
-
-  if (unavailableItems.length > 0) {
+  if (!validation.isValid) {
     return {
       success: false,
-      unavailableItems,
+      unavailableItems: validation.invalidItems.map(item => ({
+        productName: item.variant_id?.product_id?.productName || "Unknown Product",
+        reason: item.reason,
+        availableStock: item.availableStock
+      })),
       hasUnavailableItems: true,
     };
   }
@@ -108,7 +59,7 @@ const getCheckoutData = async (userId, selectedAddressId) => {
 
   // Calculate totals using current offer prices
   let subtotal = 0;
-  for (const item of validItems) {
+  for (const item of validation.validItems) {
     const variant = item.variant_id;
     const product = variant.product_id;
     
@@ -124,7 +75,7 @@ const getCheckoutData = async (userId, selectedAddressId) => {
 
   return {
     success: true,
-    items: validItems,
+    items: validation.validItems,
     addresses,
     selectedAddress,
     subtotal,
@@ -143,147 +94,175 @@ const generateOrderId = () => {
 };
 
 const placeOrder = async (userId, addressId, appliedCoupon = null, paymentMethod = 'COD', paymentDetails = null) => {
-  // Get checkout data
-  const checkoutData = await getCheckoutData(userId, addressId);
-
-  if (!checkoutData.success) {
-    throw new Error("Some items in your cart are unavailable");
-  }
-
-  const { items, selectedAddress, subtotal, shippingCost, totalAmount } = checkoutData;
-
-  // Calculate final amount with coupon discount
-  let finalAmount = totalAmount;
-  let couponDiscount = 0;
-  let couponDetails = null;
-
-  if (appliedCoupon) {
-    couponDiscount = appliedCoupon.discountAmount;
-    finalAmount = totalAmount - couponDiscount;
-    couponDetails = {
-      couponId: appliedCoupon.couponId,
-      code: appliedCoupon.code,
-      discountAmount: couponDiscount
-    };
-
-    // Mark coupon as used
-    await couponService.useCoupon(appliedCoupon.couponId, userId);
-  }
-
-  // Handle wallet payment
-  if (paymentMethod === 'wallet') {
-    const user = await User.findById(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    if (user.wallet.balance < finalAmount) {
-      throw new Error("Insufficient wallet balance");
-    }
-  }
-
-  // Prepare payment details for order
-  let orderPaymentDetails = {};
-  if (paymentMethod === 'paypal' && paymentDetails) {
-    orderPaymentDetails = {
-      paypalOrderId: paymentDetails.paypalOrderId,
-      captureId: paymentDetails.captureId,
-      payerEmail: paymentDetails.payerEmail
-    };
-  }
-
-  // Prepare order items with current offer prices
-  const orderItems = await Promise.all(items.map(async (item) => {
-    const variant = item.variant_id;
-    const product = variant.product_id;
-
-    // Get current offer price for this item
-    const priceCalc = await calculateProductPrice(product, variant.price, product.category._id);
-    const currentOfferPrice = priceCalc.finalPrice;
-
-    return {
-      product_id: product._id,
-      variant_id: variant._id,
-      quantity: item.quantity,
-      price: currentOfferPrice, // Use current offer price
-      totalPrice: currentOfferPrice * item.quantity, // Calculate with offer price
-      productName: product.productName,
-      variantDetails: {
-        size: variant.size,
-        color: variant.color,
-        images: variant.images,
-      },
-      status: "Pending",
-      statusHistory: [{
-        status: "Pending",
-        timestamp: new Date(),
-        reason: "Order placed"
-      }]
-    };
-  }));
-
-  // Create order
-  const order = new Order({
-    user_id: userId,
-    order_id: generateOrderId(),
-    items: orderItems,
-    cancelledItems: [], // Initialize empty array
-    returnRequests: [], // Initialize empty array
-    shipping_address: {
-      name: selectedAddress.name,
-      mobile: selectedAddress.mobile,
-      area: selectedAddress.area,
-      district: selectedAddress.district,
-      state: selectedAddress.state,
-      country: selectedAddress.country,
-      pincode: selectedAddress.pincode,
-    },
-    payment_method: paymentMethod,
-    payment_status: (paymentMethod === 'wallet' || paymentMethod === 'paypal') ? 'Paid' : 'Pending',
-    payment_details: orderPaymentDetails,
-    order_status: "Pending",
-    subtotal,
-    shipping_cost: shippingCost,
-    total_amount: totalAmount,
-    coupon_discount: couponDiscount,
-    coupon_details: couponDetails,
-    final_amount: finalAmount,
-  });
-
-  await order.save();
-
-  // Process wallet payment after order is saved
-  if (paymentMethod === 'wallet') {
-    await debitWallet(
-      userId, 
-      finalAmount, 
-      `Payment for order #${order.order_id}`, 
-      order._id
-    );
-  }
-
-  // Update stock quantities
-  for (const item of items) {
-    await Variant.findByIdAndUpdate(item.variant_id._id, {
-      $inc: { stock_quantity: -item.quantity },
-    });
-  }
-
-  // Clear cart
-  await Cart.findOneAndUpdate(
-    { user_id: userId },
-    { $set: { items: [] } }
-  );
-
-  // Process referral rewards for first purchase
+  // Start a database transaction for atomic operations
+  const session = await mongoose.startSession();
+  
   try {
-    await processReferralRewards(userId);
-  } catch (error) {
-    console.error('Error processing referral rewards:', error);
-    // Don't fail the order if referral processing fails
-  }
+    return await session.withTransaction(async () => {
+      // Get cart with populated data within transaction
+      const cart = await Cart.findOne({ user_id: userId })
+        .populate({
+          path: "items.variant_id",
+          populate: {
+            path: "product_id",
+            populate: { path: "category" },
+          },
+        })
+        .session(session);
 
-  return order;
+      if (!cart || cart.items.length === 0) {
+        throw new Error("Your cart is empty");
+      }
+
+      // Validate and prepare order items with atomic stock validation
+      const preparation = await validateAndPrepareOrderItems(cart.items, session);
+      
+      if (!preparation.success) {
+        const errorMessages = preparation.errors.map(error => 
+          `${error.productName}: ${error.reason}`
+        ).join('; ');
+        throw new Error(`Order cannot be placed due to stock issues: ${errorMessages}`);
+      }
+
+      // Get address data
+      const userAddresses = await Address.findOne({ user_id: userId }).session(session);
+      const addresses = userAddresses?.address || [];
+      
+      if (addresses.length === 0) {
+        throw new Error("Please add a delivery address");
+      }
+
+      const selectedAddress = addresses.find((a) => a._id.toString() === addressId);
+      if (!selectedAddress) {
+        throw new Error("Selected address not found");
+      }
+
+      // Calculate totals using current offer prices
+      let subtotal = 0;
+      for (const item of preparation.orderItems) {
+        subtotal += item.totalPrice;
+      }
+
+      const shippingCost = 118;
+      const totalAmount = subtotal + shippingCost;
+
+      // Calculate final amount with coupon discount
+      let finalAmount = totalAmount;
+      let couponDiscount = 0;
+      let couponDetails = null;
+
+      if (appliedCoupon) {
+        couponDiscount = appliedCoupon.discountAmount;
+        finalAmount = totalAmount - couponDiscount;
+        couponDetails = {
+          couponId: appliedCoupon.couponId,
+          code: appliedCoupon.code,
+          discountAmount: couponDiscount
+        };
+
+        // Mark coupon as used within transaction
+        await couponService.useCoupon(appliedCoupon.couponId, userId, session);
+      }
+
+      // Handle wallet payment validation
+      if (paymentMethod === 'wallet') {
+        const user = await User.findById(userId).session(session);
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        if (user.wallet.balance < finalAmount) {
+          throw new Error("Insufficient wallet balance");
+        }
+      }
+
+      // Prepare payment details for order
+      let orderPaymentDetails = {};
+      if (paymentMethod === 'paypal' && paymentDetails) {
+        orderPaymentDetails = {
+          paypalOrderId: paymentDetails.paypalOrderId,
+          captureId: paymentDetails.captureId,
+          payerEmail: paymentDetails.payerEmail
+        };
+      }
+
+      // Atomically reserve stock for all items
+      await reserveStock(preparation.orderItems, session);
+
+      // Prepare final order items with status tracking
+      const finalOrderItems = preparation.orderItems.map(item => ({
+        ...item,
+        status: "Pending",
+        statusHistory: [{
+          status: "Pending",
+          timestamp: new Date(),
+          reason: "Order placed"
+        }]
+      }));
+
+      // Create order
+      const order = new Order({
+        user_id: userId,
+        order_id: generateOrderId(),
+        items: finalOrderItems,
+        cancelledItems: [], // Initialize empty array
+        returnRequests: [], // Initialize empty array
+        shipping_address: {
+          name: selectedAddress.name,
+          mobile: selectedAddress.mobile,
+          area: selectedAddress.area,
+          district: selectedAddress.district,
+          state: selectedAddress.state,
+          country: selectedAddress.country,
+          pincode: selectedAddress.pincode,
+        },
+        payment_method: paymentMethod,
+        payment_status: (paymentMethod === 'wallet' || paymentMethod === 'paypal') ? 'Paid' : 'Pending',
+        payment_details: orderPaymentDetails,
+        order_status: "Pending",
+        subtotal,
+        shipping_cost: shippingCost,
+        total_amount: totalAmount,
+        coupon_discount: couponDiscount,
+        coupon_details: couponDetails,
+        final_amount: finalAmount,
+      });
+
+      await order.save({ session });
+
+      // Process wallet payment after order is saved
+      if (paymentMethod === 'wallet') {
+        await debitWallet(
+          userId, 
+          finalAmount, 
+          `Payment for order #${order.order_id}`, 
+          order._id,
+          session
+        );
+      }
+
+      // Clear cart within transaction
+      await Cart.findOneAndUpdate(
+        { user_id: userId },
+        { $set: { items: [] } },
+        { session }
+      );
+
+      // Process referral rewards for first purchase (outside transaction to avoid blocking)
+      // This will be handled after transaction commits
+      setImmediate(async () => {
+        try {
+          await processReferralRewards(userId);
+        } catch (error) {
+          console.error('Error processing referral rewards:', error);
+        }
+      });
+
+      return order;
+    });
+  } finally {
+    await session.endSession();
+  }
 };
 
 export default {
