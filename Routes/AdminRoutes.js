@@ -44,6 +44,7 @@ router.get('/orders/:id', requireAdmin, orderController.orderDetailsGet)
 router.get('/orders/:id/invoice', requireAdmin, orderController.downloadInvoiceGet)
 router.post('/orders/update-status', requireAdmin, orderController.updateOrderStatusPost)
 router.post('/orders/items/:itemId/approve-return', requireAdmin, orderController.approveReturnPost)
+router.post('/orders/items/:itemId/approve-return-with-inventory', requireAdmin, orderController.approveReturnWithInventoryPost)
 router.post('/orders/items/:itemId/reject-return', requireAdmin, orderController.rejectReturnPost)
 
 // Offer & Coupon Management

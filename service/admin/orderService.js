@@ -120,7 +120,7 @@ const getOrderDetails = async (orderId) => {
   }
 };
 
-const approveReturn = async (itemId) => {
+const approveReturn = async (itemId, addToInventory = true) => {
   if (!itemId) {
     throw new Error("Item ID is required");
   }
@@ -144,9 +144,12 @@ const approveReturn = async (itemId) => {
     throw new Error("Return request is not pending");
   }//if already approved/rejected, throws an error
 
-  await Variant.findByIdAndUpdate(item.variant_id, {
-    $inc: { stock_quantity: item.quantity }
-  });//automically increments stock_quantity by item.quantity
+  // Only increment stock if addToInventory is true
+  if (addToInventory) {
+    await Variant.findByIdAndUpdate(item.variant_id, {
+      $inc: { stock_quantity: item.quantity }
+    });//automically increments stock_quantity by item.quantity
+  }
 
   // Calculate refund amount accounting for coupon discount
   const itemValue = item.totalPrice || (item.price * item.quantity);
@@ -181,11 +184,12 @@ const approveReturn = async (itemId) => {
   }
   item.statusHistory.push({
     status: "Returned",
-    reason: "Return approved by admin",
+    reason: addToInventory ? "Return approved by admin" : "Return approved by admin (no inventory update)",
   });
 
   returnRequest.status = "approved";
   returnRequest.processedAt = new Date();
+  returnRequest.addedToInventory = addToInventory; // Track whether stock was incremented
 
   // Determine the correct order status based on actual item states
   const nonCancelledItems = order.items.filter(orderItem => 
@@ -235,7 +239,7 @@ const approveReturn = async (itemId) => {
 
   await order.save();
   
-  return { success: true, item, refundAmount: returnRequest.refundAmount };
+  return { success: true, item, refundAmount: returnRequest.refundAmount, addedToInventory: addToInventory };
 };
 
 const rejectReturn = async (itemId, reason) => {
@@ -315,10 +319,20 @@ const rejectReturn = async (itemId, reason) => {
 };
 
 
+const approveReturnWithInventory = async (itemId) => {
+  return await approveReturn(itemId, true);
+};
+
+const approveReturnWithoutInventory = async (itemId) => {
+  return await approveReturn(itemId, false);
+};
+
 export default {
   getOrders,
   getOrderDetails,
   updateOrderStatus,
   approveReturn,
+  approveReturnWithInventory,
+  approveReturnWithoutInventory,
   rejectReturn,
 };

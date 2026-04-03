@@ -299,6 +299,13 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .return-action-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     #toast {
@@ -550,10 +557,14 @@
                           <div style="font-size:13px; color:#374151; margin-bottom:10px;">
                             <strong>Customer reason:</strong> "<%= itemReturnReq.reason %>"
                           </div>
-                          <div style="display:flex; gap:8px;">
+                          <div style="display:flex; gap:8px; flex-wrap:wrap;">
                             <button class="return-action-btn" style="background:#16a34a;color:#fff;"
                               onclick="approveItemReturn('<%= item._id %>')">
                               <i class="fa fa-check"></i> Approve
+                            </button>
+                            <button class="return-action-btn" style="background:#059669;color:#fff;"
+                              onclick="approveItemReturnWithInventory('<%= item._id %>')">
+                              <i class="fa fa-check-double"></i> Approve & Add to Inventory
                             </button>
                             <button class="return-action-btn" style="background:#ef4444;color:#fff;"
                               onclick="openRejectItemModal('<%= item._id %>')">
@@ -586,6 +597,11 @@
                         <div class="return-box return-box-approved">
                           <div class="return-box-label" style="color:#16a34a;">
                             <i class="fa fa-circle-check"></i> Return Approved
+                            <% if (itemReturnReq.addedToInventory === true) { %>
+                              <span style="font-size:11px;background:#059669;color:#fff;padding:2px 6px;border-radius:10px;margin-left:6px;">+ Inventory</span>
+                            <% } else if (itemReturnReq.addedToInventory === false) { %>
+                              <span style="font-size:11px;background:#6b7280;color:#fff;padding:2px 6px;border-radius:10px;margin-left:6px;">No Inventory</span>
+                            <% } %>
                           </div>
                           <div style="font-size:12px; color:#374151; margin-top:4px;">
                             <strong>Customer reason:</strong> "<%= itemReturnReq.reason %>"
@@ -779,11 +795,25 @@
     <div class="modal-box">
       <h3 class="modal-title"><i class="fa fa-check-circle" style="color:#16a34a;"></i> Approve Return Request</h3>
       <div class="modal-body">
-        <p>Are you sure you want to approve the return for this item? This will increment the stock and process the refund.</p>
+        <p>Are you sure you want to approve the return for this item? This will process the refund but <strong>will NOT</strong> add the item back to inventory.</p>
       </div>
       <div class="modal-actions">
         <button class="modal-btn modal-btn-cancel" onclick="closeModal('returnApprovalModal')">Cancel</button>
         <button class="modal-btn modal-btn-approve" id="returnApprovalConfirmBtn">Approve Return</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Return Approval with Inventory Confirmation Modal -->
+  <div id="returnApprovalWithInventoryModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 class="modal-title"><i class="fa fa-check-double" style="color:#059669;"></i> Approve Return & Add to Inventory</h3>
+      <div class="modal-body">
+        <p>Are you sure you want to approve the return for this item? This will process the refund <strong>AND</strong> add the item back to inventory.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal('returnApprovalWithInventoryModal')">Cancel</button>
+        <button class="modal-btn modal-btn-approve" id="returnApprovalWithInventoryConfirmBtn">Approve & Add to Inventory</button>
       </div>
     </div>
   </div>
@@ -853,8 +883,13 @@
     /* ── Order-level return ── */
     /* ── Item-level return ── */
     function approveItemReturn(itemId) {
-      // Show confirmation modal instead of confirm()
+      // Show confirmation modal for approve without inventory
       showReturnApprovalModal(itemId);
+    }
+
+    function approveItemReturnWithInventory(itemId) {
+      // Show confirmation modal for approve with inventory
+      showReturnApprovalWithInventoryModal(itemId);
     }
 
     function showReturnApprovalModal(itemId) {
@@ -863,20 +898,38 @@
       
       // Set up confirm button
       document.getElementById('returnApprovalConfirmBtn').onclick = () => {
-        confirmReturnApproval(itemId);
+        confirmReturnApproval(itemId, false); // false = don't add to inventory
         closeModal('returnApprovalModal');
       };
     }
 
-    function confirmReturnApproval(itemId) {
-      fetch('/admin/orders/items/' + itemId + '/approve-return', {
+    function showReturnApprovalWithInventoryModal(itemId) {
+      const modal = document.getElementById('returnApprovalWithInventoryModal');
+      modal.classList.add('open');
+      
+      // Set up confirm button
+      document.getElementById('returnApprovalWithInventoryConfirmBtn').onclick = () => {
+        confirmReturnApproval(itemId, true); // true = add to inventory
+        closeModal('returnApprovalWithInventoryModal');
+      };
+    }
+
+    function confirmReturnApproval(itemId, addToInventory) {
+      const endpoint = addToInventory 
+        ? '/admin/orders/items/' + itemId + '/approve-return-with-inventory'  // Add to inventory
+        : '/admin/orders/items/' + itemId + '/approve-return';                // Don't add to inventory
+      
+      fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       })
         .then(r => r.json())
         .then(data => {
           if (data.success) {
-            showToast('Item return approved', 'success');
+            const message = addToInventory 
+              ? 'Item return approved and added to inventory' 
+              : 'Item return approved';
+            showToast(message, 'success');
             setTimeout(() => location.reload(), 1500);
           } else {
             showToast(data.message || 'Failed to approve return', 'error');

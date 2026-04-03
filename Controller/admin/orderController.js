@@ -216,10 +216,24 @@ const approveReturnPost = async (req, res) => {
   try {
     const { itemId } = req.params;
 
-    const result = await orderService.approveReturn(itemId);
+    // Default approve behavior: DON'T add to inventory
+    const result = await orderService.approveReturnWithoutInventory(itemId);
     return res.status(200).json(result);
   } catch (error) {
     console.error("Error approving return:", error);
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const approveReturnWithInventoryPost = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+
+    // New behavior: ADD to inventory
+    const result = await orderService.approveReturnWithInventory(itemId);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Error approving return with inventory:", error);
     return res.status(400).json({ success: false, message: error.message });
   }
 };
@@ -243,5 +257,6 @@ export default {
   updateOrderStatusPost,
   downloadInvoiceGet,
   approveReturnPost,
+  approveReturnWithInventoryPost,
   rejectReturnPost,
 };
