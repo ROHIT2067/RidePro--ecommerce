@@ -17,7 +17,6 @@ const getProductsList = async (query) => {
     const activeCategoryIds = activeCategories.map((c) => c._id);
 
     const productFilter = {
-        status: "Available",
         category: { $in: activeCategoryIds },
     };
 
