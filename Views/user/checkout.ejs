@@ -96,7 +96,20 @@
     .btn-place-order:disabled { background: var(--muted2); cursor: not-allowed; transform: none; }
     .secure-note { display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.72rem; color: var(--muted); margin-top: 0.85rem; }
     #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; padding: 0.75rem 1.2rem; border-radius: 10px; font-size: 0.84rem; font-weight: 500; color: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); opacity: 0; transform: translateY(8px); transition: opacity 0.28s, transform 0.28s; pointer-events: none; }
-    @media (max-width: 900px) { .checkout-layout { grid-template-columns: 1fr; } .order-summary { position: static; } }
+    @media (max-width: 900px) {
+      .checkout-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+      .order-summary { position: static; order: 2; }
+      .checkout-main { order: 1; }
+    }
+    @media (max-width: 600px) {
+      body { padding-top: 60px; }
+      .page-wrap { padding: 1.5rem 1rem 3rem; }
+      .page-title { font-size: 2rem; }
+      .section { padding: 1.25rem 1rem; }
+      .form-row.two { grid-template-columns: 1fr; gap: 0; }
+      .modal-actions { flex-direction: column-reverse; gap: 0.75rem; }
+      .address-actions { opacity: 1; }
+    }
   </style>
 </head>
 <body>

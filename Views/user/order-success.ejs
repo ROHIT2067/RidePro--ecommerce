@@ -34,7 +34,16 @@
     .btn-primary:hover { background: #ff5733; transform: translateY(-1px); }
     .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { background: var(--surface); }
-  </style>
+    @media (max-width: 768px) {
+      .page-wrap { padding: 5rem 1.25rem 3rem; }
+      .success-title { font-size: 2.2rem; }
+      .success-message { font-size: 0.92rem; }
+      .order-box { padding: 1.5rem; }
+      .order-id { font-size: 1.5rem; }
+      .action-buttons { flex-direction: column; align-items: center; }
+      .btn { width: 100%; justify-content: center; }
+    }
+</style>
 </head>
 <body>
   <%- include('partials/header') %>

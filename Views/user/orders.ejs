@@ -61,7 +61,21 @@
     .page-btn:hover { background: var(--surface2); }
     .page-btn.active { background: var(--accent); border-color: var(--accent); }
     .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    @media (max-width: 768px) { .order-body { grid-template-columns: 1fr; } .order-info { flex-direction: column; gap: 1rem; } }
+    @media (max-width: 900px) {
+      .page-wrap { padding: 4rem 1.25rem 3rem; }
+      .page-title { font-size: 2.2rem; }
+    }
+    @media (max-width: 768px) {
+      .order-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+      .order-body { grid-template-columns: 1fr; gap: 1.25rem; }
+      .order-info { flex-direction: column; gap: 1rem; }
+      .btn-view { width: 100%; justify-content: center; }
+    }
+    @media (max-width: 480px) {
+      .search-form { flex-direction: column; }
+      .search-btn { width: 100%; }
+      .clear-search { width: 100%; justify-content: center; }
+    }
   </style>
 </head>
 <body>
