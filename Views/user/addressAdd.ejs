@@ -60,6 +60,10 @@
             <h2>Add Shipping Address</h2>
 
             <form method="POST" action="/account/address/add" class="address-form" id="addressForm">
+              <!-- Hidden field to track if user came from checkout -->
+              <% if (typeof query !== 'undefined' && query.fromCheckout === 'true') { %>
+                <input type="hidden" name="fromCheckout" value="true" />
+              <% } %>
 
               <div class="form-row">
                 <label for="name">Name *</label>

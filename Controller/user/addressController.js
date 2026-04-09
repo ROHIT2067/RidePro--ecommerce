@@ -11,7 +11,15 @@ const addressGet = async (req, res) => {
       addressId,
     );
 
-    return res.render("addressPage", { addresses, selectedAddress });
+    // Get error message from session if any
+    const addressError = req.session.addressError;
+    delete req.session.addressError; // Clear the message after reading
+
+    return res.render("addressPage", { 
+      addresses, 
+      selectedAddress, 
+      addressError 
+    });
   } catch (error) {
     console.error("Address Get Error:", error);
     return res.redirect("/account");
@@ -20,7 +28,10 @@ const addressGet = async (req, res) => {
 
 const addressAddGet = (req, res) => {
   const user = req.session.user;
-  return res.render("addressAdd", { user: user });
+  return res.render("addressAdd", { 
+    user: user,
+    query: req.query 
+  });
 };
 
 const addressAddPost = async (req, res) => {
@@ -35,6 +46,13 @@ const addressAddPost = async (req, res) => {
 
     const userId = req.session.user;
     await addressService.addAddress(userId, result.data);
+
+    // Check if user came from checkout (indicated by fromCheckout query parameter)
+    const fromCheckout = req.body.fromCheckout || req.query.fromCheckout;
+    if (fromCheckout === 'true') {
+      req.session.addressSuccess = "Address added successfully! You can now proceed with checkout.";
+      return res.redirect("/checkout");
+    }
 
     return res.redirect("/account/address");
   } catch (error) {

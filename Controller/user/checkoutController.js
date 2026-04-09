@@ -84,6 +84,10 @@ const checkoutGet = async (req, res) => {
       }
     }
 
+    // Get success message from session if any
+    const addressSuccess = req.session.addressSuccess;
+    delete req.session.addressSuccess; // Clear the message after reading
+
     // Get applied coupon from session and validate it
     let appliedCoupon = req.session.appliedCoupon || null;
     let finalTotal = checkoutData.totalAmount;
@@ -118,9 +122,24 @@ const checkoutGet = async (req, res) => {
       appliedCoupon: appliedCoupon,
       finalTotal: finalTotal,
       walletBalance: walletBalance,
+      addressSuccess: addressSuccess,
     });
   } catch (error) {
     console.error("Checkout Get Error:", error);
+    
+    // Handle specific address error
+    if (error.message === "Please add a delivery address") {
+      req.session.addressError = "Please add a delivery address to proceed with checkout.";
+      return res.redirect("/account/address?fromCheckout=true");
+    }
+    
+    // Handle other specific errors
+    if (error.message === "Your cart is empty") {
+      req.session.checkoutError = "Your cart is empty. Please add items to your cart before checkout.";
+      return res.redirect("/products");
+    }
+    
+    // Generic error for other cases
     req.session.checkoutError = "Unable to load checkout page. Please check your cart and try again.";
     return res.redirect("/cart");
   }

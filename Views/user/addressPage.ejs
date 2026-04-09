@@ -31,6 +31,14 @@
           <div class="account-main">
             <h2>Shipping Address</h2>
 
+            <!-- Error Message Display -->
+            <% if (typeof addressError !== 'undefined' && addressError) { %>
+              <div class="error-message" style="background-color: #fee; border: 1px solid #fcc; color: #c33; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
+                <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                <%= addressError %>
+              </div>
+            <% } %>
+
             <!-- Address Selector Dropdown -->
             <div class="address-select">
               <form method="GET" action="/account/address">
@@ -52,7 +60,14 @@
               <!-- No Address State -->
               <div class="no-address">
                 <p>No address found.</p>
-                <a href="/account/address/add" class="btn-primary">Add Address</a>
+                <% if (typeof addressError !== 'undefined' && addressError) { %>
+                  <p style="margin-bottom: 15px; color: #666;">You need to add a delivery address before you can proceed with checkout.</p>
+                <% } %>
+                <% 
+                  const fromCheckout = typeof addressError !== 'undefined' && addressError;
+                  const addAddressUrl = fromCheckout ? '/account/address/add?fromCheckout=true' : '/account/address/add';
+                %>
+                <a href="<%= addAddressUrl %>" class="btn-primary">Add Address</a>
               </div>
               <% } else if (selectedAddress) { %>
                 <!-- Address Display Card -->
@@ -101,6 +116,9 @@
                       <button type="button" class="btn-danger"
                         onclick="confirmDelete('<%= selectedAddress._id %>')">Delete Address</button>
                     </form>
+                    <% if (typeof addressError !== 'undefined' && addressError) { %>
+                      <a href="/checkout" class="btn-primary" style="margin-left: 10px;">Continue to Checkout</a>
+                    <% } %>
                   </div>
                 </div>
                 <% } %>
@@ -116,12 +134,17 @@
       <script>
         // Handle address selection change
         document.getElementById('addressSelect')?.addEventListener('change', function () {
+          const fromCheckout = new URLSearchParams(window.location.search).get('fromCheckout');
           if (this.value === '') {
             // Navigate to add address page
-            window.location.href = '/account/address/add';
+            const addUrl = fromCheckout === 'true' ? '/account/address/add?fromCheckout=true' : '/account/address/add';
+            window.location.href = addUrl;
           } else {
             // Reload with selected address
-            window.location.href = '/account/address?addressId=' + this.value;
+            const addressUrl = fromCheckout === 'true' ? 
+              '/account/address?addressId=' + this.value + '&fromCheckout=true' : 
+              '/account/address?addressId=' + this.value;
+            window.location.href = addressUrl;
           }
         });
 
