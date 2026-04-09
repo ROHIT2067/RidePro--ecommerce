@@ -166,6 +166,97 @@
     .btn-confirm:hover { background: #b91c1c; }
     .btn-confirm.blue { background: #2563eb; border-color: #2563eb; }
     .btn-confirm.blue:hover { background: #1d4ed8; }
+
+    /* Pagination Styles */
+    .pagination-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding: 0 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .page-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      height: 36px;
+      padding: 0 8px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      color: #6b7280;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+
+    .page-btn:hover:not(.disabled):not(.active) {
+      background: #f9fafb;
+      border-color: #d1d5db;
+      color: #374151;
+    }
+
+    .page-btn.active {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .page-btn.disabled {
+      background: #f9fafb;
+      border-color: #e5e7eb;
+      color: #d1d5db;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .page-ellipsis {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      height: 36px;
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .pagination-info {
+      font-size: 14px;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 768px) {
+      .pagination-wrapper {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .pagination-info {
+        text-align: center;
+        font-size: 13px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -232,7 +323,7 @@
             <% if (typeof offers !== 'undefined' && offers && offers.length > 0) { %>
               <% offers.forEach((offer, index) => { %>
                 <tr>
-                  <td><%= (currentPage - 1) * 10 + index + 1 %></td>
+                  <td><%= (offerCurrentPage - 1) * 10 + index + 1 %></td>
                   <td><%= offer.name %></td>
                   <td>
                     <span class="badge badge-<%= offer.type %>">
@@ -282,6 +373,47 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Offers Pagination -->
+      <% if (offerTotalPages > 1) { %>
+        <div class="pagination-wrapper">
+          <div class="pagination">
+            <% if (offerHasPrevPage) { %>
+              <a href="?offerPage=<%= offerPrevPage %>&couponPage=<%= couponCurrentPage %>" class="page-btn">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+            <% } else { %>
+              <span class="page-btn disabled">
+                <i class="fas fa-chevron-left"></i>
+              </span>
+            <% } %>
+
+            <% for (let i = 1; i <= offerTotalPages; i++) { %>
+              <% if (i === 1 || i === offerTotalPages || (i >= offerCurrentPage - 2 && i <= offerCurrentPage + 2)) { %>
+                <a href="?offerPage=<%= i %>&couponPage=<%= couponCurrentPage %>" 
+                   class="page-btn <%= i === offerCurrentPage ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+              <% } else if (i === offerCurrentPage - 3 || i === offerCurrentPage + 3) { %>
+                <span class="page-ellipsis">…</span>
+              <% } %>
+            <% } %>
+
+            <% if (offerHasNextPage) { %>
+              <a href="?offerPage=<%= offerNextPage %>&couponPage=<%= couponCurrentPage %>" class="page-btn">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            <% } else { %>
+              <span class="page-btn disabled">
+                <i class="fas fa-chevron-right"></i>
+              </span>
+            <% } %>
+          </div>
+          <div class="pagination-info">
+            Showing <%= (offerCurrentPage - 1) * 10 + 1 %> to <%= Math.min(offerCurrentPage * 10, offerTotalCount) %> of <%= offerTotalCount %> offers
+          </div>
+        </div>
+      <% } %>
 
       <!-- Add New Offer Form -->
       <div class="form-card">
@@ -380,7 +512,7 @@
             <% if (typeof coupons !== 'undefined' && coupons && coupons.length > 0) { %>
               <% coupons.forEach((coupon, index) => { %>
                 <tr>
-                  <td><%= (currentPage - 1) * 10 + index + 1 %></td>
+                  <td><%= (couponCurrentPage - 1) * 10 + index + 1 %></td>
                   <td><strong style="font-weight:600; letter-spacing:0.03em;"><%= coupon.code %></strong></td>
                   <td>
                     <span class="badge <%= coupon.discountType === 'flat' ? 'badge-flat' : 'badge-percentage' %>">
@@ -432,6 +564,47 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Coupons Pagination -->
+      <% if (couponTotalPages > 1) { %>
+        <div class="pagination-wrapper">
+          <div class="pagination">
+            <% if (couponHasPrevPage) { %>
+              <a href="?offerPage=<%= offerCurrentPage %>&couponPage=<%= couponPrevPage %>&tab=coupons" class="page-btn">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+            <% } else { %>
+              <span class="page-btn disabled">
+                <i class="fas fa-chevron-left"></i>
+              </span>
+            <% } %>
+
+            <% for (let i = 1; i <= couponTotalPages; i++) { %>
+              <% if (i === 1 || i === couponTotalPages || (i >= couponCurrentPage - 2 && i <= couponCurrentPage + 2)) { %>
+                <a href="?offerPage=<%= offerCurrentPage %>&couponPage=<%= i %>&tab=coupons" 
+                   class="page-btn <%= i === couponCurrentPage ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+              <% } else if (i === couponCurrentPage - 3 || i === couponCurrentPage + 3) { %>
+                <span class="page-ellipsis">…</span>
+              <% } %>
+            <% } %>
+
+            <% if (couponHasNextPage) { %>
+              <a href="?offerPage=<%= offerCurrentPage %>&couponPage=<%= couponNextPage %>&tab=coupons" class="page-btn">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            <% } else { %>
+              <span class="page-btn disabled">
+                <i class="fas fa-chevron-right"></i>
+              </span>
+            <% } %>
+          </div>
+          <div class="pagination-info">
+            Showing <%= (couponCurrentPage - 1) * 10 + 1 %> to <%= Math.min(couponCurrentPage * 10, couponTotalCount) %> of <%= couponTotalCount %> coupons
+          </div>
+        </div>
+      <% } %>
 
       <!-- Add New Coupon Form -->
       <div class="form-card">
@@ -507,6 +680,15 @@
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById(tabName + '-tab').classList.add('active');
       document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+      
+      // Update URL to reflect current tab
+      const url = new URL(window.location);
+      if (tabName === 'coupons') {
+        url.searchParams.set('tab', 'coupons');
+      } else {
+        url.searchParams.delete('tab');
+      }
+      window.history.replaceState({}, '', url);
     }
 
     function toggleOfferFields() {
@@ -544,7 +726,11 @@
         else {
           showMsg(msgEl, result.message || 'Offer created successfully!', false);
           this.reset();
-          setTimeout(() => window.location.reload(), 1000);
+          setTimeout(() => {
+            const url = new URL(window.location);
+            url.searchParams.set('offerPage', '1'); // Reset to first page after adding
+            window.location.href = url.toString();
+          }, 1000);
         }
       } catch { showMsg(msgEl, 'Network error. Please try again.', true); }
     });
@@ -567,7 +753,12 @@
         else {
           showMsg(msgEl, result.message || 'Coupon created successfully!', false);
           this.reset();
-          setTimeout(() => window.location.href = '/admin/offers?tab=coupons', 1000);
+          setTimeout(() => {
+            const url = new URL(window.location);
+            url.searchParams.set('tab', 'coupons');
+            url.searchParams.set('couponPage', '1'); // Reset to first page after adding
+            window.location.href = url.toString();
+          }, 1000);
         }
       } catch { showMsg(msgEl, 'Network error. Please try again.', true); }
     });
@@ -590,7 +781,10 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: 'toggle' })
             });
-            if (res.ok) window.location.reload();
+            if (res.ok) {
+              const url = new URL(window.location);
+              window.location.href = url.toString(); // Preserve current pagination
+            }
           } catch { alert('Error updating offer status'); }
         },
         type
@@ -615,7 +809,11 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: 'toggle' })
             });
-            if (res.ok) window.location.href = '/admin/offers?tab=coupons';
+            if (res.ok) {
+              const url = new URL(window.location);
+              url.searchParams.set('tab', 'coupons');
+              window.location.href = url.toString(); // Preserve current pagination
+            }
           } catch { alert('Error updating coupon status'); }
         },
         type
@@ -629,7 +827,10 @@
         async () => {
           try {
             const res = await fetch(`/admin/offers/${offerId}`, { method: 'DELETE' });
-            if (res.ok) window.location.reload();
+            if (res.ok) {
+              const url = new URL(window.location);
+              window.location.href = url.toString(); // Preserve current pagination
+            }
           } catch { alert('Error deleting offer'); }
         },
         'delete'
@@ -644,8 +845,13 @@
           try {
             const res = await fetch(`/admin/coupons/${couponId}`, { method: 'DELETE' });
             const result = await res.json();
-            if (res.ok) window.location.href = '/admin/offers?tab=coupons';
-            else alert(result.message || 'Error deleting coupon');
+            if (res.ok) {
+              const url = new URL(window.location);
+              url.searchParams.set('tab', 'coupons');
+              window.location.href = url.toString(); // Preserve current pagination
+            } else {
+              alert(result.message || 'Error deleting coupon');
+            }
           } catch { alert('Error deleting coupon'); }
         },
         'delete'

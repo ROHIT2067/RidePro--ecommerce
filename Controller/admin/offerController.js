@@ -10,8 +10,12 @@ const offersGet = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    const offerData = await offerService.getOffers(req.query);
-    const couponData = await couponService.getCoupons(req.query);
+    // Get separate page parameters for offers and coupons
+    const offerPage = parseInt(req.query.offerPage) || 1;
+    const couponPage = parseInt(req.query.couponPage) || 1;
+
+    const offerData = await offerService.getOffers({ page: offerPage });
+    const couponData = await couponService.getCoupons({ page: couponPage });
     const products = await Product.find({ status: 'Available' }).select('productName');
     const categories = await Category.find({ status: 'Active' }).select('name');
 
@@ -20,12 +24,22 @@ const offersGet = async (req, res) => {
       coupons: couponData.coupons || [],
       products,
       categories,
-      currentPage: offerData.currentPage || 1,
-      totalPages: offerData.totalPages || 1,
-      hasNextPage: offerData.hasNextPage || false,
-      hasPrevPage: offerData.hasPrevPage || false,
-      nextPage: offerData.nextPage || 1,
-      prevPage: offerData.prevPage || 1
+      // Offer pagination
+      offerCurrentPage: offerData.currentPage || 1,
+      offerTotalPages: offerData.totalPages || 1,
+      offerTotalCount: offerData.totalOffers || 0,
+      offerHasNextPage: offerData.hasNextPage || false,
+      offerHasPrevPage: offerData.hasPrevPage || false,
+      offerNextPage: offerData.nextPage || 1,
+      offerPrevPage: offerData.prevPage || 1,
+      // Coupon pagination
+      couponCurrentPage: couponData.currentPage || 1,
+      couponTotalPages: couponData.totalPages || 1,
+      couponTotalCount: couponData.totalCoupons || 0,
+      couponHasNextPage: couponData.hasNextPage || false,
+      couponHasPrevPage: couponData.hasPrevPage || false,
+      couponNextPage: couponData.nextPage || 1,
+      couponPrevPage: couponData.prevPage || 1
     });
   } catch (error) {
     console.error("Error loading offers:", error);

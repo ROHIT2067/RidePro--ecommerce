@@ -3,10 +3,10 @@ import { couponSchema } from "../../schemas/index.js";
 
 const getCoupons = async (query) => {
     const page = parseInt(query.page) || 1;
-    const limit = 10;
+    const limit = 5;
     const skip = (page - 1) * limit;
 
-    const coupons = await Coupon.find() //No .populate() here because coupons don't reference other documents
+    const coupons = await Coupon.find()
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
@@ -18,6 +18,7 @@ const getCoupons = async (query) => {
         coupons,
         currentPage: page,
         totalPages,
+        totalCoupons,
         hasNextPage: page < totalPages,
         hasPrevPage: page > 1,
         nextPage: page + 1,
