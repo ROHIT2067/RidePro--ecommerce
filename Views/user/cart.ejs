@@ -450,6 +450,144 @@
       color: #f87171;
     }
 
+    .available-coupons {
+      margin-bottom: 1rem;
+    }
+
+    .available-coupons-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .available-coupons-title {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .toggle-coupons {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: color 0.2s;
+    }
+
+    .toggle-coupons:hover {
+      color: var(--accent2);
+    }
+
+    .toggle-coupons i {
+      transition: transform 0.2s;
+    }
+
+    .toggle-coupons.active i {
+      transform: rotate(180deg);
+    }
+
+    .coupons-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface2);
+    }
+
+    .coupon-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem;
+      border-bottom: 1px solid var(--border);
+      transition: background-color 0.2s;
+    }
+
+    .coupon-card:last-child {
+      border-bottom: none;
+    }
+
+    .coupon-card.eligible:hover {
+      background: var(--surface3);
+    }
+
+    .coupon-card.ineligible {
+      opacity: 0.6;
+    }
+
+    .coupon-info {
+      flex: 1;
+    }
+
+    .coupon-code-display {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .coupon-code-text {
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--accent);
+      background: rgba(232, 65, 26, 0.1);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    .coupon-discount {
+      font-size: 0.75rem;
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .coupon-description {
+      font-size: 0.75rem;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+
+    .coupon-reason {
+      font-size: 0.7rem;
+      color: var(--danger);
+      margin-bottom: 0.2rem;
+    }
+
+    .coupon-expiry {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .apply-coupon-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .apply-coupon-btn:hover {
+      background: var(--accent2);
+    }
+
+    .no-coupons-message {
+      margin-bottom: 0.8rem;
+      padding: 0.5rem;
+      text-align: center;
+    }
+
     .btn-checkout {
       width: 100%;
       padding: 0.9rem;
@@ -665,6 +803,24 @@
       .modal-actions {
         flex-direction: column-reverse;
       }
+
+      .coupon-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .coupon-code-display {
+        flex-wrap: wrap;
+      }
+
+      .apply-coupon-btn {
+        align-self: flex-end;
+      }
+
+      .coupons-list {
+        max-height: 250px;
+      }
     }
   </style>
 </head>
@@ -850,6 +1006,51 @@
                             <div class="divider"></div>
                             <div class="coupon-wrap">
                               <span class="coupon-label">Have a coupon?</span>
+                              
+                              <!-- Available Coupons Section -->
+                              <% if (typeof availableCoupons !== 'undefined' && availableCoupons && availableCoupons.length > 0) { %>
+                                <div class="available-coupons">
+                                  <div class="available-coupons-header">
+                                    <span class="available-coupons-title">Available Coupons</span>
+                                    <button class="toggle-coupons" onclick="toggleAvailableCoupons()">
+                                      <span id="toggle-text">Show</span>
+                                      <i class="fas fa-chevron-down" id="toggle-icon"></i>
+                                    </button>
+                                  </div>
+                                  <div class="coupons-list" id="couponsList" style="display: none;">
+                                    <% availableCoupons.forEach(coupon => { %>
+                                      <div class="coupon-card <%= coupon.isEligible ? 'eligible' : 'ineligible' %>">
+                                        <div class="coupon-info">
+                                          <div class="coupon-code-display">
+                                            <span class="coupon-code-text"><%= coupon.code %></span>
+                                            <% if (coupon.isEligible) { %>
+                                              <span class="coupon-discount">Save ₹<%= coupon.potentialDiscount %></span>
+                                            <% } %>
+                                          </div>
+                                          <div class="coupon-description"><%= coupon.description %></div>
+                                          <% if (!coupon.isEligible) { %>
+                                            <div class="coupon-reason"><%= coupon.reason %></div>
+                                          <% } %>
+                                          <div class="coupon-expiry">
+                                            Expires: <%= new Date(coupon.expiryDate).toLocaleDateString('en-IN') %>
+                                          </div>
+                                        </div>
+                                        <% if (coupon.isEligible) { %>
+                                          <button class="apply-coupon-btn" onclick="applyCouponCode('<%= coupon.code %>')">
+                                            Apply
+                                          </button>
+                                        <% } %>
+                                      </div>
+                                    <% }); %>
+                                  </div>
+                                </div>
+                              <% } else if (typeof availableCoupons !== 'undefined' && totalPrice > 0) { %>
+                                <div class="no-coupons-message">
+                                  <span style="font-size: 0.75rem; color: var(--muted); font-style: italic;">
+                                    No coupons available for your current order
+                                  </span>
+                                </div>
+                              <% } %>
                               <% if (typeof appliedCoupon !== 'undefined' && appliedCoupon) { %>
                               <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(22, 163, 74, 0.1); border: 1px solid rgba(22, 163, 74, 0.3); border-radius: 7px; padding: 0.6rem 0.9rem; margin-bottom: 0.5rem;">
                                 <span style="color: var(--success); font-size: 0.84rem; font-weight: 600;"><%= appliedCoupon.code %> Applied</span>
@@ -1124,6 +1325,31 @@
           .catch(() => {
             showToast('Something went wrong', 'error');
           });
+        }
+
+        function toggleAvailableCoupons() {
+          const couponsList = document.getElementById('couponsList');
+          const toggleBtn = document.querySelector('.toggle-coupons');
+          const toggleText = document.getElementById('toggle-text');
+          const toggleIcon = document.getElementById('toggle-icon');
+          
+          if (couponsList.style.display === 'none') {
+            couponsList.style.display = 'block';
+            toggleText.textContent = 'Hide';
+            toggleBtn.classList.add('active');
+          } else {
+            couponsList.style.display = 'none';
+            toggleText.textContent = 'Show';
+            toggleBtn.classList.remove('active');
+          }
+        }
+
+        function applyCouponCode(code) {
+          const couponInput = document.getElementById('couponInput');
+          if (couponInput) {
+            couponInput.value = code;
+          }
+          applyCoupon();
         }
       </script>
 

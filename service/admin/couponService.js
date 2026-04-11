@@ -305,6 +305,116 @@ const validateCouponBusinessRules = async (couponData) => {
     }
 };
 
+const getAvailableCoupons = async (userId, orderAmount) => {
+    try {
+        const currentDate = new Date();
+        
+        // Get all active coupons that haven't expired
+        const coupons = await Coupon.find({
+            status: 'active',
+            expiryDate: { $gte: currentDate }
+        }).lean();
+
+        // Filter coupons based on user eligibility and order amount
+        const availableCoupons = [];
+        
+        for (const coupon of coupons) {
+            let isEligible = true;
+            let reason = '';
+
+            // Check minimum order amount
+            if (orderAmount < coupon.minimumOrderAmount) {
+                isEligible = false;
+                reason = `Minimum order amount of ₹${coupon.minimumOrderAmount} required`;
+            }
+
+            // Check maximum order amount
+            if (isEligible && coupon.maximumOrderAmount && orderAmount > coupon.maximumOrderAmount) {
+                isEligible = false;
+                reason = `Maximum order amount of ₹${coupon.maximumOrderAmount} exceeded`;
+            }
+
+            // Check usage limits
+            if (isEligible && coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) {
+                isEligible = false;
+                reason = 'Coupon usage limit exceeded';
+            }
+
+            // Check per-user limit
+            if (isEligible && userId) {
+                const userUsage = coupon.usedBy.find(usage => usage.userId.toString() === userId);
+                if (userUsage && userUsage.usageCount >= coupon.perUserLimit) {
+                    isEligible = false;
+                    reason = 'You have already used this coupon maximum times';
+                }
+            }
+
+            // Calculate potential discount
+            let discountAmount = 0;
+            if (isEligible) {
+                if (coupon.discountType === 'percentage') {
+                    discountAmount = (orderAmount * coupon.discountValue) / 100;
+                    if (coupon.maximumDiscountCap) {
+                        discountAmount = Math.min(discountAmount, coupon.maximumDiscountCap);
+                    }
+                } else {
+                    discountAmount = coupon.discountValue;
+                }
+                discountAmount = Math.min(discountAmount, orderAmount);
+            }
+
+            availableCoupons.push({
+                _id: coupon._id,
+                code: coupon.code,
+                discountType: coupon.discountType,
+                discountValue: coupon.discountValue,
+                minimumOrderAmount: coupon.minimumOrderAmount,
+                maximumOrderAmount: coupon.maximumOrderAmount,
+                maximumDiscountCap: coupon.maximumDiscountCap,
+                expiryDate: coupon.expiryDate,
+                isEligible: isEligible,
+                reason: reason,
+                potentialDiscount: Math.round(discountAmount),
+                description: generateCouponDescription(coupon)
+            });
+        }
+
+        // Sort by eligibility first, then by potential discount
+        availableCoupons.sort((a, b) => {
+            if (a.isEligible && !b.isEligible) return -1;
+            if (!a.isEligible && b.isEligible) return 1;
+            if (a.isEligible && b.isEligible) {
+                return b.potentialDiscount - a.potentialDiscount; // Higher discount first
+            }
+            return 0;
+        });
+
+        return availableCoupons;
+    } catch (error) {
+        console.error('Error getting available coupons:', error);
+        return [];
+    }
+};
+
+const generateCouponDescription = (coupon) => {
+    let description = '';
+    
+    if (coupon.discountType === 'percentage') {
+        description = `Get ${coupon.discountValue}% off`;
+        if (coupon.maximumDiscountCap) {
+            description += ` (up to ₹${coupon.maximumDiscountCap})`;
+        }
+    } else {
+        description = `Get ₹${coupon.discountValue} off`;
+    }
+    
+    if (coupon.minimumOrderAmount > 0) {
+        description += ` on orders above ₹${coupon.minimumOrderAmount}`;
+    }
+    
+    return description;
+};
+
 export default {
     getCoupons,
     getCouponById,
@@ -312,5 +422,6 @@ export default {
     updateCoupon,
     deleteCoupon,
     applyCoupon,
-    useCoupon
+    useCoupon,
+    getAvailableCoupons
 };

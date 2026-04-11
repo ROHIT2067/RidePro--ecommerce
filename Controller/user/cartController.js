@@ -44,6 +44,13 @@ const cartGet = async (req, res) => {
       }
     }
 
+    // Get available coupons for the user
+    let availableCoupons = [];
+    if (cartData.totalPrice > 0) {
+      const orderAmount = cartData.totalPrice + 118; // Include delivery charge
+      availableCoupons = await couponService.getAvailableCoupons(userId, orderAmount);
+    }
+
     return res.render("cart", {
       items: cartData.items || [],
       cartCount: cartData.cartCount || 0,
@@ -56,6 +63,7 @@ const cartGet = async (req, res) => {
       adjustmentWarnings: cartData.adjustmentWarnings || [],
       checkoutError: checkoutError || null,
       hasUnavailableItems: (cartData.unavailableItems && cartData.unavailableItems.length > 0),
+      availableCoupons: availableCoupons,
     });
   } catch (error) {
     console.error("Cart Get Error:", error);
@@ -75,6 +83,7 @@ const cartGet = async (req, res) => {
       unavailableItems: [],
       adjustmentWarnings: [],
       checkoutError: "There was an error loading your cart. Please try again.",
+      availableCoupons: [],
     });
   }
 };
