@@ -210,4 +210,26 @@ body {
   text-decoration: underline;
 }
 
+/* ── Responsive ────────────────────────────────── */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-header h1 {
+    font-size: 1.8rem;
+  }
+  .login-form-container {
+    padding: 1.5rem;
+  }
+  .form-group input {
+    padding: 0.75rem;
+  }
+  .submit-btn {
+    padding: 0.75rem;
+  }
+}
+
 /* ── Footer ─────────────────────────────────────── */

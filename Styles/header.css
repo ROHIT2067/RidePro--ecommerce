@@ -226,11 +226,13 @@ body {
 }
 
 /* ── Responsive ────────────────────────────────── */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .site-header {
     padding: 0 1rem;
   }
+}
 
+@media (max-width: 640px) {
   .site-logo {
     font-size: 1.1rem;
     letter-spacing: 1.5px;
@@ -250,6 +252,38 @@ body {
   }
 
   .header-nav {
-    gap: 1rem;
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-header {
+    height: 50px;
+  }
+  .header-spacer {
+    height: 50px;
+  }
+  body {
+    padding-top: 50px !important;
+  }
+  .site-logo {
+    font-size: 1rem;
+  }
+  .nav-icon {
+    width: 20px;
+    height: 20px;
+  }
+  .header-nav {
+    gap: 0.85rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .header-nav {
+    gap: 0.6rem;
+  }
+  .site-logo {
+    font-size: 0.9rem;
+    letter-spacing: 1px;
   }
 }

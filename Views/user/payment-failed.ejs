@@ -38,10 +38,13 @@
     .help-list { list-style: none; text-align: left; }
     .help-list li { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; padding-left: 1.2rem; position: relative; }
     .help-list li::before { content: '•'; color: var(--accent); font-weight: bold; position: absolute; left: 0; }
-    @media (max-width: 600px) { 
-      .failure-title { font-size: 2.2rem; } 
+    @media (max-width: 768px) {
+      .page-wrap { padding: 5rem 1.25rem 3rem; }
+      .failure-title { font-size: 2.4rem; } 
+      .failure-subtitle { font-size: 0.95rem; }
+      .failure-details { padding: 1.5rem; }
       .action-buttons { flex-direction: column; align-items: center; }
-      .btn { width: 100%; max-width: 280px; justify-content: center; }
+      .btn { width: 100%; justify-content: center; }
     }
   </style>
 </head>
