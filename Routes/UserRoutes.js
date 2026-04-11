@@ -81,6 +81,9 @@ router.post(
 );
 router.delete("/account/delete-avatar", requireUserAPI, accountController.deleteAvatar);
 
+// Mobile number availability check
+router.post("/account/check-mobile", requireUserAPI, accountController.checkMobileAvailability);
+
 // Address Management
 router.get("/account/address", userPageAccess, addressController.addressGet);
 router.get("/account/address/add", userPageAccess, addressController.addressAddGet);

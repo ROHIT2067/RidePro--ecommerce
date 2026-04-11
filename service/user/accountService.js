@@ -5,6 +5,7 @@ import { sendVerificationEmail } from "./mailService.js";
 import { securePassword } from "../../utils/passwordHash.js";
 import cloudinary from "../../Config/cloudinary.js";
 import { generateReferralCode } from "./referralService.js";
+import { ProfileUpdateSchema } from "../../schemas/index.js";
 
 const getProfileData = async (userId) => {
     const findUser = await userCollection.findById(userId).lean();
@@ -121,16 +122,51 @@ const updateEmail = async (userId, newEmail, confirmEmail) => {
 };
 
 const updateProfile = async (userId, profileData) => {
-    const { username, email, phone } = profileData;
+    // Validate input data with Zod schema
+    const validation = ProfileUpdateSchema.safeParse(profileData);
+    
+    if (!validation.success) {
+        const errors = validation.error.errors.map(err => err.message).join(', ');
+        throw new Error(errors);
+    }
+
+    const validatedData = validation.data;
+    
+    // Check if email is already taken by another user
+    if (validatedData.email) {
+        const existingUser = await userCollection.findOne({
+            email: validatedData.email,
+            _id: { $ne: userId }
+        });
+        
+        if (existingUser) {
+            throw new Error("Email is already registered with another account");
+        }
+    }
+    
+    // Check if phone number is already taken by another user
+    if (validatedData.phone) {
+        const existingUserWithPhone = await userCollection.findOne({
+            phoneNumber: validatedData.phone,
+            _id: { $ne: userId }
+        });
+        
+        if (existingUserWithPhone) {
+            throw new Error("Mobile number is already registered with another account");
+        }
+    }
+
     const result = await userCollection.findByIdAndUpdate(userId, {
-        username,
-        email,
-        phoneNumber: phone,
-    });
+        username: validatedData.username,
+        email: validatedData.email,
+        phoneNumber: validatedData.phone,
+    }, { new: true });
 
     if (!result) {
         throw new Error("User not found");
     }
+    
+    return result;
 };
 
 const uploadToCloudinary = (fileBuffer) => {
@@ -192,6 +228,15 @@ const deleteAvatar = async (userId) => {
     await user.save();
 };
 
+const checkMobileAvailability = async (mobile, excludeUserId) => {
+    const existingUser = await userCollection.findOne({
+        phoneNumber: mobile,
+        _id: { $ne: excludeUserId }
+    });
+    
+    return existingUser;
+};
+
 export default {
     getProfileData,
     updatePassword,
@@ -202,4 +247,5 @@ export default {
     updateProfile,
     uploadAvatar,
     deleteAvatar,
+    checkMobileAvailability,
 };

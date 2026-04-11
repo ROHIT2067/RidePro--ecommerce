@@ -55,7 +55,16 @@ const changePassPost = async (req, res) => {
 const accountEditGet = async (req, res) => {
   try {
     const userData = await accountService.getProfileData(req.session.user);
-    return res.render("edit-profile", { user: userData });
+    const success = req.session.flash?.success || null;
+    const error = req.session.flash?.error || null;
+    
+    delete req.session.flash;
+    
+    return res.render("edit-profile", { 
+      user: userData, 
+      success: success, 
+      error: error 
+    });
   } catch (error) {
     console.error("Account Edit Get Error:", error);
     return res.redirect("/login");
@@ -163,10 +172,12 @@ const resetEmailPost = async (req, res) => {
 const accountEditPost = async (req, res) => {
   try {
     await accountService.updateProfile(req.session.user, req.body);
+    req.session.flash = { success: "Profile updated successfully!" };
     return res.redirect("/account");
   } catch (error) {
     console.error("Account Edit Post Error:", error);
-    return res.redirect("/account");
+    req.session.flash = { error: error.message };
+    return res.redirect("/account/edit");
   }
 };
 
@@ -205,6 +216,29 @@ const deleteAvatar = async (req, res) => {
   }
 };
 
+const checkMobileAvailability = async (req, res) => {
+  try {
+    const { mobile } = req.body;
+    const userId = req.session.user;
+    
+    if (!mobile) {
+      return res.status(400).json({ success: false, message: "Mobile number is required" });
+    }
+    
+    // Check if mobile number is already taken by another user
+    const existingUser = await accountService.checkMobileAvailability(mobile, userId);
+    
+    return res.json({ 
+      success: true, 
+      available: !existingUser,
+      message: existingUser ? "Mobile number is already registered" : "Mobile number is available"
+    });
+  } catch (error) {
+    console.error("Check mobile availability error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 export default {
   changePassGet,
   accoutGet,
@@ -220,4 +254,5 @@ export default {
   accountEditPost,
   uploadAvatar,
   deleteAvatar,
+  checkMobileAvailability,
 };

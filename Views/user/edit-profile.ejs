@@ -12,6 +12,30 @@
     <link rel="stylesheet" href="/styles/header.css" />
     <link rel="stylesheet" href="/styles/footer.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css" />
+    <style>
+        .input-help {
+            display: block;
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+        
+        .form-group input[type="tel"]:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .form-group input.error {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+        
+        .form-group input.success {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+    </style>
 </head>
 
 <body>
@@ -108,10 +132,14 @@
                                                 </div>
 
                                                 <div class="form-group">
-                                                    <label for="phone">Phone Number</label>
+                                                    <label for="phone">Mobile Number</label>
                                                     <input type="tel" id="phone" name="phone"
-                                                        value="<%= typeof user !== 'undefined' && user.mobile ? user.mobile : '' %>"
-                                                        placeholder="Enter your New Phone Number" />
+                                                        value="<%= typeof user !== 'undefined' && user.mobile && user.mobile !== 'Not Provided' ? user.mobile : '' %>"
+                                                        placeholder="Enter 10-digit mobile number"
+                                                        maxlength="10"
+                                                        pattern="[6-9][0-9]{9}"
+                                                        title="Enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9" />
+                                                    <small class="input-help">Indian mobile numbers only (10 digits starting with 6, 7, 8, or 9)</small>
                                                 </div>
                                             </div>
 
@@ -155,6 +183,10 @@
                 const form = document.querySelector(".edit-profile-form");
 
                 function showError(input, message) {
+                    clearError(input);
+                    input.classList.add("error");
+                    input.classList.remove("success");
+                    
                     let err = input.parentElement.querySelector(".form-error");
                     if (!err) {
                         err = document.createElement("div");
@@ -168,8 +200,15 @@
                 }
 
                 function clearError(input) {
+                    input.classList.remove("error");
                     const err = input.parentElement.querySelector(".form-error");
                     if (err) err.remove();
+                }
+
+                function showSuccess(input) {
+                    clearError(input);
+                    input.classList.add("success");
+                    input.classList.remove("error");
                 }
 
                 function nameValidation() {
@@ -186,23 +225,33 @@
                         showError(nameInput, "Username must be between 3 and 15 characters");
                         return false;
                     } else {
-                        clearError(nameInput);
+                        showSuccess(nameInput);
                         return true;
                     }
                 }
 
                 function phoneValidation() {
                     const phoneVal = phoneInput.value.trim();
-                    const phonePattern = /^\d{10}$/;
-
+                    
+                    // Remove any non-digit characters for validation
+                    const cleanPhone = phoneVal.replace(/\D/g, '');
+                    
                     if (phoneVal === "") {
-                        showError(phoneInput, "Enter phone number");
+                        showError(phoneInput, "Mobile number is required");
                         return false;
-                    } else if (!phonePattern.test(phoneVal)) {
-                        showError(phoneInput, "Phone number must be exactly 10 digits");
+                    } else if (cleanPhone.length !== 10) {
+                        showError(phoneInput, "Mobile number must be exactly 10 digits");
+                        return false;
+                    } else if (!/^[6-9]/.test(cleanPhone)) {
+                        showError(phoneInput, "Mobile number must start with 6, 7, 8, or 9");
+                        return false;
+                    } else if (!/^\d{10}$/.test(cleanPhone)) {
+                        showError(phoneInput, "Mobile number can only contain digits");
                         return false;
                     } else {
-                        clearError(phoneInput);
+                        showSuccess(phoneInput);
+                        // Update the input value with clean digits only
+                        phoneInput.value = cleanPhone;
                         return true;
                     }
                 }
@@ -216,8 +265,72 @@
                     }
                 });
 
+                // Add debounced mobile availability check
+                let mobileCheckTimeout;
+                
+                function checkMobileAvailability(mobile) {
+                    if (mobile.length === 10 && /^[6-9]\d{9}$/.test(mobile)) {
+                        fetch('/account/check-mobile', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ mobile: mobile })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (!data.available) {
+                                    showError(phoneInput, "Mobile number is already registered");
+                                } else {
+                                    showSuccess(phoneInput);
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking mobile availability:', error);
+                        });
+                    }
+                }
+
                 nameInput.addEventListener("input", nameValidation);
-                phoneInput.addEventListener("input", phoneValidation);
+                phoneInput.addEventListener("input", function() {
+                    // Clear any existing timeout
+                    clearTimeout(mobileCheckTimeout);
+                    
+                    // Remove any non-digit characters
+                    let value = this.value.replace(/\D/g, '');
+                    
+                    // Limit to 10 digits
+                    if (value.length > 10) {
+                        value = value.substring(0, 10);
+                    }
+                    
+                    // Update the input value
+                    this.value = value;
+                    
+                    // Run validation
+                    const isValid = phoneValidation();
+                    
+                    // Check availability after a delay if validation passes
+                    if (isValid && value.length === 10) {
+                        mobileCheckTimeout = setTimeout(() => {
+                            checkMobileAvailability(value);
+                        }, 500); // 500ms delay
+                    }
+                });
+
+                // Add paste event handler for phone input
+                phoneInput.addEventListener("paste", function(e) {
+                    setTimeout(() => {
+                        let value = this.value.replace(/\D/g, '');
+                        if (value.length > 10) {
+                            value = value.substring(0, 10);
+                        }
+                        this.value = value;
+                        phoneValidation();
+                    }, 10);
+                });
             </script>
 
 

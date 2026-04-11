@@ -20,6 +20,15 @@ const userSchema = new mongoose.Schema(
       trim: true,
       sparse: true,
       default: null,
+      validate: {
+        validator: function(v) {
+          // Allow null/empty values (not required field)
+          if (!v) return true;
+          // Validate Indian mobile number format
+          return /^[6-9]\d{9}$/.test(v);
+        },
+        message: 'Mobile number must be a valid 10-digit Indian number starting with 6, 7, 8, or 9'
+      }
     },
     password: {
       type: String,
@@ -123,6 +132,9 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+// Create unique index for phoneNumber (sparse to allow null values)
+userSchema.index({ phoneNumber: 1 }, { unique: true, sparse: true });
 
 const User = mongoose.model("User", userSchema);
 
