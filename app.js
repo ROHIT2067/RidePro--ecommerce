@@ -64,4 +64,4 @@ app.use('/', (req, res) => {
    res.render('pagenotfound')
 })
 
-app.listen(PORT,()=>console.log(`Server is running in http://localhost:${PORT}`))
+app.listen(PORT,()=>console.log(`Server is running on https://ridepro.online`))
