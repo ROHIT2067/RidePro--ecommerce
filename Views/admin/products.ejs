@@ -608,7 +608,7 @@
           <h1 class="card-title">Products</h1>
           <div class="card-actions">
             <a href="/admin/addProduct" class="btn-add">+ Add product</a>
-            <form method="GET" action="/admin/products" class="search-wrap">
+            <form method="GET" action="/admin/products" class="search-wrap" novalidate>
               <span class="search-icon">🔍</span>
               <input type="text" name="search" id="searchInput" class="search-input" placeholder="Search products"
                 value="<%= searchQuery %>" />

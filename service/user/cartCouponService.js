@@ -15,11 +15,6 @@ const calculateCouponSavings = (coupon, cartTotal) => {
   
   if (coupon.discountType === 'percentage') {
     savings = (cartTotal * coupon.discountValue) / 100;
-    
-    // Apply maximum discount cap if exists
-    if (coupon.maximumDiscountCap) {
-      savings = Math.min(savings, coupon.maximumDiscountCap);
-    }
   } else {
     // Flat discount
     savings = coupon.discountValue;
@@ -101,9 +96,6 @@ const getConditionLine = (coupon) => {
     conditions.push(`Up to ₹${coupon.maximumOrderAmount.toLocaleString('en-IN')}`);
   }
   
-  if (coupon.maximumDiscountCap && coupon.discountType === 'percentage') {
-    conditions.push(`Max ₹${coupon.maximumDiscountCap.toLocaleString('en-IN')} off`);
-  }
   
   return conditions.join(' • ') || 'No minimum order';
 };

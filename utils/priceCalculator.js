@@ -157,9 +157,6 @@ export const applyCouponDiscount = async (couponCode, orderAmount, userId) => {
     let discountAmount = 0;
     if (coupon.discountType === 'percentage') {
       discountAmount = (orderAmount * coupon.discountValue) / 100;
-      if (coupon.maximumDiscountCap) {
-        discountAmount = Math.min(discountAmount, coupon.maximumDiscountCap);
-      }
     } else {
       discountAmount = coupon.discountValue;
     }

@@ -120,7 +120,7 @@
       </nav>
 
       <div style="display:flex; align-items:center;">
-        <form class="search-form" action="/admin/category" method="GET">
+        <form class="search-form" action="/admin/category" method="GET" novalidate>
           <input
             type="text"
             name="search"
@@ -182,7 +182,7 @@
         </td>
         <td>
           <div class="toggle-cell">
-            <form action="/admin/category/toggle/<%= cat._id %>" method="POST" style="display:inline;">
+            <form action="/admin/category/toggle/<%= cat._id %>" method="POST" style="display:inline;" novalidate>
               <label class="toggle">
                 <input
                   type="checkbox"
@@ -238,7 +238,7 @@
 
       <div id="formMsg" style="display:none; padding:10px 14px; border-radius:8px; margin-bottom:18px; font-size:14px;"></div>
 
-      <form id="addCategoryForm" enctype="multipart/form-data">
+      <form id="addCategoryForm" enctype="multipart/form-data" novalidate>
 
         <div class="form-row">
           <label for="catName">Name:</label>
@@ -271,8 +271,26 @@
           const msgEl       = document.getElementById('formMsg');
 
           // ── Validation ───────────────────────────────
+          if (!name || name.length === 0) {
+            msgEl.textContent      = 'Name is required.';
+            msgEl.style.display    = 'block';
+            msgEl.style.background = '#fef2f2';
+            msgEl.style.color      = '#b91c1c';
+            msgEl.style.border     = '1px solid #fecaca';
+            return;
+          }
+
           if (!/^[a-zA-Z ]+$/.test(name)) {
             msgEl.textContent      = 'Name must contain alphabets only.';
+            msgEl.style.display    = 'block';
+            msgEl.style.background = '#fef2f2';
+            msgEl.style.color      = '#b91c1c';
+            msgEl.style.border     = '1px solid #fecaca';
+            return;
+          }
+
+          if (!description || description.length === 0) {
+            msgEl.textContent      = 'Description is required.';
             msgEl.style.display    = 'block';
             msgEl.style.background = '#fef2f2';
             msgEl.style.color      = '#b91c1c';

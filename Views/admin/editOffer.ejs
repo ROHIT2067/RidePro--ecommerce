@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Edit Coupon — Admin</title>
+  <title>Edit Offer — Admin</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -47,6 +47,8 @@
     .btn-primary:hover { background-color: #2563eb; }
     .btn-secondary { background-color: #6b7280; color: #fff; }
     .btn-secondary:hover { background-color: #4b5563; }
+    .conditional-fields { display: flex; flex-direction: column; gap: 6px; visibility: hidden; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .conditional-fields.show { visibility: visible; opacity: 1; pointer-events: auto; }
     @media (max-width: 1024px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
   </style>
@@ -76,7 +78,7 @@
         <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right" style="font-size:11px"></i></span>
         <a href="/admin/offers" style="color: #6b7280; text-decoration: none;">Offers & Coupons</a>
         <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right" style="font-size:11px"></i></span>
-        <span class="breadcrumb-active">Edit Coupon</span>
+        <span class="breadcrumb-active">Edit Offer</span>
       </nav>
     </div>
 
@@ -89,51 +91,86 @@
 
     <div class="form-card">
       <div class="form-card-header">
-        <h2>Edit Coupon</h2>
+        <h2>Edit Offer</h2>
       </div>
       
-      <form method="POST" action="/admin/coupons/edit/<%= coupon._id %>" novalidate>
+      <form method="POST" action="/admin/offers/edit/<%= offer._id %>" novalidate>
         <div class="form-grid">
           <div class="form-group">
-            <label for="code">Coupon Code *</label>
-            <input type="text" id="code" name="code" value="<%= coupon.code %>" required />
+            <label for="name">Offer Name *</label>
+            <input type="text" id="name" name="name" value="<%= offer.name %>" required />
+          </div>
+          <div class="form-group">
+            <label for="type">Offer Type *</label>
+            <select id="type" name="type" required onchange="toggleOfferFields()">
+              <option value="product" <%= offer.type === 'product' ? 'selected' : '' %>>Product Offer</option>
+              <option value="category" <%= offer.type === 'category' ? 'selected' : '' %>>Category Offer</option>
+            </select>
           </div>
           <div class="form-group">
             <label for="discountType">Discount Type *</label>
             <select id="discountType" name="discountType" required>
-              <option value="percentage" <%= coupon.discountType === 'percentage' ? 'selected' : '' %>>Percentage (%)</option>
-              <option value="flat" <%= coupon.discountType === 'flat' ? 'selected' : '' %>>Flat (₹)</option>
+              <option value="percentage" <%= offer.discountType === 'percentage' ? 'selected' : '' %>>Percentage (%)</option>
+              <option value="flat" <%= offer.discountType === 'flat' ? 'selected' : '' %>>Flat (₹)</option>
             </select>
           </div>
           <div class="form-group">
             <label for="discountValue">Discount Value *</label>
-            <input type="number" id="discountValue" name="discountValue" value="<%= coupon.discountValue %>" min="1" required />
+            <input type="number" id="discountValue" name="discountValue" value="<%= offer.discountValue %>" min="1" required />
           </div>
           <div class="form-group">
-            <label for="minimumOrderAmount">Min Order Amount (₹)</label>
-            <input type="number" id="minimumOrderAmount" name="minimumOrderAmount" value="<%= coupon.minimumOrderAmount %>" min="0" />
+            <label for="startDate">Start Date *</label>
+            <input type="date" id="startDate" name="startDate" value="<%= new Date(offer.startDate).toISOString().split('T')[0] %>" required />
           </div>
           <div class="form-group">
-            <label for="maximumOrderAmount">Max Order Amount (₹)</label>
-            <input type="number" id="maximumOrderAmount" name="maximumOrderAmount" value="<%= coupon.maximumOrderAmount || '' %>" min="0" />
+            <label for="endDate">End Date *</label>
+            <input type="date" id="endDate" name="endDate" value="<%= new Date(offer.endDate).toISOString().split('T')[0] %>" required />
           </div>
-
-          <div class="form-group">
-            <label for="usageLimit">Total Usage Limit</label>
-            <input type="number" id="usageLimit" name="usageLimit" value="<%= coupon.usageLimit || '' %>" min="1" />
+          <div class="form-group conditional-fields" id="productField">
+            <label for="targetId">Select Product *</label>
+            <select id="productSelect" name="productTargetId">
+              <option value="">Choose product</option>
+              <% if (typeof products !== 'undefined' && products) { %>
+                <% products.forEach(product => { %>
+                  <% 
+                    const targetId = offer.originalTargetId || offer.targetId;
+                    const isSelected = offer.type === 'product' && targetId && 
+                                     ((typeof targetId === 'object' && targetId._id && targetId._id.toString() === product._id.toString()) ||
+                                      (typeof targetId === 'string' && targetId === product._id.toString()));
+                  %>
+                  <option value="<%= product._id %>" <%= isSelected ? 'selected' : '' %>><%= product.productName %></option>
+                <% }) %>
+              <% } %>
+            </select>
+          </div>
+          <div class="form-group conditional-fields" id="categoryField">
+            <label for="categorySelect">Select Category *</label>
+            <select id="categorySelect" name="categoryTargetId">
+              <option value="">Choose category</option>
+              <% if (typeof categories !== 'undefined' && categories) { %>
+                <% categories.forEach(category => { %>
+                  <% 
+                    const targetId = offer.originalTargetId || offer.targetId;
+                    const isSelected = offer.type === 'category' && targetId && 
+                                     ((typeof targetId === 'object' && targetId._id && targetId._id.toString() === category._id.toString()) ||
+                                      (typeof targetId === 'string' && targetId === category._id.toString()));
+                  %>
+                  <option value="<%= category._id %>" <%= isSelected ? 'selected' : '' %>><%= category.name %></option>
+                <% }) %>
+              <% } %>
+            </select>
           </div>
           <div class="form-group">
-            <label for="perUserLimit">Per User Limit</label>
-            <input type="number" id="perUserLimit" name="perUserLimit" value="<%= coupon.perUserLimit %>" min="1" />
-          </div>
-          <div class="form-group">
-            <label for="expiryDate">Expiry Date *</label>
-            <input type="date" id="expiryDate" name="expiryDate" value="<%= new Date(coupon.expiryDate).toISOString().split('T')[0] %>" required min="<%= new Date().toISOString().split('T')[0] %>" max="<%= (() => { const date = new Date(); date.setMonth(date.getMonth() + 1); date.setDate(16); return date.toISOString().split('T')[0]; })() %>" />
+            <label for="maxUsage">Max Usage (Optional)</label>
+            <input type="number" id="maxUsage" name="maxUsage" value="<%= offer.maxUsage || '' %>" min="1" />
           </div>
         </div>
         
+        <!-- Hidden input for targetId that will be set by JavaScript -->
+        <input type="hidden" id="targetIdHidden" name="targetId" value="<%= (offer.targetId && typeof offer.targetId === 'object') ? offer.targetId._id : (offer.targetId || '') %>" />
+        
         <div class="btn-group">
-          <button type="submit" class="btn btn-primary">Update Coupon</button>
+          <button type="submit" class="btn btn-primary">Update Offer</button>
           <a href="/admin/offers" class="btn btn-secondary">Cancel</a>
         </div>
       </form>
@@ -141,9 +178,54 @@
   </main>
 
   <script>
-    // Set minimum date to today
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('expiryDate').min = today;
+    function toggleOfferFields() {
+      const offerType = document.getElementById('type').value;
+      const productField = document.getElementById('productField');
+      const categoryField = document.getElementById('categoryField');
+      const productSelect = document.getElementById('productSelect');
+      const categorySelect = document.getElementById('categorySelect');
+      const targetIdHidden = document.getElementById('targetIdHidden');
+      
+      // Hide all fields first
+      [productField, categoryField].forEach(f => f.classList.remove('show'));
+      
+      // Show relevant field and update hidden input
+      if (offerType === 'product') {
+        productField.classList.add('show');
+        targetIdHidden.value = productSelect.value;
+      } else if (offerType === 'category') {
+        categoryField.classList.add('show');
+        targetIdHidden.value = categorySelect.value;
+      }
+    }
+
+    // Update hidden input when selects change
+    function updateTargetId() {
+      const offerType = document.getElementById('type').value;
+      const productSelect = document.getElementById('productSelect');
+      const categorySelect = document.getElementById('categorySelect');
+      const targetIdHidden = document.getElementById('targetIdHidden');
+      
+      if (offerType === 'product') {
+        targetIdHidden.value = productSelect.value;
+      } else if (offerType === 'category') {
+        targetIdHidden.value = categorySelect.value;
+      }
+    }
+
+    // Initialize the form on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      toggleOfferFields();
+      
+      // Add event listeners
+      document.getElementById('productSelect').addEventListener('change', updateTargetId);
+      document.getElementById('categorySelect').addEventListener('change', updateTargetId);
+      
+      // Set minimum dates
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('startDate').min = today;
+      document.getElementById('endDate').min = today;
+    });
   </script>
 </body>
 </html>

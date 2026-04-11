@@ -41,9 +41,6 @@ export const couponSchema = z.object({
   maximumOrderAmount: numberFromString.optional().nullable().refine(val => val === null || val === undefined || val > 0, {
     message: "Maximum order amount must be greater than 0"
   }),
-  maximumDiscountCap: numberFromString.optional().nullable().refine(val => val === null || val === undefined || val > 0, {
-    message: "Maximum discount cap must be greater than 0"
-  }),
   usageLimit: intFromString.optional().nullable().refine(val => val === null || val === undefined || val > 0, {
     message: "Total usage limit must be greater than 0"
   }),
@@ -81,6 +78,14 @@ export const couponSchema = z.object({
 }, {
   message: "Flat discount value cannot exceed maximum order amount",
   path: ["discountValue"]
+}).refine((data) => {
+  if (data.discountType === 'flat' && data.minimumOrderAmount > 0) {
+    return data.minimumOrderAmount > data.discountValue;
+  }
+  return true;
+}, {
+  message: "Minimum order amount must be greater than discount value for flat discounts",
+  path: ["minimumOrderAmount"]
 });
 
 export default { couponSchema };

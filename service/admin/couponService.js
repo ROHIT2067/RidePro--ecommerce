@@ -80,7 +80,6 @@ const updateCoupon = async (couponId, updateData) => {
                 discountValue: updateData.discountValue || coupon.discountValue,
                 minimumOrderAmount: updateData.minimumOrderAmount !== undefined ? updateData.minimumOrderAmount : coupon.minimumOrderAmount,
                 maximumOrderAmount: updateData.maximumOrderAmount !== undefined ? updateData.maximumOrderAmount : coupon.maximumOrderAmount,
-                maximumDiscountCap: updateData.maximumDiscountCap !== undefined ? updateData.maximumDiscountCap : coupon.maximumDiscountCap,
                 usageLimit: updateData.usageLimit !== undefined ? updateData.usageLimit : coupon.usageLimit,
                 perUserLimit: updateData.perUserLimit || coupon.perUserLimit,
                 expiryDate: updateData.expiryDate || coupon.expiryDate
@@ -118,7 +117,6 @@ const updateCoupon = async (couponId, updateData) => {
         }
         if (updateData.minimumOrderAmount !== undefined) coupon.minimumOrderAmount = parseFloat(updateData.minimumOrderAmount) || 0;
         if (updateData.maximumOrderAmount !== undefined) coupon.maximumOrderAmount = updateData.maximumOrderAmount ? parseFloat(updateData.maximumOrderAmount) : null;
-        if (updateData.maximumDiscountCap !== undefined) coupon.maximumDiscountCap = updateData.maximumDiscountCap ? parseFloat(updateData.maximumDiscountCap) : null;
         if (updateData.usageLimit !== undefined) coupon.usageLimit = updateData.usageLimit ? parseInt(updateData.usageLimit) : null;
         if (updateData.perUserLimit) coupon.perUserLimit = parseInt(updateData.perUserLimit);
         if (updateData.expiryDate) {
@@ -135,7 +133,6 @@ const updateCoupon = async (couponId, updateData) => {
           discountValue: coupon.discountValue,
           minimumOrderAmount: coupon.minimumOrderAmount,
           maximumOrderAmount: coupon.maximumOrderAmount,
-          maximumDiscountCap: coupon.maximumDiscountCap,
           usageLimit: coupon.usageLimit,
           perUserLimit: coupon.perUserLimit,
           expiryDate: coupon.expiryDate
@@ -197,9 +194,6 @@ const applyCoupon = async (couponCode, orderAmount, userId) => {
     let discountAmount = 0;
     if (coupon.discountType === 'percentage') {
         discountAmount = (orderAmount * coupon.discountValue) / 100;
-        if (coupon.maximumDiscountCap) {
-            discountAmount = Math.min(discountAmount, coupon.maximumDiscountCap);
-        }
     } else {
         discountAmount = coupon.discountValue;
     }
@@ -257,6 +251,13 @@ const validateCouponBusinessRules = async (couponData) => {
         }
     }
 
+    // Validate minimum order amount is greater than flat discount value
+    if (couponData.discountType === 'flat' && couponData.minimumOrderAmount > 0) {
+        if (couponData.minimumOrderAmount <= couponData.discountValue) {
+            throw new Error("Minimum order amount must be greater than discount value for flat discounts");
+        }
+    }
+
     // Validate coupon duration (minimum 1 day, maximum 2 years)
     const now = new Date();
     const expiryDate = new Date(couponData.expiryDate);
@@ -277,16 +278,6 @@ const validateCouponBusinessRules = async (couponData) => {
 
     if (couponData.perUserLimit > 100) {
         throw new Error("Per user limit cannot exceed 100 uses");
-    }
-
-    // Validate discount caps for percentage discounts
-    if (couponData.discountType === 'percentage' && couponData.maximumDiscountCap) {
-        if (couponData.maximumDiscountCap < 10) {
-            throw new Error("Maximum discount cap should be at least ₹10 for percentage discounts");
-        }
-        if (couponData.maximumDiscountCap > 10000) {
-            throw new Error("Maximum discount cap cannot exceed ₹10,000");
-        }
     }
 
     // Validate minimum order amount is reasonable
@@ -354,9 +345,6 @@ const getAvailableCoupons = async (userId, orderAmount) => {
             if (isEligible) {
                 if (coupon.discountType === 'percentage') {
                     discountAmount = (orderAmount * coupon.discountValue) / 100;
-                    if (coupon.maximumDiscountCap) {
-                        discountAmount = Math.min(discountAmount, coupon.maximumDiscountCap);
-                    }
                 } else {
                     discountAmount = coupon.discountValue;
                 }
@@ -370,7 +358,6 @@ const getAvailableCoupons = async (userId, orderAmount) => {
                 discountValue: coupon.discountValue,
                 minimumOrderAmount: coupon.minimumOrderAmount,
                 maximumOrderAmount: coupon.maximumOrderAmount,
-                maximumDiscountCap: coupon.maximumDiscountCap,
                 expiryDate: coupon.expiryDate,
                 isEligible: isEligible,
                 reason: reason,
@@ -401,9 +388,6 @@ const generateCouponDescription = (coupon) => {
     
     if (coupon.discountType === 'percentage') {
         description = `Get ${coupon.discountValue}% off`;
-        if (coupon.maximumDiscountCap) {
-            description += ` (up to ₹${coupon.maximumDiscountCap})`;
-        }
     } else {
         description = `Get ₹${coupon.discountValue} off`;
     }

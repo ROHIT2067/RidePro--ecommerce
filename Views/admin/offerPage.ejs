@@ -419,7 +419,7 @@
       <div class="form-card">
         <div class="form-card-header"><h2>Add New Offer</h2></div>
         <div id="offerFormMsg" style="display:none; padding:10px 14px; border-radius:8px; margin-bottom:18px; font-size:14px;"></div>
-        <form id="addOfferForm">
+        <form id="addOfferForm" novalidate>
           <div class="offer-form-grid">
             <div class="form-group">
               <label for="offerName">Offer Name *</label>
@@ -501,7 +501,6 @@
               <th>Discount Value</th>
               <th>Min Order</th>
               <th>Max Order</th>
-              <th>Max Discount</th>
               <th>Usage Count</th>
               <th>Expiry Date</th>
               <th>Status</th>
@@ -532,11 +531,6 @@
                       ₹<%= coupon.maximumOrderAmount %>
                     <% } else { %>-<% } %>
                   </td>
-                  <td>
-                    <% if (coupon.maximumDiscountCap) { %>
-                      ₹<%= coupon.maximumDiscountCap %>
-                    <% } else { %>-<% } %>
-                  </td>
                   <td><%= coupon.usageCount %> / <%= coupon.usageLimit || '∞' %></td>
                   <td><%= new Date(coupon.expiryDate).toLocaleDateString('en-GB') %></td>
                   <td>
@@ -558,7 +552,7 @@
               <% }) %>
             <% } else { %>
               <tr>
-                <td colspan="11" style="text-align:center; color:#9ca3af; padding:40px;">No coupons found.</td>
+                <td colspan="10" style="text-align:center; color:#9ca3af; padding:40px;">No coupons found.</td>
               </tr>
             <% } %>
           </tbody>
@@ -610,7 +604,7 @@
       <div class="form-card">
         <div class="form-card-header"><h2>Add New Coupon</h2></div>
         <div id="couponFormMsg" style="display:none; padding:10px 14px; border-radius:8px; margin-bottom:18px; font-size:14px;"></div>
-        <form id="addCouponForm">
+        <form id="addCouponForm" novalidate>
           <div class="coupon-form-grid">
             <div class="form-group">
               <label for="couponCode">Coupon Code *</label>
@@ -636,10 +630,7 @@
               <label for="maximumOrderAmount">Max Order Amount (₹)</label>
               <input type="number" id="maximumOrderAmount" name="maximumOrderAmount" placeholder="e.g. 5000" min="0" />
             </div>
-            <div class="form-group">
-              <label for="maximumDiscountCap">Max Discount Cap (₹)</label>
-              <input type="number" id="maximumDiscountCap" name="maximumDiscountCap" placeholder="e.g. 200" min="0" />
-            </div>
+
             <div class="form-group">
               <label for="usageLimit">Total Usage Limit</label>
               <input type="number" id="usageLimit" name="usageLimit" placeholder="e.g. 100" min="1" />
@@ -843,8 +834,18 @@
         `Are you sure you want to delete "${couponCode}"? This action cannot be undone.`,
         async () => {
           try {
-            const res = await fetch(`/admin/coupons/${couponId}`, { method: 'DELETE' });
+            console.log('Attempting to delete coupon:', couponId);
+            const res = await fetch(`/admin/coupons/${couponId}`, { 
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            console.log('Delete response status:', res.status);
             const result = await res.json();
+            console.log('Delete response:', result);
+            
             if (res.ok) {
               const url = new URL(window.location);
               url.searchParams.set('tab', 'coupons');
@@ -852,7 +853,10 @@
             } else {
               alert(result.message || 'Error deleting coupon');
             }
-          } catch { alert('Error deleting coupon'); }
+          } catch (error) { 
+            console.error('Delete error:', error);
+            alert('Error deleting coupon: ' + error.message); 
+          }
         },
         'delete'
       );

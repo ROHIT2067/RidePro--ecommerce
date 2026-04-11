@@ -77,7 +77,7 @@
     <p class="page-subtitle">Track and manage your orders</p>
 
     <div class="search-bar">
-      <form action="/orders" method="GET" class="search-form">
+      <form action="/orders" method="GET" class="search-form" novalidate>
         <input type="text" name="search" class="search-input" placeholder="Search by Order ID" value="<%= search %>">
         <button type="submit" class="search-btn"><i class="fa fa-search"></i> Search</button>
         <% if (search) { %>

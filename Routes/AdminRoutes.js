@@ -50,6 +50,8 @@ router.post('/orders/items/:itemId/reject-return', requireAdmin, orderController
 // Offer & Coupon Management
 router.get('/offers', requireAdmin, offerController.offersGet)
 router.post('/offers/create', requireAdmin, offerController.createOfferPost)
+router.get('/offers/edit/:id', requireAdmin, offerController.editOfferGet)
+router.post('/offers/edit/:id', requireAdmin, offerController.editOfferPost)
 router.put('/offers/:offerId', requireAdmin, offerController.updateOfferPost)
 router.delete('/offers/:offerId', requireAdmin, offerController.deleteOfferPost)
 router.post('/coupons/create', requireAdmin, couponController.createCouponPost)

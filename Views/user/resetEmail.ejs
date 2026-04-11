@@ -22,7 +22,7 @@
       </div>
 
       <div class="reset-form-container">
-        <form action="/reset-email" method="POST" id="resetForm">
+        <form action="/reset-email" method="POST" id="resetForm" novalidate>
           <% if (typeof error !=='undefined' && error) { %>
             <div class="error-message">
               <%= error %>

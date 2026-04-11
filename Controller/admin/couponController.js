@@ -11,10 +11,20 @@ const editCouponGet = async (req, res) => {
       return res.redirect("/admin/offers");
     }
 
-    res.render("editCoupon", { coupon });
+    // Get session messages and clear them
+    const successMsg = req.session.successMsg;
+    const errorMsg = req.session.errorMsg;
+    delete req.session.successMsg;
+    delete req.session.errorMsg;
+
+    res.render("editCoupon", { 
+      coupon,
+      successMsg,
+      errorMsg
+    });
   } catch (error) {
     console.error("Error fetching coupon for edit:", error);
-    req.session.errorMsg = "Failed to load coupon";
+    req.session.errorMsg = error.message || "Failed to load coupon";
     res.redirect("/admin/offers");
   }
 };
@@ -22,41 +32,109 @@ const editCouponGet = async (req, res) => {
 const editCouponPost = async (req, res) => {
   try {
     const { id } = req.params;
-    const { code, discountType, discountValue, minimumOrderAmount, maximumOrderAmount, maximumDiscountCap, expiryDate, usageLimit, perUserLimit } = req.body;
+    
+    // Transform form data to proper types and handle arrays
+    const formData = { ...req.body };
+    
+    // Ensure single values for fields that might come as arrays
+    Object.keys(formData).forEach(key => {
+      if (Array.isArray(formData[key])) {
+        formData[key] = formData[key][0]; // Take first value if array
+      }
+    });
 
     const updateData = {
-      code: code.toUpperCase(),  //Consistent casing, to prevent duplicates
-      discountType,
-      discountValue: parseFloat(discountValue),
-      minimumOrderAmount: parseFloat(minimumOrderAmount) || 0,
-      maximumOrderAmount: maximumOrderAmount ? parseFloat(maximumOrderAmount) : null,  //null in mongoDB means no limit
-      maximumDiscountCap: maximumDiscountCap ? parseFloat(maximumDiscountCap) : null,
-      usageLimit: usageLimit ? parseInt(usageLimit) : null,
-      perUserLimit: parseInt(perUserLimit) || 1,
-      expiryDate: new Date(expiryDate)
+      code: formData.code ? formData.code.toUpperCase() : undefined,
+      discountType: formData.discountType,
+      discountValue: formData.discountValue ? parseFloat(formData.discountValue) : undefined,
+      minimumOrderAmount: formData.minimumOrderAmount ? parseFloat(formData.minimumOrderAmount) : 0,
+      maximumOrderAmount: formData.maximumOrderAmount ? parseFloat(formData.maximumOrderAmount) : null,
+      usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : null,
+      perUserLimit: formData.perUserLimit ? parseInt(formData.perUserLimit) : 1,
+      expiryDate: formData.expiryDate ? new Date(formData.expiryDate) : undefined
     };
 
-    await couponService.updateCoupon(id, updateData);
+    // Remove undefined values
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    });
+
+    // Validate with Zod schema
+    const validation = couponSchema.safeParse(updateData);
+    if (!validation.success) {
+      const errors = validation.error.issues.map(err => err.message);
+      
+      // Get coupon data and render form with errors
+      const coupon = await couponService.getCouponById(id);
+      
+      return res.render("editCoupon", { 
+        coupon: { ...coupon.toObject(), ...formData }, // Preserve user input
+        errorMsg: errors.join(', ')
+      });
+    }
+
+    await couponService.updateCoupon(id, validation.data);
 
     req.session.successMsg = "Coupon updated successfully";
     res.redirect("/admin/offers");
   } catch (error) {
     console.error("Error updating coupon:", error);
-    req.session.errorMsg = error.message || "Failed to update coupon";
-    res.redirect(`/admin/coupons/edit/${req.params.id}`);
+    
+    // Handle different types of errors
+    let errorMessage = "Failed to update coupon";
+    
+    if (error.name === 'ValidationError') {
+      // Handle Mongoose validation errors
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      errorMessage = validationErrors.join(', ');
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    try {
+      // Try to get coupon data and render form with error
+      const coupon = await couponService.getCouponById(req.params.id);
+      
+      // Transform form data to proper types for preservation
+      const formData = { ...req.body };
+      Object.keys(formData).forEach(key => {
+        if (Array.isArray(formData[key])) {
+          formData[key] = formData[key][0];
+        }
+      });
+      
+      return res.render("editCoupon", { 
+        coupon: { ...coupon.toObject(), ...formData }, // Preserve user input
+        errorMsg: errorMessage
+      });
+    } catch (renderError) {
+      // If we can't render the form, redirect with session message
+      console.error("Error rendering edit coupon form:", renderError);
+      req.session.errorMsg = errorMessage;
+      res.redirect("/admin/offers");
+    }
   }
 };
 
 const createCouponPost = async (req, res) => {
   try {
-    //Validate request body (schema will handle string-to-number conversion)
-    const validation = couponSchema.safeParse(req.body);
+    // Transform form data to handle arrays
+    const formData = { ...req.body };
+    Object.keys(formData).forEach(key => {
+      if (Array.isArray(formData[key])) {
+        formData[key] = formData[key][0]; // Take first value if array
+      }
+    });
+
+    // Validate request body (schema will handle string-to-number conversion)
+    const validation = couponSchema.safeParse(formData);
     if (!validation.success) {
-      const errors = validation.error?.issues?.map(err => `${err.path.join('.')}: ${err.message}`) || ['Validation failed'];
+      const errors = validation.error?.issues?.map(err => err.message) || ['Validation failed'];
       return res.status(400).json({
         success: false,
-        message: "Validation failed",
-        errors: errors
+        message: errors.join(', ')
       });
     }
 
@@ -69,9 +147,21 @@ const createCouponPost = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating coupon:", error);
+    
+    // Handle different types of errors
+    let errorMessage = "Failed to create coupon";
+    
+    if (error.name === 'ValidationError') {
+      // Handle Mongoose validation errors
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      errorMessage = validationErrors.join(', ');
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     res.status(500).json({
       success: false,
-      message: error.message || "Failed to create coupon"
+      message: errorMessage
     });
   }
 };
@@ -79,9 +169,17 @@ const updateCouponPost = async (req, res) => {
   try {
     const { couponId } = req.params;
     
-    //For status toggle, skip validation
-    if (req.body.status === 'toggle') {
-      const coupon = await couponService.updateCoupon(couponId, req.body);
+    // Transform form data to handle arrays
+    const formData = { ...req.body };
+    Object.keys(formData).forEach(key => {
+      if (Array.isArray(formData[key])) {
+        formData[key] = formData[key][0]; // Take first value if array
+      }
+    });
+    
+    // For status toggle, skip validation
+    if (formData.status === 'toggle') {
+      const coupon = await couponService.updateCoupon(couponId, formData);
       return res.json({
         success: true,
         message: "Coupon status updated successfully",
@@ -90,19 +188,18 @@ const updateCouponPost = async (req, res) => {
     }
 
     // For other updates, validate with Zod schema if it's a full update
-    if (req.body.code || req.body.discountType || req.body.discountValue || req.body.expiryDate) {
-      const validation = couponSchema.safeParse(req.body);
+    if (formData.code || formData.discountType || formData.discountValue || formData.expiryDate) {
+      const validation = couponSchema.safeParse(formData);
       if (!validation.success) {
-        const errors = validation.error?.issues?.map(err => `${err.path.join('.')}: ${err.message}`) || ['Validation failed'];
+        const errors = validation.error?.issues?.map(err => err.message) || ['Validation failed'];
         return res.status(400).json({
           success: false,
-          message: "Validation failed",
-          errors: errors
+          message: errors.join(', ')
         });
       }
     }
 
-    const coupon = await couponService.updateCoupon(couponId, req.body);
+    const coupon = await couponService.updateCoupon(couponId, formData);
 
     res.json({
       success: true,
@@ -111,9 +208,21 @@ const updateCouponPost = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating coupon:", error);
+    
+    // Handle different types of errors
+    let errorMessage = "Failed to update coupon";
+    
+    if (error.name === 'ValidationError') {
+      // Handle Mongoose validation errors
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      errorMessage = validationErrors.join(', ');
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     res.status(500).json({
       success: false,
-      message: error.message || "Failed to update coupon"
+      message: errorMessage
     });
   }
 };
@@ -121,6 +230,8 @@ const updateCouponPost = async (req, res) => {
 const deleteCouponPost = async (req, res) => {
   try {
     const { couponId } = req.params;
+    console.log("Attempting to delete coupon with ID:", couponId);
+    
     await couponService.deleteCoupon(couponId);
 
     res.json({
@@ -129,9 +240,21 @@ const deleteCouponPost = async (req, res) => {
     });
   } catch (error) {
     console.error("Error deleting coupon:", error);
+    
+    // Handle different types of errors
+    let errorMessage = "Failed to delete coupon";
+    
+    if (error.name === 'ValidationError') {
+      // Handle Mongoose validation errors
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      errorMessage = validationErrors.join(', ');
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     res.status(500).json({
       success: false,
-      message: error.message || "Failed to delete coupon"
+      message: errorMessage
     });
   }
 };

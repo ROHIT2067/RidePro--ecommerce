@@ -60,7 +60,12 @@ const addProductPost = async (req, res) => {
     ) {
       return res.status(400).json({ success: false, message: error.message });
     }
-    return res.status(500).json({ success: false, message: "Server error" });
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ success: false, message: validationErrors.join(', ') });
+    }
+    return res.status(500).json({ success: false, message: error.message || "Server error" });
   }
 };
 
@@ -112,7 +117,13 @@ const editProductPost = async (req, res) => {
       });
     }
 
-    return res.status(500).json({ error: "Internal server error" });
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ success: false, message: validationErrors.join(', ') });
+    }
+
+    return res.status(500).json({ success: false, message: error.message || "Internal server error" });
   }
 };
 

@@ -446,9 +446,6 @@
         Use <span class="coupon-code"><%= bestCoupon.code %></span> — 
         <% if (bestCoupon.discountType === 'percentage') { %>
           <%= bestCoupon.discountValue %>% off
-          <% if (bestCoupon.maximumDiscountCap) { %>
-            (up to ₹<%= bestCoupon.maximumDiscountCap.toLocaleString('en-IN') %>)
-          <% } %>
         <% } else { %>
           ₹<%= bestCoupon.discountValue.toLocaleString('en-IN') %> off
         <% } %>

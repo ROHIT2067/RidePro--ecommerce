@@ -28,10 +28,6 @@ const couponSchema = new mongoose.Schema({
     default: null,
     min: 0
   },
-  maximumDiscountCap: {
-    type: Number,
-    default: null
-  },
   usageLimit: {
     type: Number,
     default: null

@@ -59,7 +59,7 @@
           <div class="account-main">
             <h2>Add Shipping Address</h2>
 
-            <form method="POST" action="/account/address/add" class="address-form" id="addressForm">
+            <form method="POST" action="/account/address/add" class="address-form" id="addressForm" novalidate>
               <!-- Hidden field to track if user came from checkout -->
               <% if (typeof query !== 'undefined' && query.fromCheckout === 'true') { %>
                 <input type="hidden" name="fromCheckout" value="true" />

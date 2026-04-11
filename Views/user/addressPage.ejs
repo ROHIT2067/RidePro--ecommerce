@@ -41,7 +41,7 @@
 
             <!-- Address Selector Dropdown -->
             <div class="address-select">
-              <form method="GET" action="/account/address">
+              <form method="GET" action="/account/address" novalidate>
                 <select name="addressId" id="addressSelect">
                   <option value="">Add New Address</option>
                   <% if (addresses && addresses.length) { %>
@@ -112,7 +112,7 @@
                   <div class="actions">
                     <a href="/account/address/edit/<%= selectedAddress._id %>" class="btn-primary">Edit</a>
                     <form method="POST" action="/account/address/delete/<%= selectedAddress._id %>"
-                      style="display:inline;" id="deleteForm-<%= selectedAddress._id %>">
+                      style="display:inline;" id="deleteForm-<%= selectedAddress._id %>" novalidate>
                       <button type="button" class="btn-danger"
                         onclick="confirmDelete('<%= selectedAddress._id %>')">Delete Address</button>
                     </form>

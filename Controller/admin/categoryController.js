@@ -24,7 +24,12 @@ const addCategoryPost = async (req, res) => {
     if (error.message === "Category already exist") {
       return res.status(400).json({ error: error.message });
     }
-    return res.status(500).json({ error: "Internal Server Error" });
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ error: validationErrors.join(', ') });
+    }
+    return res.status(500).json({ error: error.message || "Internal Server Error" });
   }
 };
 
@@ -75,7 +80,12 @@ const categoryEditPost = async (req, res) => {
     ) {
       return res.status(400).json({ success: false, message: error.message });
     }
-    return res.status(500).json({ error: "Internal server error" });
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ success: false, message: validationErrors.join(', ') });
+    }
+    return res.status(500).json({ success: false, message: error.message || "Internal server error" });
   }
 };
 

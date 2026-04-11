@@ -31,6 +31,14 @@ const getOffers = async (query) => {
     };
 };
 
+const getOfferById = async (offerId) => {
+    const offer = await Offer.findById(offerId).populate('targetId');
+    if (!offer) {
+        throw new Error("Offer not found");
+    }
+    return offer;
+};
+
 const createOffer = async (offerData) => {
     // Validate input data with Zod schema
     const validation = offerSchema.safeParse(offerData);
@@ -300,7 +308,20 @@ const updateOffer = async (offerId, updateData) => {
         }
 
         // Update fields
-        if (updateData.name) offer.name = updateData.name;
+        if (updateData.name) {
+            // Check for duplicate name (excluding current offer) - all offers regardless of status
+            const existingOffer = await Offer.findOne({
+                name: { $regex: new RegExp(`^${updateData.name}$`, 'i') },
+                _id: { $ne: offerId }
+            });
+
+            if (existingOffer) {
+                const statusText = existingOffer.status === 'active' ? 'active' : 'inactive';
+                throw new Error(`An offer with the name "${updateData.name}" already exists (${statusText}). Please choose a different name.`);
+            }
+            
+            offer.name = updateData.name;
+        }
         if (updateData.discountValue) {
             if (updateData.discountValue <= 0) {
                 throw new Error("Discount value must be positive");
@@ -346,7 +367,7 @@ const deleteOffer = async (offerId) => {
 };
 
 // General business rule validations for all offers
-const validateOfferBusinessRules = async (offerData) => {
+const validateOfferBusinessRules = async (offerData, excludeOfferId = null) => {
     // Validate offer duration (minimum 1 day, maximum 1 year)
     const startDate = new Date(offerData.startDate);
     const endDate = new Date(offerData.endDate);
@@ -377,20 +398,27 @@ const validateOfferBusinessRules = async (offerData) => {
         throw new Error("Maximum usage cannot exceed 100,000 to prevent system overload");
     }
 
-    // Validate offer name uniqueness for active offers
-    const existingOffer = await Offer.findOne({
-        name: { $regex: new RegExp(`^${offerData.name}$`, 'i') },
-        status: 'active',
-        endDate: { $gte: now }
-    });
+    // Validate offer name uniqueness for all offers (active and inactive)
+    const nameQuery = {
+        name: { $regex: new RegExp(`^${offerData.name}$`, 'i') }
+    };
+
+    // Exclude current offer if updating
+    if (excludeOfferId) {
+        nameQuery._id = { $ne: excludeOfferId };
+    }
+
+    const existingOffer = await Offer.findOne(nameQuery);
 
     if (existingOffer) {
-        throw new Error(`An active offer with the name "${offerData.name}" already exists. Please choose a different name.`);
+        const statusText = existingOffer.status === 'active' ? 'active' : 'inactive';
+        throw new Error(`An offer with the name "${offerData.name}" already exists (${statusText}). Please choose a different name.`);
     }
 };
 
 export default {
     getOffers,
+    getOfferById,
     createOffer,
     updateOffer,
     deleteOffer

@@ -357,7 +357,7 @@
 
         <div id="formMsg"></div>
 
-        <form id="editCategoryForm" enctype="multipart/form-data">
+        <form id="editCategoryForm" enctype="multipart/form-data" novalidate>
           <!-- Name -->
           <div class="form-group">
             <label for="catName">Name</label>
@@ -415,8 +415,18 @@
           const msgEl = document.getElementById("formMsg");
 
           // Validation
+          if (!name || name.length === 0) {
+            showMsg(msgEl, "Name is required.", "error");
+            return;
+          }
+
           if (!/^[a-zA-Z ]+$/.test(name)) {
             showMsg(msgEl, "Name must contain alphabets only.", "error");
+            return;
+          }
+
+          if (!description || description.length === 0) {
+            showMsg(msgEl, "Description is required.", "error");
             return;
           }
 
