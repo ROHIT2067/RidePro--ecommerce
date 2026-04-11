@@ -1,7 +1,7 @@
 import Order from '../../Models/OrderModel.js';
 import User from '../../Models/UserModel.js';
 
-const getSalesReport = async (startDate, endDate, page = 1, limit = 20) => {
+const getSalesReport = async (startDate, endDate, page = 1, limit = 20, statusFilter = null) => {
   try {
     // Parse dates
     const start = new Date(startDate);
@@ -10,15 +10,38 @@ const getSalesReport = async (startDate, endDate, page = 1, limit = 20) => {
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999);
 
+    // Build match criteria
+    const matchCriteria = {
+      order_date: { $gte: start, $lte: end },
+      payment_status: { $in: ['Paid', 'Pending'] }, // Include both paid and COD orders
+    };
+
+    // Add status filter if provided
+    if (statusFilter && statusFilter !== 'all') {
+      if (statusFilter === 'active') {
+        // Active orders (not cancelled or returned)
+        matchCriteria.order_status = { $nin: ['Cancelled', 'Returned'] };
+      } else if (statusFilter === 'completed') {
+        // Completed orders (delivered)
+        matchCriteria.order_status = 'Delivered';
+      } else if (statusFilter === 'cancelled') {
+        // Cancelled orders
+        matchCriteria.order_status = 'Cancelled';
+      } else if (statusFilter === 'returned') {
+        // Returned orders
+        matchCriteria.order_status = { $in: ['Return Requested', 'Returned', 'Partially Returned'] };
+      } else {
+        // Specific status
+        matchCriteria.order_status = statusFilter;
+      }
+    } else {
+      // Default: exclude cancelled orders for summary calculations
+      matchCriteria.order_status = { $ne: 'Cancelled' };
+    }
+
     // Summary aggregation
     const summaryResult = await Order.aggregate([
-      {
-        $match: {
-          order_date: { $gte: start, $lte: end },
-          payment_status: { $in: ['Paid', 'Pending'] }, // Include both paid and COD orders
-          order_status: { $ne: 'Cancelled' } // Exclude cancelled orders
-        }
-      },
+      { $match: matchCriteria },
       {
         $group: {
           _id: null,
@@ -49,11 +72,7 @@ const getSalesReport = async (startDate, endDate, page = 1, limit = 20) => {
     // Detailed orders with pagination
     const skip = (page - 1) * limit;
     
-    const orders = await Order.find({
-      order_date: { $gte: start, $lte: end },
-      payment_status: { $in: ['Paid', 'Pending'] }, // Include both paid and COD orders
-      order_status: { $ne: 'Cancelled' } // Exclude cancelled orders
-    })
+    const orders = await Order.find(matchCriteria)
     .populate({
       path: 'user_id',
       select: 'username email'
@@ -105,11 +124,7 @@ const getSalesReport = async (startDate, endDate, page = 1, limit = 20) => {
     });
 
     // Get total count for pagination
-    const totalCount = await Order.countDocuments({
-      order_date: { $gte: start, $lte: end },
-      payment_status: { $in: ['Paid', 'Pending'] }, // Include both paid and COD orders
-      order_status: { $ne: 'Cancelled' } // Exclude cancelled orders
-    });
+    const totalCount = await Order.countDocuments(matchCriteria);
 
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -169,7 +184,7 @@ const getDateRange = (range) => {
   return { startDate, endDate };
 };
 
-const getAllOrdersForExport = async (startDate, endDate) => {
+const getAllOrdersForExport = async (startDate, endDate, statusFilter = null) => {
   try {
     const start = new Date(startDate);
     start.setHours(0, 0, 0, 0);
@@ -177,11 +192,36 @@ const getAllOrdersForExport = async (startDate, endDate) => {
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999);
 
-    const orders = await Order.find({
+    // Build match criteria
+    const matchCriteria = {
       order_date: { $gte: start, $lte: end },
       payment_status: { $in: ['Paid', 'Pending'] }, // Include both paid and COD orders
-      order_status: { $ne: 'Cancelled' } // Exclude cancelled orders
-    })
+    };
+
+    // Add status filter if provided
+    if (statusFilter && statusFilter !== 'all') {
+      if (statusFilter === 'active') {
+        // Active orders (not cancelled or returned)
+        matchCriteria.order_status = { $nin: ['Cancelled', 'Returned'] };
+      } else if (statusFilter === 'completed') {
+        // Completed orders (delivered)
+        matchCriteria.order_status = 'Delivered';
+      } else if (statusFilter === 'cancelled') {
+        // Cancelled orders
+        matchCriteria.order_status = 'Cancelled';
+      } else if (statusFilter === 'returned') {
+        // Returned orders
+        matchCriteria.order_status = { $in: ['Return Requested', 'Returned', 'Partially Returned'] };
+      } else {
+        // Specific status
+        matchCriteria.order_status = statusFilter;
+      }
+    } else {
+      // Default: exclude cancelled orders
+      matchCriteria.order_status = { $ne: 'Cancelled' };
+    }
+
+    const orders = await Order.find(matchCriteria)
     .populate({
       path: 'user_id',
       select: 'username email'

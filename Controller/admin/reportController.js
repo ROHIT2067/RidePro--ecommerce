@@ -8,7 +8,7 @@ const getSalesReportPage = async (req, res) => {
       return res.redirect('/admin/login');
     }
 
-    const { range, startDate, endDate, page = 1 } = req.query;
+    const { range, startDate, endDate, page = 1, status } = req.query;
     let dateRange;
 
     // Determine date range
@@ -35,12 +35,13 @@ const getSalesReportPage = async (req, res) => {
       dateRange = reportService.getDateRange('monthly');
     }
 
-    // Get report data
+    // Get report data with status filter
     const reportData = await reportService.getSalesReport(
       dateRange.startDate,
       dateRange.endDate,
       parseInt(page),
-      20
+      20,
+      status
     );
 
     // Format dates for display
@@ -52,6 +53,7 @@ const getSalesReportPage = async (req, res) => {
       currentRange: range || 'custom',
       startDate: formattedStartDate,
       endDate: formattedEndDate,
+      currentStatus: status || 'all',
       success_msg: req.session.success_msg || '',
       error_msg: req.session.error_msg || ''
     });
@@ -73,7 +75,7 @@ const downloadSalesReport = async (req, res) => {
       return res.redirect('/admin/login');
     }
 
-    const { format, range, startDate, endDate } = req.query;
+    const { format, range, startDate, endDate, status } = req.query;
     let dateRange;
 
     // Determine date range
@@ -85,18 +87,20 @@ const downloadSalesReport = async (req, res) => {
       dateRange = reportService.getDateRange('monthly');
     }
 
-    // Get summary data
+    // Get summary data with status filter
     const summaryData = await reportService.getSalesReport(
       dateRange.startDate,
       dateRange.endDate,
       1,
-      1
+      1,
+      status
     );
 
-    // Get all orders for export
+    // Get all orders for export with status filter
     const allOrders = await reportService.getAllOrdersForExport(
       dateRange.startDate,
-      dateRange.endDate
+      dateRange.endDate,
+      status
     );
 
     if (format === 'pdf') {

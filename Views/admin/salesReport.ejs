@@ -188,6 +188,46 @@
       font-size: 14px;
     }
 
+    .status-filters {
+      margin-bottom: 20px;
+    }
+
+    .status-select {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      background-color: #ffffff;
+      min-width: 200px;
+      cursor: pointer;
+    }
+
+    .status-select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .filter-summary {
+      background-color: #f0f9ff;
+      border: 1px solid #0ea5e9;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+    }
+
+    .filter-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #0c4a6e;
+      font-size: 14px;
+    }
+
+    .filter-info i {
+      color: #0ea5e9;
+    }
+
     .filter-actions {
       display: flex;
       gap: 12px;
@@ -438,6 +478,11 @@
         align-items: stretch;
       }
 
+      .status-select {
+        min-width: auto;
+        width: 100%;
+      }
+
       .orders-table {
         font-size: 12px;
       }
@@ -503,6 +548,24 @@
             </div>
           </div>
 
+          <div class="filter-section">
+            <label class="filter-label">Order Status</label>
+            <div class="status-filters">
+              <select name="status" class="status-select" id="statusSelect">
+                <option value="all" <%= currentStatus === 'all' ? 'selected' : '' %>>All Orders</option>
+                <option value="active" <%= currentStatus === 'active' ? 'selected' : '' %>>Active Orders</option>
+                <option value="completed" <%= currentStatus === 'completed' ? 'selected' : '' %>>Delivered</option>
+                <option value="Pending" <%= currentStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
+                <option value="Confirmed" <%= currentStatus === 'Confirmed' ? 'selected' : '' %>>Confirmed</option>
+                <option value="Processing" <%= currentStatus === 'Processing' ? 'selected' : '' %>>Processing</option>
+                <option value="Shipped" <%= currentStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                <option value="Out for Delivery" <%= currentStatus === 'Out for Delivery' ? 'selected' : '' %>>Out for Delivery</option>
+                <option value="cancelled" <%= currentStatus === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                <option value="returned" <%= currentStatus === 'returned' ? 'selected' : '' %>>Returned/Return Requested</option>
+              </select>
+            </div>
+          </div>
+
           <div class="filter-actions">
             <button type="submit" class="btn btn-primary">
               <i class="fas fa-search"></i>
@@ -511,6 +574,30 @@
           </div>
         </form>
       </div>
+
+      <!-- Filter Summary -->
+      <% if (currentStatus && currentStatus !== 'all') { %>
+        <div class="filter-summary">
+          <div class="filter-info">
+            <i class="fas fa-filter"></i>
+            <span>Showing orders with status: 
+              <strong>
+                <% if (currentStatus === 'active') { %>
+                  Active Orders (Excluding Cancelled/Returned)
+                <% } else if (currentStatus === 'completed') { %>
+                  Completed (Delivered)
+                <% } else if (currentStatus === 'cancelled') { %>
+                  Cancelled
+                <% } else if (currentStatus === 'returned') { %>
+                  Returned/Return Requested
+                <% } else { %>
+                  <%= currentStatus %>
+                <% } %>
+              </strong>
+            </span>
+          </div>
+        </div>
+      <% } %>
 
       <!-- Summary Cards -->
       <div class="summary-grid">
@@ -552,9 +639,14 @@
           <h2 class="section-title">Detailed Sales</h2>
           <div class="download-buttons">
             <% 
-              const downloadParams = currentRange !== 'custom' ? 
+              let downloadParams = currentRange !== 'custom' ? 
                 `range=${currentRange}` : 
                 `startDate=${startDate}&endDate=${endDate}`;
+              
+              // Add status parameter if not 'all'
+              if (currentStatus && currentStatus !== 'all') {
+                downloadParams += `&status=${currentStatus}`;
+              }
             %>
             <a href="/admin/reports/download?format=pdf&<%= downloadParams %>" class="btn btn-secondary">
               <i class="fas fa-file-pdf"></i>
@@ -682,6 +774,11 @@
     });
 
     document.getElementById('endDate').addEventListener('change', function() {
+      document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
+    });
+
+    // Status filter - remove active class from quick filters when changed
+    document.getElementById('statusSelect').addEventListener('change', function() {
       document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
     });
   </script>
