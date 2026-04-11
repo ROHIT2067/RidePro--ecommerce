@@ -328,7 +328,13 @@ const orderSuccessGet = async (req, res) => {
 
 const paypalSuccessGet = async (req, res) => {
   try {
+    // Debug session information
+    console.log("PayPal Success - Session ID:", req.sessionID);
+    console.log("PayPal Success - User in session:", !!req.session.user);
+    console.log("PayPal Success - Pending PayPal order:", !!req.session.pendingPayPalOrder);
+    
     if (!req.session.pendingPayPalOrder) {
+      console.log("PayPal Success - No pending PayPal order in session");
       return res.redirect("/payment-failed?reason=invalid_session");
     }
 
@@ -383,7 +389,13 @@ const paypalSuccessGet = async (req, res) => {
       delete req.session.appliedCoupon;
     }
 
-    return res.redirect(`/order-success?orderId=${order.order_id}`);
+    // Save session before redirect
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+      }
+      return res.redirect(`/order-success?orderId=${order.order_id}`);
+    });
   } catch (error) {
     console.error("PayPal Success Error:", error);
     // Clear session data

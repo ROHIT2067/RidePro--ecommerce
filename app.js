@@ -2,6 +2,7 @@ import express from "express"
 const app=express()
 import nocache from "nocache"
 import session from "express-session";
+import MongoStore from "connect-mongo";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import methodOverride from "method-override"
@@ -30,9 +31,21 @@ app.use(express.json())
 app.use(methodOverride('_method'))
 
 app.use(session({
-    secret:process.env.SESSION_SECRET,
-    resave:false,
-    saveUninitialized:false,
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URI,
+        touchAfter: 24 * 3600, // lazy session update
+        collectionName: 'sessions'
+    }),
+    cookie: {
+        secure: true, // HTTPS required for secure cookies
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: 'lax' // Important for cross-domain redirects like PayPal
+    },
+    name: 'ridepro.session' // Custom session name
 }))
 
 
