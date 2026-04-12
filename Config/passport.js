@@ -9,7 +9,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "https://www.ridepro.online/auth/google/callback",
+      callbackURL: "https://ridepro.online/auth/google/callback",
       scope: ["profile", "email"], 
       accessType: 'offline',
       prompt: 'select_account'
