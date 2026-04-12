@@ -45,7 +45,7 @@ app.use(session({
         secure: true, // HTTPS required for secure cookies
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: 'lax' // Important for cross-domain redirects like PayPal
+        sameSite: 'none' // Important for cross-domain redirects like PayPal
     },
     name: 'ridepro.session' // Custom session name
 }))

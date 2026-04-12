@@ -6,7 +6,8 @@ import {
   requireUserAPI, 
   redirectIfAdmin, 
   userPageAccess, 
-  authPageAccess 
+  authPageAccess ,
+  requireUserSoft
 } from "../middlewares/authMiddleware.js";
 import { validateCartStock, validateItemStock } from "../middlewares/stockValidationMiddleware.js";
 import userController from "../Controller/user/userController.js";
@@ -45,10 +46,17 @@ router.get(
   (req, res) => {
     if (req.user.is_blocked) {
       req.session.loginErr = "This account is blocked";
-      return res.redirect("/login");
+      return req.session.save(() => res.redirect("/login"));
     }
+
     req.session.user = req.user._id;
-    res.redirect("/home");
+    const redirectTo = req.session.returnTo || '/home'; // ← pick up saved URL
+    delete req.session.returnTo;
+
+    req.session.save((err) => {
+      if (err) return res.redirect("/login");
+      res.redirect(redirectTo); // ← sends them back to /checkout/paypal/success
+    });
   },
 );
 router.get("/logout", userController.logOut);
@@ -120,8 +128,8 @@ router.get('/checkout', userPageAccess, checkoutController.checkoutGet)
 router.post('/checkout/add-address', requireUserAPI, checkoutController.addAddressPost)
 router.post('/checkout/edit-address', requireUserAPI, checkoutController.editAddressPost)
 router.post('/checkout/place-order', requireUserAPI, validateCartStock, checkoutController.placeOrderPost)
-router.get('/checkout/paypal/success', checkoutController.paypalSuccessGet)
-router.get('/checkout/paypal/cancel', checkoutController.paypalCancelGet)
+router.get('/checkout/paypal/success',requireUserSoft, checkoutController.paypalSuccessGet)
+router.get('/checkout/paypal/cancel',requireUserSoft, checkoutController.paypalCancelGet)
 router.get('/payment-failed', redirectIfAdmin, checkoutController.paymentFailedGet)
 router.get('/order-success', userPageAccess, checkoutController.orderSuccessGet)
 
