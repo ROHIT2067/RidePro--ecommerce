@@ -30,6 +30,8 @@ app.use(express.json())
 
 app.use(methodOverride('_method'))
 
+app.set('trust proxy', 1)
+
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,

@@ -330,11 +330,11 @@ const paypalSuccessGet = async (req, res) => {
   try {
     // Debug session information
     console.log("=== PAYPAL SUCCESS DEBUG ===");
+console.log("req.session.user:", req.session.user);
+console.log("req.session.passport:", req.session.passport);
+console.log("req.user:", req.user);
 console.log("Session ID:", req.sessionID);
-console.log("User in session:", req.session.user);
-console.log("Pending order:", !!req.session.pendingPayPalOrder);
-console.log("All session keys:", Object.keys(req.session));
-console.log("Cookies received:", req.headers.cookie);
+console.log("Cookie header:", req.headers.cookie);
 console.log("============================");
     console.log("PayPal Success - Session ID:", req.sessionID);
     console.log("PayPal Success - User in session:", !!req.session.user);
