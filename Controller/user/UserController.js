@@ -146,7 +146,9 @@ const loginPost = async (req, res) => {
       return res.redirect("/admin/dashboard");
     } else {
       req.session.user = user._id;
-      return res.redirect("/home");
+      const redirectUrl = req.session.returnTo || "/home";
+      delete req.session.returnTo;
+      return res.redirect(redirectUrl);
     }
   } catch (error) {
     console.error("Login error:", error);

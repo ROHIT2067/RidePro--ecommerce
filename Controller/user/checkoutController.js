@@ -333,6 +333,11 @@ const paypalSuccessGet = async (req, res) => {
     console.log("PayPal Success - User in session:", !!req.session.user);
     console.log("PayPal Success - Pending PayPal order:", !!req.session.pendingPayPalOrder);
     
+      if (!req.session.user) {
+      req.session.returnTo = req.originalUrl;
+      return req.session.save(() => res.redirect("/login"));
+    }
+    
     if (!req.session.pendingPayPalOrder) {
       console.log("PayPal Success - No pending PayPal order in session");
       return res.redirect("/payment-failed?reason=invalid_session");

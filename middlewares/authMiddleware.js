@@ -70,3 +70,16 @@ export function authPageAccess(req, res, next) {
   }
   next();
 }
+
+// use this ONLY on the PayPal success route
+export function requireUserSoft(req, res, next) {
+  if (!req.session.user) {
+    // Save where they were trying to go
+    req.session.returnTo = req.originalUrl;
+    req.session.save((err) => {
+      if (err) console.error("Session save error:", err);
+      return res.redirect("/login");
+    });
+  }
+  next();
+}
