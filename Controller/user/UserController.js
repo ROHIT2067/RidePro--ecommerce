@@ -197,7 +197,7 @@ const forgotPasswordPost = async (req, res) => {
     console.log("Generated OTP for forgot password:", otp);
     req.session.userOtp = otp;
     req.session.email = email;
-    return res.redirect("/verify-password");
+    return res.redirect("/verify-password?new=1");
   } catch (error) {
     console.error("Forgot password error:", error);
     if (

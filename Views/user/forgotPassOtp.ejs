@@ -53,6 +53,12 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
   <script>
+
+    const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('new') === '1') {
+  localStorage.removeItem('otpExpiry');
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
     const OTP_DURATION = 60;
 
     const timerDisplay = document.getElementById("timer");
@@ -101,7 +107,7 @@
     }
 
     // Always start fresh on page load
-    let expiry = initExpiry();
+    let expiry = getExpiry();
     let timerInterval;
 
     function updateTimer() {
