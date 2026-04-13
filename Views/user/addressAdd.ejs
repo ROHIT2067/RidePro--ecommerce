@@ -59,6 +59,14 @@
           <div class="account-main">
             <h2>Add Shipping Address</h2>
 
+            <!-- Error Message Display -->
+            <% if (typeof error !== 'undefined' && error) { %>
+              <div class="error-message">
+                <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                <%= error %>
+              </div>
+            <% } %>
+
             <form method="POST" action="/account/address/add" class="address-form" id="addressForm" novalidate>
               <!-- Hidden field to track if user came from checkout -->
               <% if (typeof query !== 'undefined' && query.fromCheckout === 'true') { %>

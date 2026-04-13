@@ -31,6 +31,14 @@
           <div class="account-main">
             <h2>Shipping Address</h2>
 
+            <!-- Success Message Display -->
+            <% if (typeof addressSuccess !== 'undefined' && addressSuccess) { %>
+              <div class="success-message" style="background-color: #efe; border: 1px solid #cfc; color: #3c3; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
+                <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
+                <%= addressSuccess %>
+              </div>
+            <% } %>
+
             <!-- Error Message Display -->
             <% if (typeof addressError !== 'undefined' && addressError) { %>
               <div class="error-message" style="background-color: #fee; border: 1px solid #fcc; color: #c33; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
