@@ -1,4 +1,5 @@
 import userCollection from "../../Models/UserModel.js";
+import OrderModel from "../../Models/OrderModel.js";
 
 const getCustomers = async (query) => {
     let search = query.search || "";
@@ -21,12 +22,14 @@ const getCustomers = async (query) => {
 
     const count = await userCollection.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
+    const orderCount= await OrderModel.countDocuments(filter);
 
     return {
         customers: userData,
         currentPage: page,
         search,
         totalPages,
+        orderCount
     };
 };
 
