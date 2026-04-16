@@ -477,7 +477,6 @@
     <th>Email</th>
     <th>Phone</th>
     <th>Status</th>
-    <th>Order Count</th>
     <th style="width: 80px; text-align: center;">Action</th>
   </tr>
 </thead>
@@ -497,8 +496,6 @@
         <td><%= user.email %></td>
 
         <td><%= user.phoneNumber || 'N/A' %></td>
-
-        <td><%= orderCount || "0" %></td>
 
         <td><%= user.is_blocked ? 'Blocked' : 'Active' %></td>
 
