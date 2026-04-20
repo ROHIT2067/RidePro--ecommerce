@@ -22,14 +22,12 @@ const getCustomers = async (query) => {
 
     const count = await userCollection.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
-    const orderCount= await OrderModel.countDocuments(filter);
 
     return {
         customers: userData,
         currentPage: page,
         search,
         totalPages,
-        orderCount
     };
 };
 
