@@ -1,4 +1,6 @@
 import userCollection from "../../Models/UserModel.js";
+import OrderModel from "../../Models/OrderModel.js";
+import { clearBlockedUserCache } from "../../middlewares/blockCheckMiddleware.js";
 
 const getCustomers = async (query) => {
     let search = query.search || "";
@@ -50,6 +52,10 @@ const updateCustomerStatus = async (userId, status) => {
     if (!updateUser) {
         throw new Error("User not Found");
     }
+
+    // Clear the cache for this user so the block status is immediately checked
+    clearBlockedUserCache(userId);
+    console.log(`User ${userId} ${isBlocked ? 'blocked' : 'unblocked'} - cache cleared`);
 
     return { success: true };
 };

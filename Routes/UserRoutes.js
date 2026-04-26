@@ -6,7 +6,7 @@ import {
   requireUserAPI, 
   redirectIfAdmin, 
   userPageAccess, 
-  authPageAccess ,
+  authPageAccess,
   requireUserSoft
 } from "../middlewares/authMiddleware.js";
 import { validateCartStock, validateItemStock } from "../middlewares/stockValidationMiddleware.js";
@@ -24,7 +24,7 @@ import walletController from "../Controller/user/walletController.js";
 import referralController from "../Controller/user/referralController.js";
 
 router.get("/", blockIfLoggedIn, userController.landingPageGet);
-router.get("/home", redirectIfAdmin, requireUser, userController.homeGet);
+router.get("/home", redirectIfAdmin, userController.homeGet);
 router.get("/login", authPageAccess, userController.loginGet);
 router.get("/signup", authPageAccess, userController.signupGet);
 router.post("/signup", userController.signUppost);

@@ -1,3 +1,6 @@
+// Export all middleware from both files for convenience
+export * from "./blockCheckMiddleware.js";
+
 // Redirect if user is already logged in (for auth pages like login, signup)
 export function blockIfLoggedIn(req, res, next) {
   if (req.session.user) {
@@ -15,6 +18,7 @@ export function requireAdmin(req, res, next) {
 }
 
 // Require user session for user routes (redirects to login)
+// NOTE: This does NOT check if user is blocked. Use requireActiveUser instead.
 export function requireUser(req, res, next) {
   if (!req.session.user) {
     return res.redirect("/login");
@@ -23,6 +27,7 @@ export function requireUser(req, res, next) {
 }
 
 // Require user session for API routes (returns 401 JSON)
+// NOTE: This does NOT check if user is blocked. Use requireActiveUserAPI instead.
 export function requireUserAPI(req, res, next) {
   if (!req.session.user) {
     return res.status(401).json({ 
@@ -50,6 +55,7 @@ export function redirectIfUser(req, res, next) {
 }
 
 // Combined middleware for user pages that should redirect admin and require user
+// NOTE: This does NOT check if user is blocked. Use requireActiveUser instead.
 export function userPageAccess(req, res, next) {
   if (req.session.admin) {
     return res.redirect("/admin/dashboard");
