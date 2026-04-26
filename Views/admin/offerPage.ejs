@@ -432,11 +432,11 @@
             </div>
             <div class="form-group">
               <label for="offerStartDate">Start Date *</label>
-              <input type="date" id="offerStartDate" name="startDate" required min="<%= new Date().toISOString().split('T')[0] %>" />
+              <input type="date" id="offerStartDate" name="startDate" required />
             </div>
             <div class="form-group">
               <label for="offerEndDate">End Date *</label>
-              <input type="date" id="offerEndDate" name="endDate" required min="<%= new Date().toISOString().split('T')[0] %>" max="<%= (() => { const date = new Date(); date.setMonth(date.getMonth() + 1); date.setDate(16); return date.toISOString().split('T')[0]; })() %>" />
+              <input type="date" id="offerEndDate" name="endDate" required />
             </div>
             <div class="form-group conditional-fields" id="productField">
               <label for="productSelect">Select Product *</label>
@@ -626,7 +626,7 @@
             </div>
             <div class="form-group">
               <label for="couponExpiryDate">Expiry Date *</label>
-              <input type="date" id="couponExpiryDate" name="expiryDate" required min="<%= new Date().toISOString().split('T')[0] %>" max="<%= (() => { const date = new Date(); date.setMonth(date.getMonth() + 1); date.setDate(16); return date.toISOString().split('T')[0]; })() %>" />
+              <input type="date" id="couponExpiryDate" name="expiryDate" required />
             </div>
           </div>
           <button type="submit" class="save-btn">ADD COUPON</button>
@@ -650,7 +650,38 @@
     </div>
   </div>
 
+  <!-- Validation Alert Modal -->
+  <div class="modal-overlay" id="validationModal">
+    <div class="modal-box">
+      <div class="modal-icon" style="background: #fee2e2; color: #dc2626;">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <h3 class="modal-title" id="validationTitle">Invalid Date</h3>
+      <p class="modal-message" id="validationMessage"></p>
+      <div class="modal-actions">
+        <button class="btn-confirm" onclick="closeValidationModal()" style="width: 100%;">OK</button>
+      </div>
+    </div>
+  </div>
+
  <script>
+    // Validation Modal Functions
+    function showValidationModal(message) {
+      const modal = document.getElementById('validationModal');
+      const messageEl = document.getElementById('validationMessage');
+      messageEl.textContent = message;
+      modal.classList.add('show');
+    }
+
+    function closeValidationModal() {
+      document.getElementById('validationModal').classList.remove('show');
+    }
+
+    // Close validation modal when clicking outside
+    document.getElementById('validationModal').addEventListener('click', function(e) {
+      if (e.target === this) closeValidationModal();
+    });
+
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -688,9 +719,38 @@
       e.preventDefault();
       const msgEl = document.getElementById('offerFormMsg');
       const data = Object.fromEntries(new FormData(this));
-      if (new Date(data.endDate) <= new Date(data.startDate)) {
-        return showMsg(msgEl, 'End date must be after start date.', true);
+      
+      // Comprehensive date validation on submit using local timezone
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const startDate = new Date(data.startDate + 'T00:00:00');
+      const endDate = new Date(data.endDate + 'T00:00:00');
+      
+      // Check if start date is in the past
+      if (startDate < today) {
+        showValidationModal('Start date cannot be in the past. Please select today or a future date.');
+        return;
       }
+      
+      // Check if end date is before or equal to start date
+      if (endDate <= startDate) {
+        showValidationModal('End date must be after start date.');
+        return;
+      }
+      
+      // Check if end date is in the past or today
+      if (endDate <= today) {
+        showValidationModal('End date must be in the future.');
+        return;
+      }
+      
+      // Check minimum duration (1 day)
+      const oneDayInMs = 24 * 60 * 60 * 1000;
+      if ((endDate - startDate) < oneDayInMs) {
+        showValidationModal('Offer must run for at least 1 day.');
+        return;
+      }
+      
       try {
         const res = await fetch('/admin/offers/create', {
           method: 'POST',
@@ -715,9 +775,26 @@
       e.preventDefault();
       const msgEl = document.getElementById('couponFormMsg');
       const data = Object.fromEntries(new FormData(this));
-      if (new Date(data.expiryDate) <= new Date()) {
-        return showMsg(msgEl, 'Expiry date must be in the future.', true);
+      
+      // Comprehensive date validation on submit using local timezone
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const expiryDate = new Date(data.expiryDate + 'T00:00:00');
+      
+      // Check if expiry date is in the past or today
+      if (expiryDate <= today) {
+        showValidationModal('Expiry date must be in the future (at least tomorrow).');
+        return;
       }
+      
+      // Check minimum validity (1 day from now)
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      if (expiryDate < tomorrow) {
+        showValidationModal('Coupon must be valid for at least 1 day from now.');
+        return;
+      }
+      
       try {
         const res = await fetch('/admin/coupons/create', {
           method: 'POST',
@@ -903,10 +980,172 @@
       window.location.href = `/admin/coupons/edit/${couponId}`;
     }
 
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('offerStartDate').min = today;
-    document.getElementById('offerEndDate').min   = today;
-    document.getElementById('couponExpiryDate').min = today;
+    // Date validation setup - MUST RUN IMMEDIATELY
+    (function() {
+      // Helper to format date as YYYY-MM-DD in local timezone
+      function formatLocalDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      
+      // Get current date in user's local timezone
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = formatLocalDate(today);
+      
+      const maxDate = new Date();
+      maxDate.setFullYear(maxDate.getFullYear() + 1);
+      const maxDateStr = formatLocalDate(maxDate);
+      
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = formatLocalDate(tomorrow);
+
+      console.log('Date validation initialized:', { todayStr, tomorrowStr, maxDateStr });
+
+      // Set min/max for offer dates IMMEDIATELY
+      const offerStartDate = document.getElementById('offerStartDate');
+      const offerEndDate = document.getElementById('offerEndDate');
+      const couponExpiryDate = document.getElementById('couponExpiryDate');
+      
+      if (offerStartDate) {
+        // Force set the min attribute multiple ways
+        offerStartDate.setAttribute('min', todayStr);
+        offerStartDate.setAttribute('max', maxDateStr);
+        offerStartDate.min = todayStr;
+        offerStartDate.max = maxDateStr;
+        
+        console.log('Offer start date min set to:', offerStartDate.min);
+        
+        // Validate on input (as user types/selects)
+        offerStartDate.addEventListener('input', function() {
+          if (this.value) {
+            const selectedDate = new Date(this.value + 'T00:00:00');
+            if (selectedDate < today) {
+              showValidationModal('Start date cannot be in the past.\n\nPlease select today (' + todayStr + ') or a future date.');
+              this.value = '';
+              return;
+            }
+          }
+        });
+        
+        // Validate on change (when date picker closes)
+        offerStartDate.addEventListener('change', function() {
+          if (this.value) {
+            const selectedDate = new Date(this.value + 'T00:00:00');
+            if (selectedDate < today) {
+              showValidationModal('Start date cannot be in the past.\n\nPlease select today (' + todayStr + ') or a future date.');
+              this.value = '';
+              return;
+            }
+          }
+        });
+        
+        // Validate on blur (when field loses focus)
+        offerStartDate.addEventListener('blur', function() {
+          if (this.value) {
+            const selectedDate = new Date(this.value + 'T00:00:00');
+            if (selectedDate < today) {
+              showValidationModal('Start date cannot be in the past.\n\nPlease select today (' + todayStr + ') or a future date.');
+              this.value = '';
+            }
+          }
+        });
+      }
+      
+      if (offerEndDate) {
+        offerEndDate.setAttribute('min', tomorrowStr);
+        offerEndDate.setAttribute('max', maxDateStr);
+        offerEndDate.min = tomorrowStr;
+        offerEndDate.max = maxDateStr;
+        
+        console.log('Offer end date min set to:', offerEndDate.min);
+        
+        // Validate on input
+        offerEndDate.addEventListener('input', function() {
+          if (this.value) {
+            const selectedDate = new Date(this.value + 'T00:00:00');
+            if (selectedDate <= today) {
+              showValidationModal('End date must be in the future.\n\nPlease select tomorrow (' + tomorrowStr + ') or later.');
+              this.value = '';
+              return;
+            }
+          }
+        });
+        
+        // Validate on change
+        offerEndDate.addEventListener('change', function() {
+          if (this.value) {
+            const selectedDate = new Date(this.value + 'T00:00:00');
+            if (selectedDate <= today) {
+              showValidationModal('End date must be in the future.\n\nPlease select tomorrow (' + tomorrowStr + ') or later.');
+              this.value = '';
+              return;
+            }
+          }
+        });
+      }
+      
+      if (couponExpiryDate) {
+        couponExpiryDate.setAttribute('min', tomorrowStr);
+        couponExpiryDate.setAttribute('max', maxDateStr);
+        couponExpiryDate.min = tomorrowStr;
+        couponExpiryDate.max = maxDateStr;
+        
+        console.log('Coupon expiry date min set to:', couponExpiryDate.min);
+        
+        // Validate on input
+        couponExpiryDate.addEventListener('input', function() {
+          if (this.value) {
+            const selectedDate = new Date(this.value + 'T00:00:00');
+            if (selectedDate <= today) {
+              showValidationModal('Expiry date must be in the future.\n\nPlease select tomorrow (' + tomorrowStr + ') or later.');
+              this.value = '';
+              return;
+            }
+          }
+        });
+        
+        // Validate on change
+        couponExpiryDate.addEventListener('change', function() {
+          if (this.value) {
+            const selectedDate = new Date(this.value + 'T00:00:00');
+            if (selectedDate <= today) {
+              showValidationModal('Expiry date must be in the future.\n\nPlease select tomorrow (' + tomorrowStr + ') or later.');
+              this.value = '';
+              return;
+            }
+          }
+        });
+      }
+
+      // Dynamic end date validation based on start date
+      if (offerStartDate && offerEndDate) {
+        offerStartDate.addEventListener('change', function() {
+          if (this.value) {
+            const selectedStart = new Date(this.value + 'T00:00:00');
+            const minEnd = new Date(selectedStart);
+            minEnd.setDate(minEnd.getDate() + 1);
+            const minEndStr = formatLocalDate(minEnd);
+            
+            offerEndDate.setAttribute('min', minEndStr);
+            offerEndDate.min = minEndStr;
+            
+            console.log('End date min updated to:', minEndStr);
+            
+            if (offerEndDate.value) {
+              const selectedEnd = new Date(offerEndDate.value + 'T00:00:00');
+              if (selectedEnd <= selectedStart) {
+                showValidationModal('End date must be after start date.');
+                offerEndDate.value = '';
+              }
+            }
+          }
+        });
+      }
+    })();
 
     // Initialize searchable product dropdown
     initializeProductSearch();

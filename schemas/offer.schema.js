@@ -1,5 +1,26 @@
 import { z } from 'zod';
 
+// Helper to get start of today (midnight)
+const getStartOfToday = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+};
+
+// Helper to get end of today (23:59:59)
+const getEndOfToday = () => {
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  return today;
+};
+
+// Helper to get max date (1 year from now)
+const getMaxDate = () => {
+  const maxDate = new Date();
+  maxDate.setFullYear(maxDate.getFullYear() + 1);
+  return maxDate;
+};
+
 // Common discount validation
 const discountValidation = z.object({
   discountType: z.enum(['percentage', 'flat'], {
@@ -20,20 +41,44 @@ const discountValidation = z.object({
   path: ["discountValue"]
 });
 
-// Date validation
+// Enhanced date validation with comprehensive checks
 const dateValidation = z.object({
   startDate: z.string().or(z.date()).transform((val) => new Date(val)),
   endDate: z.string().or(z.date()).transform((val) => new Date(val))
 }).refine((data) => {
-  return data.startDate < data.endDate;
+  // Start date cannot be in the past (before today)
+  const startOfToday = getStartOfToday();
+  return data.startDate >= startOfToday;
 }, {
-  message: "Start date must be before end date",
+  message: "Start date cannot be in the past. Please select today or a future date",
+  path: ["startDate"]
+}).refine((data) => {
+  // End date must be after start date
+  return data.endDate > data.startDate;
+}, {
+  message: "End date must be after start date",
   path: ["endDate"]
 }).refine((data) => {
-  const now = new Date();
-  return data.endDate > now;
+  // End date must be in the future (after today)
+  const endOfToday = getEndOfToday();
+  return data.endDate > endOfToday;
 }, {
   message: "End date must be in the future",
+  path: ["endDate"]
+}).refine((data) => {
+  // Offer duration must be at least 1 day
+  const oneDayInMs = 24 * 60 * 60 * 1000;
+  const duration = data.endDate.getTime() - data.startDate.getTime();
+  return duration >= oneDayInMs;
+}, {
+  message: "Offer must run for at least 1 day",
+  path: ["endDate"]
+}).refine((data) => {
+  // Offer cannot be longer than 1 year
+  const maxDate = getMaxDate();
+  return data.endDate <= maxDate;
+}, {
+  message: "Offer duration cannot exceed 1 year",
   path: ["endDate"]
 });
 
