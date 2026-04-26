@@ -1,5 +1,26 @@
 import { z } from 'zod';
 
+// Helper to get start of today (midnight)
+const getStartOfToday = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+};
+
+// Helper to get end of today (23:59:59)
+const getEndOfToday = () => {
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  return today;
+};
+
+// Helper to get max date (1 year from now)
+const getMaxDate = () => {
+  const maxDate = new Date();
+  maxDate.setFullYear(maxDate.getFullYear() + 1);
+  return maxDate;
+};
+
 // Coupon code validation - alphanumeric with - and _ allowed
 const couponCodeSchema = z.string({
   required_error: "Coupon code is required"
@@ -26,7 +47,7 @@ const intFromString = z.union([z.number(), z.string()]).transform((val) => {
   return val;
 });
 
-// Main coupon schema
+// Main coupon schema with enhanced date validation
 export const couponSchema = z.object({
   code: couponCodeSchema,
   discountType: z.enum(['percentage', 'flat'], {
@@ -65,10 +86,27 @@ export const couponSchema = z.object({
   message: "Minimum order amount must be less than maximum order amount",
   path: ["maximumOrderAmount"]
 }).refine((data) => {
-  const now = new Date();
-  return data.expiryDate > now;
+  // Expiry date cannot be in the past (must be after today)
+  const endOfToday = getEndOfToday();
+  return data.expiryDate > endOfToday;
 }, {
-  message: "Expiry date must be in the future",
+  message: "Expiry date cannot be in the past. Please select a future date",
+  path: ["expiryDate"]
+}).refine((data) => {
+  // Expiry date cannot be more than 1 year from now
+  const maxDate = getMaxDate();
+  return data.expiryDate <= maxDate;
+}, {
+  message: "Expiry date cannot be more than 1 year from now",
+  path: ["expiryDate"]
+}).refine((data) => {
+  // Coupon must be valid for at least 1 day
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  return data.expiryDate >= tomorrow;
+}, {
+  message: "Coupon must be valid for at least 1 day from now",
   path: ["expiryDate"]
 }).refine((data) => {
   if (data.discountType === 'flat' && data.maximumOrderAmount) {
