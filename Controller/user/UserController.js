@@ -18,9 +18,14 @@ const loginGet = (req, res) => {
   delete req.session.loginErr;
   delete req.session.loginErr1;
 
+  // Check for blocked user message from query parameter
+  const blockedMessage = req.query.blocked === 'true' && req.query.message 
+    ? decodeURIComponent(req.query.message) 
+    : null;
+
   res.render("login", {
     loginErr1: loginErr1,
-    loginErr: loginErr,
+    loginErr: blockedMessage || loginErr,
   });
 };
 

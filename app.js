@@ -11,6 +11,7 @@ import path, { dirname } from "path";
 dotenv.config();
 import passport from "./Config/passport.js";
 import { attachUserToLocals } from "./middlewares/attachUser.js";
+import { startCacheCleanup, checkUserBlocked } from "./middlewares/blockCheckMiddleware.js";
 import connectDB from "./Config/databaseConnect.js"
 import adminRouter from "./Routes/AdminRoutes.js"
 
@@ -19,6 +20,9 @@ const PORT = process.env.PORT;
 
 
 connectDB()
+
+// Start cache cleanup for blocked user status (runs every 5 minutes)
+startCacheCleanup();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -42,10 +46,10 @@ app.use(session({
         collectionName: 'sessions'
     }),
     cookie: {
-        secure: true, // HTTPS required for secure cookies
+        // secure: true, // HTTPS required for secure cookies
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: 'none' // Important for cross-domain redirects like PayPal
+        // sameSite: 'none' // Important for cross-domain redirects like PayPal
     },
     name: 'ridepro.session' // Custom session name
 }))
@@ -65,6 +69,10 @@ app.use('/Images', express.static(path.join(process.cwd(), 'Images')));
 
 
 app.use(nocache());
+
+// Apply blocked user check globally to all routes
+// This checks if a logged-in user has been blocked by admin
+app.use(checkUserBlocked);
 
 // app.get('/',(req,res)=>res.redirect('/'))
 app.use('/',userRouter)
